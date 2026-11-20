@@ -284,3 +284,23 @@ model LandingPage {
   sortOrder      Int      @default(0)
   updatedAt      DateTime @updatedAt
 }
+
+model StoreCategory {
+  id       String         @id @default(cuid())
+  slug     String         @unique
+  name     String
+  products StoreProduct[]
+}
+
+model StoreProduct {
+  id         String        @id @default(cuid())
+  slug       String        @unique
+  title      String
+  summary    String
+  priceRial  BigInt
+  published  Boolean       @default(false)
+  categoryId String
+  category   StoreCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId, published])
+}
