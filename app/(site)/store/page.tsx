@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -11,7 +12,7 @@ const price = new Intl.NumberFormat("fa-IR");
 export default async function StorePage() {
   const products = await prisma.storeProduct.findMany({
     where: { published: true },
-    select: { id: true, title: true, summary: true, priceRial: true, category: { select: { name: true } } },
+    select: { id: true, slug: true, title: true, summary: true, priceRial: true, category: { select: { name: true } } },
     orderBy: [{ title: "asc" }, { id: "asc" }],
   });
 
@@ -23,7 +24,9 @@ export default async function StorePage() {
         {products.map((product) => (
           <li key={product.id} className="rounded-xl border p-6">
             <span className="muted">{product.category.name}</span>
-            <h2 className="my-2 text-xl font-bold">{product.title}</h2>
+            <h2 className="my-2 text-xl font-bold">
+              <Link href={"/store/" + encodeURIComponent(product.slug)}>{product.title}</Link>
+            </h2>
             <p>{product.summary}</p>
             <p className="mt-4">{price.format(product.priceRial)} ریال</p>
           </li>
