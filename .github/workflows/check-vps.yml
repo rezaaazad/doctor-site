@@ -1,0 +1,28 @@
+name: Check Doctor Site VPS
+on: workflow_dispatch
+permissions: {}
+jobs:
+  check:
+    if: github.ref == 'refs/heads/main'
+    environment: production-check
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Check app health over restricted SSH
+        env:
+          KEY: ${{ secrets.VPS_CHECK_KEY }}
+          KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+          HOST: ${{ vars.VPS_HOST }}
+          PORT: ${{ vars.VPS_PORT || '22' }}
+        run: |
+          set -eu
+          umask 077
+          dir=$(mktemp -d)
+          trap 'rm -rf "$dir"' EXIT
+          printf '%s\n' "$KEY" > "$dir/key"
+          printf '%s\n' "$KNOWN_HOSTS" > "$dir/hosts"
+          result=$(ssh -T -i "$dir/key" -o IdentitiesOnly=yes -o BatchMode=yes \
+            -o ConnectTimeout=10 -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/hosts" -p "$PORT" \
+            "doctor-check@$HOST" check-app)
+          test "$result" = healthy
