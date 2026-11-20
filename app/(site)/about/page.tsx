@@ -18,7 +18,7 @@ export default async function AboutPage() {
   const storyContent = story?.visible ? story.content : {};
   return (
     <div className="page">
-      <PageHero
+      <PageHero studioPhoto="workspace"
         crumb={tx(storyContent, "kicker", "fa", "درباره")}
         headline={tx(storyContent, "display", "fa", site.settings.siteName)}
         title={tx(storyContent, "title", "fa", site.settings.siteName)}

@@ -39,7 +39,7 @@ export function Chrome({
   const nav = links.filter((link) => link.href !== "/services");
 
   return (
-    <>
+    <div className="studio-site">
       <header className={stuck ? "topbar stuck" : "topbar"}>
         <button type="button" className="burger" aria-expanded={open} aria-label={open ? "بستن منو" : "باز کردن منو"} onClick={() => setOpen(true)}>
           <svg width="26" height="18" viewBox="0 0 28 22" fill="none" aria-hidden>
@@ -59,10 +59,11 @@ export function Chrome({
               ))}
             </div>
           </div>
+          {!nav.some((item) => item.href === "/store") && <Link href="/store">فروشگاه ابزارها</Link>}
           {nav.map((link) => <Link key={link.id} href={link.href}>{link.label}</Link>)}
         </nav>
         <div className="head-cta">
-          <Link className="pill solid head-btn" href="/contact">مشاوره رایگان</Link>
+          <Link className="pill solid head-btn" href="/store">فروشگاه</Link>
           {tel ? <a className="phone" href={tel}>{phone}</a> : null}
         </div>
       </header>
@@ -80,11 +81,12 @@ export function Chrome({
           {services.map((service) => (
             <Link key={service.id} href={service.href || "/services"} className="sub">{service.title}</Link>
           ))}
+          {!nav.some((item) => item.href === "/store") && <Link href="/store">فروشگاه ابزارها</Link>}
           {nav.map((link) => <Link key={link.id} href={link.href}>{link.label}</Link>)}
           <Link href="/contact">مشاوره رایگان</Link>
         </nav>
       </div>
       <main id="content">{children}</main>
-    </>
+    </div>
   );
 }
