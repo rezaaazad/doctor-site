@@ -2,11 +2,10 @@ import Link from "next/link";
 import { tx, tr, paragraphs, type Locale } from "@/lib/text";
 import type { SiteData } from "@/lib/site";
 
-const templateGhost = /^(web design|store|app|seo|branding|content hub|explore|about|about us)$/i;
 const fallbackTypes = ["سایت شرکتی", "فروشگاه اینترنتی", "اپلیکیشن", "سئو", "بازطراحی"];
 const fallbackBudgets = ["زیر ۲۰ میلیون", "۲۰ تا ۵۰ میلیون", "۵۰ تا ۱۰۰ میلیون", "بالای ۱۰۰ میلیون", "هنوز مشخص نیست"];
 
-export function HomeView({ site, locale }: { site: SiteData; locale: Locale }) {
+export function HomeView({ site, locale, catalog }: { catalog: React.ReactNode; site: SiteData; locale: Locale }) {
   const hero = site.sections.find((s) => s.page === "home" && s.key === "hero" && s.visible);
   const about = site.sections.find((s) => s.page === "home" && s.key === "aboutTeaser" && s.visible);
   const work = site.sections.find((s) => s.page === "portfolio" && s.key === "portfolioIntro");
@@ -20,15 +19,16 @@ export function HomeView({ site, locale }: { site: SiteData; locale: Locale }) {
     <>
       <section className="hero">
         <div className="hero-copy">
-          <p className="kicker">{tx(c, "kicker", locale, "دکتر سایت")}</p>
-          <h1 className="grad">{tx(c, "display", locale, "طراحی سایت، برنامه‌نویسی، برندینگ و مارکتینگ")}</h1>
-          <p className="hero-sub">{tx(c, "value", locale, "سایت معرفی، فروشگاه، پنل اختصاصی و سئو را برای کسب‌وکار ایرانی می‌سازیم. مشاوره اول رایگان است.")}</p>
+          <h1 className="grad">{locale === "en" ? "Digital tools for your online store" : "ابزارهای دیجیتال برای فروشگاه شما"}</h1>
+          <p className="hero-sub">{locale === "en" ? "Explore plugins and automation tools for running your store." : "افزونه‌ها و ابزارهای اتوماسیون برای مدیریت سفارش‌ها، موجودی و کارهای روزمرهٔ فروشگاه."}</p>
           <div className="hero-cta">
-            <Link className="pill solid" href="/contact">{tx(c, "ctaPrimary", locale, "مشاوره رایگان")}</Link>
-            <Link className="pill" href="/services#pricing">{tx(c, "ctaSecondary", locale, "شروع قیمت")}</Link>
+            <Link className="pill solid" href="/store">{locale === "en" ? "Explore products" : "مشاهده محصولات"}</Link>
+            <Link className="pill" href="/contact">{locale === "en" ? "Request a project" : "سفارش پروژه اختصاصی"}</Link>
           </div>
         </div>
+        <div className="studio-hero-photo" aria-hidden="true" />
       </section>
+      {catalog}
       <section className="offer" aria-label="خدمات">
         {site.services.slice(0, 4).map((service, index) => (
           <Link key={service.id} href={service.href || "/services"} className="offer-card">
@@ -42,18 +42,6 @@ export function HomeView({ site, locale }: { site: SiteData; locale: Locale }) {
       <div className="ribbon">
         <h2>{tx(c, "title", locale, "دکتر سایت، برای کسب‌وکاری که مشتری می‌خواهد")}</h2>
         <p>{tx(c, "trust", locale, "پاسخ در همان روز کاری")}</p>
-      </div>
-      <div className="bands">
-        {site.services.map((service, index) => (
-          <article key={service.id} className="band">
-            <div className="orb" aria-hidden />
-            <p className="ghost">{ghostWord(service.titleEn, service.title)}</p>
-            <p className="vlabel">{tr(locale, service.title, service.titleEn)}</p>
-            <p className="num">{String(index + 1).padStart(3, "0")}</p>
-            <Link className="more" href="/services">{more}</Link>
-            {service.priceLabel ? <p className="price">{service.priceLabel}</p> : null}
-          </article>
-        ))}
       </div>
       {about ? (
         <section className="block">
@@ -113,9 +101,9 @@ export function HomeView({ site, locale }: { site: SiteData; locale: Locale }) {
   );
 }
 
-export function PageHero({ crumb, title, headline, body }: { crumb: string; title: string; headline: string; body?: string }) {
+export function PageHero({ crumb, title, headline, body, studioPhoto }: { studioPhoto?: "workspace"; crumb: string; title: string; headline: string; body?: string }) {
   return (
-    <header className="page">
+    <header className="page" data-photo={studioPhoto}>
       <p className="crumb">خانه <span aria-hidden> ‹ </span> <b>{crumb}</b></p>
       <h1 className="grad">{headline}</h1>
       <p style={{ fontSize: 22, fontWeight: 600, marginTop: 12 }}>{title}</p>
@@ -130,12 +118,6 @@ function Icon({ n }: { n: number }) {
   if (n === 2) return <svg {...common}><circle cx="12" cy="12" r="8" /><path d="M8 14c1.2-2 2.6-3 4-3s2.8 1 4 3" /></svg>;
   if (n === 3) return <svg {...common}><path d="M4 16c2-6 4-8 8-8s6 2 8 8" /><path d="M8 16h8" /></svg>;
   return <svg {...common}><rect x="3" y="4" width="18" height="14" rx="2" /><path d="M3 9h18" /></svg>;
-}
-
-function ghostWord(label: string, title: string) {
-  const value = label.trim();
-  if (!value || templateGhost.test(value)) return title;
-  return value;
 }
 
 export { fallbackTypes, fallbackBudgets };

@@ -18,7 +18,7 @@ export default async function StorePage() {
 
   return (
     <div className="wrap pad pb-16">
-      <h1 className="mb-8 text-4xl font-bold">فروشگاه محصولات دیجیتال</h1>
+      <header className="studio-store-banner"><h1>فروشگاه محصولات دیجیتال</h1></header>
       {products.length === 0 && <p>هنوز محصولی برای فروش منتشر نشده است.</p>}
       <ul className="grid gap-6 sm:grid-cols-2">
         {products.map((product) => (
