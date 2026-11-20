@@ -1,0 +1,5 @@
+:80 {
+	encode gzip
+	header -Server
+	reverse_proxy app:3000
+}

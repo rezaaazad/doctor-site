@@ -1,0 +1,51 @@
+import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
+export const runtime = "nodejs";
+export const alt = "دکتر سایت";
+export const size = { width: 1200, height: 630 };
+export const contentType = "image/png";
+
+export default async function OpenGraphImage() {
+  const [regular, bold] = await Promise.all([
+    readFile(path.join(process.cwd(), "assets/Vazirmatn-Regular.ttf")),
+    readFile(path.join(process.cwd(), "assets/Vazirmatn-Bold.ttf")),
+  ]);
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "space-between",
+          background: "#070708",
+          color: "#f4f4f0",
+          padding: 72,
+          fontFamily: "Vazirmatn",
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 16, color: "#D6FF3F", fontSize: 28 }}>
+          <div style={{ width: 18, height: 18, borderRadius: 99, background: "#D6FF3F" }} />
+          دکتر سایت
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, lineHeight: 1.15 }}>
+          <span>ما کد می‌نویسیم،</span>
+          <span>
+            <span style={{ color: "#D6FF3F" }}>نه</span> قالب
+          </span>
+        </div>
+        <div style={{ fontSize: 28, color: "#a3a39a" }}>doctor-site.ir</div>
+      </div>
+    ),
+    {
+      ...size,
+      fonts: [
+        { name: "Vazirmatn", data: regular, weight: 400, style: "normal" },
+        { name: "Vazirmatn", data: bold, weight: 700, style: "normal" },
+      ],
+    },
+  );
+}

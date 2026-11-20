@@ -1,0 +1,35 @@
+{
+	email {$CADDY_EMAIL:admin@doctor-site.ir}
+}
+
+# HTTPS for the public names. Caddy inserts the ACME HTTP-01 route
+# ahead of the port-80 redirect below.
+https://doctor-site.ir, https://www.doctor-site.ir {
+	encode gzip zstd
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains"
+		-Server
+	}
+	reverse_proxy app:3000
+}
+
+https://reza.noorproxy.shop {
+	encode gzip zstd
+	header {
+		Strict-Transport-Security "max-age=15552000; includeSubDomains"
+		-Server
+	}
+	reverse_proxy wp-reza:80
+}
+
+:80 {
+	@domains host doctor-site.ir www.doctor-site.ir reza.noorproxy.shop
+	handle @domains {
+		redir https://{host}{uri} permanent
+	}
+	handle {
+		encode gzip
+		header -Server
+		reverse_proxy app:3000
+	}
+}
