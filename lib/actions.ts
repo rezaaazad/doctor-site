@@ -343,10 +343,18 @@ export async function saveMenu(_prev: ActionState, formData: FormData): Promise<
       visible: flag(formData, "visible"),
     });
     const id = text(formData, "id");
-    if (id) await prisma.menuItem.update({ where: { id }, data });
+    const parentId=text(formData,"parentId")||null;
+    if(parentId){
+      const items=await prisma.menuItem.findMany({select:{id:true,parentId:true,location:true}});
+      const byId=new Map(items.map(i=>[i.id,i]));
+      const visited=new Set([id]);let current:string|null=parentId;
+      while(current){const parent=byId.get(current);if(!parent||parent.location!==data.location||visited.has(current))throw new RequestError("منوی والد نامعتبر است.");visited.add(current);current=parent.parentId;}
+    }
+    const extended={...data,parentId,icon:text(formData,"icon").slice(0,80),highlight:flag(formData,"highlight"),newTab:flag(formData,"newTab")};
+    if (id) await prisma.menuItem.update({ where: { id }, data:extended });
     else {
       const last = await prisma.menuItem.aggregate({ where: { location: data.location }, _max: { sortOrder: true } });
-      await prisma.menuItem.create({ data: { ...data, sortOrder: (last._max.sortOrder ?? 0) + 10 } });
+      await prisma.menuItem.create({ data: { ...extended, sortOrder: (last._max.sortOrder ?? 0) + 10 } });
     }
     refresh();
     return { ok: true, message: "منو ذخیره شد." };

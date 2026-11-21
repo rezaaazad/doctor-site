@@ -1,6 +1,6 @@
 import { requireStaff } from "@/lib/auth";
 import { notFound } from "next/navigation";
-import { PostForm } from "@/components/admin/sales-forms";
+import { EditorialForm } from "@/components/admin/editorial-form";
 import { prisma } from "@/lib/db";
 
 export default async function EditPostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -11,7 +11,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ id: s
   return (
     <div className="grid gap-6">
       <h1 className="text-3xl font-black">ویرایش یادداشت</h1>
-      <PostForm item={post} />
+      <EditorialForm kind="post" id={id} />
     </div>
   );
 }

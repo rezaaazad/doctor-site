@@ -19,8 +19,10 @@ import { deleteMedia } from "@/lib/actions";
 
 export function MenuForm({
   item,
+  parents = [],
 }: {
-  item?: { id: string; label: string; labelEn: string; href: string; location: string; visible: boolean };
+  item?: { id: string; label: string; labelEn: string; href: string; location: string; visible: boolean; parentId?: string|null; icon?: string; highlight?:boolean; newTab?:boolean };
+  parents?: {id:string;label:string}[];
 }) {
   const [state, action] = useActionState(saveMenu, null as ActionState);
   return (
@@ -38,6 +40,10 @@ export function MenuForm({
         </Field>
       </div>
       <SwitchField name="visible" label="نمایان" defaultOn={item?.visible ?? true} />
+      <Field label="منوی والد"><select name="parentId" className="admin-field" defaultValue={item?.parentId??""}><option value="">بدون والد</option>{parents.filter(p=>p.id!==item?.id).map(p=><option key={p.id} value={p.id}>{p.label}</option>)}</select></Field>
+      <Field label="آیکون"><Input name="icon" defaultValue={item?.icon}/></Field>
+      <SwitchField name="highlight" label="برجسته" defaultOn={item?.highlight}/>
+      <SwitchField name="newTab" label="باز شدن در زبانه جدید" defaultOn={item?.newTab}/>
       <SaveButton />
       <FormMessage state={state} />
     </form>

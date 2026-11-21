@@ -10,11 +10,11 @@ export default async function MenuPage() {
   return (
     <div className="grid gap-6">
       <h1 className="text-3xl font-black">منو</h1>
-      <MenuForm />
+      <MenuForm parents={items} />
       <div className="grid gap-4">
         {items.map((item) => (
           <div key={item.id} className="grid gap-3">
-            <MenuForm item={item} />
+            <MenuForm item={item} parents={items} />
             <div className="flex justify-end gap-2">
               <OrderButtons kind="menu" id={item.id} />
               <ConfirmButton action={deleteMenu.bind(null, item.id)} title="این پیوند حذف شود؟" />
