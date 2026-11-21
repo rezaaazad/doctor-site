@@ -18,6 +18,14 @@ function pickVariant(variants: VariantView[], selected: Record<string, string>):
   return match ?? variants.find((v) => v.inStock) ?? variants[0] ?? null;
 }
 
+function valueAvailable(variants: VariantView[], selected: Record<string, string>, optionName: string, value: string) {
+  const trial = { ...selected, [optionName]: value };
+  return variants.some((v) => {
+    if (!v.inStock) return false;
+    return Object.entries(trial).every(([k, val]) => !val || v.values[k] === val);
+  });
+}
+
 export function ProductBuy({
   product,
   wished,
@@ -79,23 +87,37 @@ export function ProductBuy({
         <Price value={price} compareAt={compareAt} size="lg" />
         {product.installments ? <p className="text-[0.85rem] font-bold text-primary">قابل خرید اقساطی با اسنپ‌پی و ترب‌پی</p> : null}
 
+        {variant && product.variants.length > 1 ? (
+          <p className="rounded-xl bg-sunken px-3 py-2 text-[0.82rem] font-semibold text-muted">
+            گزینه انتخاب‌شده: <span className="text-fg">{variant.title}</span>
+            {variant.sku ? <span className="ms-2 font-normal" dir="ltr">({variant.sku})</span> : null}
+          </p>
+        ) : null}
+
         {options.map((opt) => (
-          <div key={opt.name}>
+          <div key={opt.name} role="radiogroup" aria-label={opt.name}>
             <p className="mb-2 text-[0.82rem] font-bold">{opt.name}</p>
             <div className="flex flex-wrap gap-2">
-              {opt.values.map((val) => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => setSelected((s) => ({ ...s, [opt.name]: val }))}
-                  className={cn(
-                    "rounded-full border px-3.5 py-2 text-[0.82rem] font-semibold transition",
-                    selected[opt.name] === val ? "border-primary bg-primary-soft text-primary" : "border-line bg-surface hover:border-primary/40",
-                  )}
-                >
-                  {val}
-                </button>
-              ))}
+              {opt.values.map((val) => {
+                const available = valueAvailable(product.variants, selected, opt.name, val);
+                const active = selected[opt.name] === val;
+                return (
+                  <button
+                    key={val}
+                    type="button"
+                    disabled={!available}
+                    aria-pressed={active}
+                    onClick={() => available && setSelected((s) => ({ ...s, [opt.name]: val }))}
+                    className={cn(
+                      "min-h-[44px] rounded-full border px-3.5 py-2 text-[0.82rem] font-semibold transition",
+                      active ? "border-primary bg-primary-soft text-primary ring-2 ring-primary/25" : "border-line bg-surface hover:border-primary/40",
+                      !available && "cursor-not-allowed border-line/60 bg-sunken/80 text-muted line-through opacity-55",
+                    )}
+                  >
+                    {val}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -133,7 +155,10 @@ export function ProductBuy({
         </ul>
       </div>
 
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface/95 p-3 shadow-3 backdrop-blur-md lg:hidden" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
+      <div
+        className="fixed inset-x-0 z-[45] border-t border-line bg-surface/95 p-3 shadow-3 backdrop-blur-md lg:hidden"
+        style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 0px))" }}
+      >
         <div className="wrap flex items-center gap-3">
           <Price value={price} compareAt={compareAt} showPercent={false} className="min-w-0 flex-1" />
           <AddToCartButton line={line} quantity={quantity} disabled={!inStock} size="lg" className="shrink-0" />

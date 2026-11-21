@@ -40,7 +40,7 @@ export default async function ProductPage({ params }: Props) {
   const specs = product.specs;
 
   return (
-    <div className="wrap pad pb-28 lg:pb-16">
+    <div className="wrap pad pb-[calc(10rem+env(safe-area-inset-bottom))] lg:pb-16">
       <ProductBuy product={product} wished={wished} guarantee={String(options.store.guaranteeText || "")} />
 
       <section className="mt-14 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]" data-reveal>

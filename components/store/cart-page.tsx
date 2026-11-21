@@ -6,6 +6,7 @@ import { useCart } from "@/components/store/cart";
 import { ProductImage } from "@/components/store/product-card";
 import { Price } from "@/components/ui/price";
 import { formatNumber, formatToman } from "@/lib/money";
+import { CheckoutTrustStrip } from "@/components/store/checkout-trust";
 
 export function CartPageClient() {
   const { lines, ready, subtotal, savings, setQuantity, remove } = useCart();
@@ -21,7 +22,7 @@ export function CartPageClient() {
     );
   }
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="grid gap-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:grid-cols-[minmax(0,1fr)_320px] lg:pb-0">
       <ul className="card divide-y divide-line">
         {lines.map((line) => (
           <li key={`${line.productId}:${line.variantId ?? ""}`} className="flex flex-wrap gap-4 p-4 md:flex-nowrap">
@@ -75,10 +76,25 @@ export function CartPageClient() {
           </div>
         </dl>
         <p className="mt-2 text-[0.78rem] text-muted">{formatNumber(lines.reduce((s, l) => s + l.quantity, 0))} قلم کالا</p>
-        <Link href="/checkout" className="btn btn-action btn-lg mt-5 w-full">
+        <CheckoutTrustStrip compact className="mt-4 lg:mt-5" />
+        <Link href="/checkout" className="btn btn-action btn-lg mt-5 hidden w-full min-h-[48px] lg:inline-flex">
           ادامه و تسویه
         </Link>
       </aside>
+      <div
+        className="fixed inset-x-0 z-[45] border-t border-line bg-surface/95 p-3 shadow-3 backdrop-blur-md lg:hidden"
+        style={{ bottom: "calc(64px + env(safe-area-inset-bottom, 0px))" }}
+      >
+        <div className="wrap flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.75rem] text-muted">جمع تقریبی</p>
+            <p className="num text-[1.05rem] font-extrabold">{formatToman(subtotal)}</p>
+          </div>
+          <Link href="/checkout" className="btn btn-action btn-lg shrink-0 min-h-[48px]">
+            تسویه
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

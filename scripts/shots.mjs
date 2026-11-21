@@ -1,4 +1,4 @@
-// Usage: node scripts/shots.mjs <outDir> <path>[,<path>...] [--mobile-only|--desktop-only] [--admin] [--account]
+// Usage: node scripts/shots.mjs <outDir> <path>[,<path>...] [--mobile-only|--desktop-only] [--admin] [--account] [--prep-cart]
 // Takes full-page screenshots at 390px and 1440px. With --admin it logs in using ADMIN_EMAIL/ADMIN_PASSWORD.
 import { chromium } from "playwright";
 import { mkdirSync } from "node:fs";
@@ -39,6 +39,12 @@ for (const size of sizes) {
     await page.fill('input[autocomplete="one-time-code"]', code || "");
     await page.getByRole("button", { name: /^ورود$/ }).click();
     await page.waitForURL((u) => u.pathname.startsWith("/account") && !u.pathname.startsWith("/account/login"), { timeout: 20000 });
+  }
+  if (flags.includes("--prep-cart")) {
+    await page.goto(`${base}/store/shop-theme-ronak`, { waitUntil: "networkidle" });
+    const add = page.locator("button", { hasText: "افزودن به سبد" }).first();
+    if (await add.isVisible({ timeout: 8000 }).catch(() => false)) await add.click();
+    await page.waitForTimeout(400);
   }
   for (const path of paths) {
     await page.goto(`${base}${path}`, { waitUntil: "networkidle" });

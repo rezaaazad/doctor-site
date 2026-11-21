@@ -35,15 +35,30 @@ export function StoreHero({ content, spotlight, dark, installmentsOn }: { conten
               {str(content.body)}
             </p>
             <div className="anim-rise mt-8 flex flex-wrap items-center gap-3" style={{ ["--d" as string]: 3 }}>
-              <Link href={str(content.primaryHref, "/store")} className="btn btn-action btn-lg">
+              <Link href={str(content.primaryHref, "/store")} className="btn btn-action btn-lg min-h-[52px]">
                 {str(content.primaryLabel, "مشاهده محصولات")}
                 <ArrowLeft className="size-[18px]" aria-hidden />
               </Link>
               {str(content.secondaryLabel) ? (
-                <Link href={str(content.secondaryHref, "/contact")} className={cn("btn btn-lg", dark ? "btn-light" : "btn-outline")}>
+                <Link href={str(content.secondaryHref, "/contact")} className={cn("btn btn-lg min-h-[52px]", dark ? "btn-light" : "btn-outline")}>
                   {str(content.secondaryLabel)}
                 </Link>
-              ) : null}
+              ) : (
+                <Link href="/contact" className={cn("btn btn-lg min-h-[52px]", dark ? "btn-light" : "btn-outline")}>
+                  مشاوره رایگان
+                </Link>
+              )}
+            </div>
+            <div className="anim-rise mt-4 flex flex-wrap gap-2" style={{ ["--d" as string]: 4 }}>
+              <Link href="/store?sort=sales" className={cn("chip font-bold", dark && "border-white/15 bg-white/8 text-white hover:border-white/30")}>
+                پرفروش‌ها
+              </Link>
+              <Link href="/store?sale=1" className={cn("chip font-bold", dark && "border-white/15 bg-white/8 text-white hover:border-white/30")}>
+                پیشنهادهای ویژه
+              </Link>
+              <Link href="/store" className={cn("chip font-bold", dark && "border-white/15 bg-white/8 text-white hover:border-white/30")}>
+                همه محصولات
+              </Link>
             </div>
             <div className={cn("anim-rise mt-8 flex flex-wrap items-center gap-x-6 gap-y-4", dark ? "text-white/70" : "text-muted")} style={{ ["--d" as string]: 4 }}>
               {str(content.rating) ? (
@@ -97,14 +112,20 @@ export function StoreHero({ content, spotlight, dark, installmentsOn }: { conten
                     <Price value={spotlight.price} compareAt={spotlight.compareAt} size="lg" />
                   </span>
                 </Link>
-                {!spotlight.hasVariants && spotlight.inStock ? (
+                {spotlight.inStock ? (
                   <div className="absolute bottom-[5.6rem] left-5 z-[2]">
-                    <AddToCartButton
-                      variant="action"
-                      className="shadow-[0_14px_30px_-10px_var(--action)]"
-                      label="خرید سریع"
-                      line={{ productId: spotlight.id, variantId: null, title: spotlight.title, variantTitle: "", slug: spotlight.slug, image: spotlight.image, price: spotlight.price, compareAt: spotlight.compareAt, type: spotlight.type, max: spotlight.stockLeft ?? 99 }}
-                    />
+                    {spotlight.hasVariants ? (
+                      <Link href={`/store/${spotlight.slug}`} className="btn btn-action shadow-[0_14px_30px_-10px_var(--action)]">
+                        انتخاب گزینه و خرید
+                      </Link>
+                    ) : (
+                      <AddToCartButton
+                        variant="action"
+                        className="shadow-[0_14px_30px_-10px_var(--action)]"
+                        label="خرید سریع"
+                        line={{ productId: spotlight.id, variantId: null, title: spotlight.title, variantTitle: "", slug: spotlight.slug, image: spotlight.image, price: spotlight.price, compareAt: spotlight.compareAt, type: spotlight.type, max: spotlight.stockLeft ?? 99 }}
+                      />
+                    )}
                   </div>
                 ) : null}
 

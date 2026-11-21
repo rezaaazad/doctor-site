@@ -37,6 +37,11 @@ export default async function StorePage({ searchParams }: { searchParams: Search
         <p className="kicker">فروشگاه دکتر سایت</p>
         <h1 className="mt-2 font-display text-[2rem] font-extrabold md:text-[2.6rem]">هر آنچه برای فروش آنلاین نیاز دارید</h1>
         <p className="mt-3 text-[0.95rem] leading-7 text-muted">قالب‌های آماده، افزونه، دوره آموزشی و پکیج راه‌اندازی — با پشتیبانی فارسی و اتصال به درگاه‌های ایرانی.</p>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Link href="/store?sort=sales" className="btn btn-action btn-sm">پرفروش‌ها</Link>
+          <Link href="/store?sale=1" className="btn btn-outline btn-sm">تخفیف‌دار</Link>
+          <Link href="/cart" className="btn btn-outline btn-sm">سبد خرید</Link>
+        </div>
       </div>
 
       <Suspense fallback={<div className="h-24 animate-pulse rounded-xl bg-sunken" />}>

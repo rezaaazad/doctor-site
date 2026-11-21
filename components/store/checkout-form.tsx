@@ -13,6 +13,7 @@ import type { GatewayOption } from "@/lib/payments";
 import type { CartLineView } from "@/lib/store/checkout";
 import type { ShippingOption } from "@/lib/store/checkout";
 import { cn } from "@/lib/utils";
+import { CheckoutTrustStrip } from "@/components/store/checkout-trust";
 
 type Props = {
   signedIn: boolean;
@@ -113,6 +114,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
 
   return (
     <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <CheckoutTrustStrip className="lg:col-span-2" />
       <div className="grid gap-5">
         <section className="card p-4 md:p-5">
           <h2 className="mb-4 font-display text-[1.1rem] font-extrabold">اطلاعات تماس</h2>
@@ -256,9 +258,11 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
             </span>
           </label>
           {error ? <p className="mt-2 text-[0.85rem] font-bold text-urgency">{error}</p> : null}
-          <button type="submit" disabled={pending || loading || !quote || !!quote.errors.length} className="btn btn-action btn-lg mt-4 w-full">
+          <CheckoutTrustStrip compact className="mt-4" />
+          <button type="submit" disabled={pending || loading || !quote || !!quote.errors.length} className="btn btn-action btn-lg mt-4 w-full min-h-[52px] text-base">
             {pending ? "در حال انتقال به درگاه…" : "پرداخت و ثبت سفارش"}
           </button>
+          <p className="mt-2 text-center text-[0.72rem] leading-5 text-muted">با زدن دکمه بالا به درگاه انتخاب‌شده منتقل می‌شوید. وضعیت پرداخت فقط پس از تأیید سرور ثبت می‌شود.</p>
         </section>
       </aside>
     </form>
