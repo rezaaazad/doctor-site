@@ -1,12 +1,5 @@
-import { ProfileForm } from "@/components/admin/settings-forms";
-import { requireSettings } from "@/lib/admin-data";
+import { redirect } from "next/navigation";
 
-export default async function ProfilePage() {
-  const settings = await requireSettings();
-  return (
-    <div className="grid gap-6">
-      <h1 className="text-3xl font-black">هویت و تماس</h1>
-      <ProfileForm settings={settings} />
-    </div>
-  );
+export default function Page() {
+  redirect("/admin/settings/general");
 }
