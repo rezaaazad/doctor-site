@@ -28,6 +28,8 @@ The first boot creates the admin user from `ADMIN_EMAIL` / `ADMIN_PASSWORD` and 
 - `npm test` — Vitest (lead form, payment callback verification for every gateway, admin auth and roles, Torob JWT, pricing engine)
 - `npm run seed:demo` — idempotent demo catalog (local/staging only)
 
+**Store vs admin branches:** storefront, cart/checkout, `/account`, payment callbacks and Torob/Snapp feeds live on `cursor/store-first-rebuild-04aa`. Admin UI (`/admin/*`) is built on `codex/admin-panel`. Shared schema and server modules for admin integration: [docs/API-CONTRACT.md](docs/API-CONTRACT.md).
+
 ## Production
 
 See [DEPLOY.md](DEPLOY.md). On the live VPS use `sudo bash ops/release.sh <commit-sha>`: verified database backup, app-only container swap, health checks and automatic rollback. Caddy and Postgres are never recreated. Design system: [docs/DESIGN-fa.md](docs/DESIGN-fa.md).
