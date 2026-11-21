@@ -11,3 +11,4 @@ coverage
 .vercel
 *.md
 !README.md
+scripts/dev

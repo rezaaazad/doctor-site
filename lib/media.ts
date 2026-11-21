@@ -37,7 +37,7 @@ export const FILE_TYPES: Record<string, string> = {
 };
 
 export const MAX_IMAGE_BYTES = 8 * 1024 * 1024;
-export const MAX_FILE_BYTES = 200 * 1024 * 1024;
+export const MAX_FILE_BYTES = 100 * 1024 * 1024;
 
 export function looksLikeImage(buf: Buffer, mime: string) {
   if (buf.length < 12) return false;
