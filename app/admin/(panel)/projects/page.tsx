@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import Link from "next/link";
 import { ConfirmButton, OrderButtons } from "@/components/admin/bits";
 import { deleteProject } from "@/lib/actions";
 import { prisma } from "@/lib/db";
 
 export default async function ProjectsAdminPage() {
+  await requireStaff("manage_content");
   const projects = await prisma.project.findMany({ orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-6">

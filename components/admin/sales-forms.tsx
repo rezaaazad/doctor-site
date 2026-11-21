@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { deleteFaq, deleteLogo, deletePackage, deletePost, deleteStat, deleteStep, saveFaq, saveLogo, savePackage, savePost, saveStat, saveStep } from "@/lib/actions-sales";
-import { ConfirmButton, Field, FormMessage, SaveButton, SwitchField } from "@/components/admin/bits";
+import { Field, FormMessage, SaveButton, SwitchField } from "@/components/admin/bits";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 

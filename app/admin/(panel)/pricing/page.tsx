@@ -1,3 +1,4 @@
+import { requireStaff } from "@/lib/auth";
 import { ConfirmButton } from "@/components/admin/bits";
 import { PackageForm } from "@/components/admin/sales-forms";
 import { deletePackage } from "@/lib/actions-sales";
@@ -5,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { asStringArray } from "@/lib/utils";
 
 export default async function PricingAdminPage() {
+  await requireStaff("manage_content");
   const items = await prisma.package.findMany({ orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-6">

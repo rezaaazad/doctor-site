@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { SectionForm } from "@/components/admin/section-form";
 import { prisma } from "@/lib/db";
 import { PAGE_LABELS } from "@/lib/section-forms";
 import { asObject } from "@/lib/utils";
 
 export default async function ContentPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
+  await requireStaff("manage_appearance");
   const query = await searchParams;
   const page = query.page && PAGE_LABELS[query.page] ? query.page : "home";
   const sections = await prisma.section.findMany({ where: { page }, orderBy: { sortOrder: "asc" } });

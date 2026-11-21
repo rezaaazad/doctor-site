@@ -11,7 +11,8 @@ const SECTIONS: { title: string; items: { href: string; label: string; descripti
   {
     title: "سایت",
     items: [
-      { href: "/admin/settings/identity", label: "هویت، تماس و نماد اعتماد", description: "نام، لوگو، فاویکن، تلفن، شبکه‌های اجتماعی، اینماد و کد آمار.", cap: "manage_settings" },
+      { href: "/admin/profile", label: "هویت، تماس و نماد اعتماد", description: "نام، تلفن، شبکه‌های اجتماعی و اینماد.", cap: "manage_settings" },
+      { href: "/admin/appearance", label: "لوگو و فونت", description: "لوگو، فاویکن، فونت و رنگ.", cap: "manage_appearance" },
       ...["theme", "header", "reading", "seo"].map((id) => ({ id, g: OPTION_GROUPS.find((g) => g.id === id)! })).map(({ id, g }) => ({ href: `/admin/settings/${id}`, label: g.label, description: g.description, cap: g.cap as Capability })),
     ],
   },
@@ -21,7 +22,7 @@ const SECTIONS: { title: string; items: { href: string; label: string; descripti
   },
   {
     title: "پرداخت و اتصال‌ها",
-    items: [{ href: "/admin/settings/payments", label: "درگاه‌ها، ترب و اسنپ‌شاپ", description: "زرین‌پال، اسنپ‌پی، ترب‌پی، کارت‌به‌کارت، پرداخت در محل، API ترب و کاتالوگ اسنپ‌شاپ.", cap: "manage_payments" }],
+    items: ["pay_zarinpal","pay_snapppay","pay_torobpay","pay_bank","pay_cod","pay_mock","torob","snappshop"].map(id=>OPTION_GROUPS.find(g=>g.id===id)!).map(g=>({href:`/admin/settings/${g.id}`,label:g.label,description:g.description,cap:g.cap as Capability})),
   },
   {
     title: "اطلاع‌رسانی",

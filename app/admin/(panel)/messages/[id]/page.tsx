@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { ConfirmButton } from "@/components/admin/bits";
 import { deleteMessage, setMessageRead } from "@/lib/actions";
 import { prisma } from "@/lib/db";
 
 export default async function MessagePage({ params }: { params: Promise<{ id: string }> }) {
+  await requireStaff("manage_leads");
   const { id } = await params;
   const message = await prisma.contactMessage.findUnique({ where: { id } });
   if (!message) notFound();

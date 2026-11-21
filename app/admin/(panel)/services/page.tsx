@@ -1,3 +1,4 @@
+import { requireStaff } from "@/lib/auth";
 import { ConfirmButton, OrderButtons } from "@/components/admin/bits";
 import { ServiceForm } from "@/components/admin/record-forms";
 import { deleteService } from "@/lib/actions";
@@ -5,6 +6,7 @@ import { prisma } from "@/lib/db";
 import { asStringArray } from "@/lib/utils";
 
 export default async function ServicesAdminPage() {
+  await requireStaff("manage_content");
   const services = await prisma.service.findMany({ orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-6">

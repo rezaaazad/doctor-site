@@ -56,7 +56,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     label: "سیستم",
     items: [
       { href: "/admin/settings", label: "تنظیمات", icon: "settings", cap: "manage_settings" },
-      { href: "/admin/settings/payments", label: "درگاه‌ها و اتصال‌ها", icon: "payments", cap: "manage_payments" },
+      { href: "/admin/settings/pay_zarinpal", label: "درگاه‌ها و اتصال‌ها", icon: "payments", cap: "manage_payments" },
       { href: "/admin/users", label: "کاربران و نقش‌ها", icon: "users", cap: "manage_users" },
       { href: "/admin/activity", label: "گزارش فعالیت", icon: "activity", cap: "view_activity" },
       { href: "/admin/tools", label: "پشتیبان و ابزارها", icon: "tools", cap: "manage_backups" },
