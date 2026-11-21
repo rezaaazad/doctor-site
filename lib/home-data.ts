@@ -50,6 +50,8 @@ export async function dealProduct(slug: string) {
 }
 
 export async function loadHome() {
+  const { promoteDueLandingPages } = await import("@/lib/editorial-public");
+  await promoteDueLandingPages();
   const [site, options] = await Promise.all([getSiteSafe(), getOptions()]);
   const rows = site.sections.filter((s) => s.page === "home" && s.visible && sectionDef("home", s.key)).sort((a, b) => a.sortOrder - b.sortOrder);
   const sections: HomeSection[] = await Promise.all(

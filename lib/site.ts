@@ -204,6 +204,8 @@ export async function getLocale(): Promise<Locale> {
 }
 
 export const getSite = cache(async (): Promise<SiteData> => {
+  const { promoteDueLandingPages, publicBlogPostWhere } = await import("@/lib/editorial-public");
+  await promoteDueLandingPages();
   const [settings, menus, sections, projects, services, testimonials, packages, steps, stats, logos, faqs, posts, seo] = await Promise.all([
     prisma.siteSettings.findUnique({ where: { id: "default" } }),
     prisma.menuItem.findMany({ orderBy: { sortOrder: "asc" } }),
@@ -216,7 +218,7 @@ export const getSite = cache(async (): Promise<SiteData> => {
     prisma.stat.findMany({ where: { visible: true }, orderBy: { sortOrder: "asc" } }),
     prisma.clientLogo.findMany({ where: { visible: true }, orderBy: { sortOrder: "asc" } }),
     prisma.faq.findMany({ where: { visible: true }, orderBy: { sortOrder: "asc" } }),
-    prisma.blogPost.findMany({ where: { published: true, status: "published", publishedAt: { lte: new Date() } }, orderBy: { publishedAt: "desc" }, take: 24 }),
+    prisma.blogPost.findMany({ where: publicBlogPostWhere(), orderBy: { publishedAt: "desc" }, take: 24 }),
     prisma.pageSeo.findMany(),
   ]);
   if (!settings) throw new Error("NO_SETTINGS");

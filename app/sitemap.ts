@@ -12,10 +12,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     lastModified: now,
   }));
   try {
+    const { promoteDueLandingPages, publicBlogPostWhere, publicLandingPageWhere } = await import("@/lib/editorial-public");
+    await promoteDueLandingPages();
     const [projects, posts, landings] = await Promise.all([
       prisma.project.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
-      prisma.blogPost.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
-      prisma.landingPage.findMany({ where: { published: true }, select: { slug: true, updatedAt: true } }),
+      prisma.blogPost.findMany({ where: publicBlogPostWhere(), select: { slug: true, updatedAt: true } }),
+      prisma.landingPage.findMany({ where: publicLandingPageWhere(), select: { slug: true, updatedAt: true } }),
     ]);
     return [
       ...staticRoutes,
