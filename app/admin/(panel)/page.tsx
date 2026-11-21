@@ -1,52 +1,48 @@
 import Link from "next/link";
-import { requireStaff } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { can } from "@/lib/roles";
-import { PageHeader, StatCard, Panel } from "@/components/admin/kit";
-import { formatToman } from "@/lib/money";
-import { sweepStalePendingOrders } from "@/lib/store/orders";
-
-export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const user = await requireStaff("view_dashboard");
-  await sweepStalePendingOrders();
-  const since = new Date(Date.now() - 7 * 86400_000);
-  const [pendingOrders, revenueWeek, leads, lowStock] = await Promise.all([
-    can(user.role, "manage_orders") ? prisma.order.count({ where: { status: { in: ["processing", "on_hold", "pending"] } } }) : 0,
-    can(user.role, "view_reports") ? prisma.order.aggregate({ where: { paymentStatus: "paid", createdAt: { gte: since } }, _sum: { totalRial: true } }) : null,
-    can(user.role, "manage_leads") ? prisma.contactMessage.count({ where: { status: "new" } }) : 0,
-    can(user.role, "manage_store") ? prisma.storeProduct.count({ where: { manageStock: true, stock: { lte: 3 }, published: true } }) : 0,
+  const [projects, services, unread, recent] = await Promise.all([
+    prisma.project.count(),
+    prisma.service.count(),
+    prisma.contactMessage.count({ where: { read: false } }),
+    prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" }, take: 5 }),
   ]);
+  const cards = [
+    ["نمونه‌کارها", projects, "/admin/projects"],
+    ["خدمات", services, "/admin/services"],
+    ["پیام نخوانده", unread, "/admin/messages"],
+  ] as const;
   return (
-    <>
-      <PageHeader title="پیشخوان" description="نمای کلی فروشگاه و سایت." />
-      <div className="mb-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        {can(user.role, "manage_orders") ? <StatCard label="سفارش‌های باز" value={pendingOrders.toLocaleString("fa-IR")} href="/admin/orders" tone="action" /> : null}
-        {revenueWeek ? <StatCard label="فروش ۷ روز" value={formatToman(revenueWeek._sum.totalRial ?? 0)} href="/admin/reports" tone="success" /> : null}
-        {can(user.role, "manage_leads") ? <StatCard label="لید جدید" value={leads.toLocaleString("fa-IR")} href="/admin/leads" tone="primary" /> : null}
-        {can(user.role, "manage_store") ? <StatCard label="موجودی کم" value={lowStock.toLocaleString("fa-IR")} href="/admin/products" tone="urgency" /> : null}
+    <div className="grid gap-8">
+      <div>
+        <p className="kicker">مدیریت</p>
+        <h1 className="mt-2 text-3xl font-black">همه‌چیز سایت از همین‌جا عوض می‌شود.</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-white/55">ذخیره، همان لحظه روی سایت دیده می‌شود. نیازی به ساخت دوباره نیست.</p>
       </div>
-      <Panel title="میانبرها">
-        <AdminShortcuts userRole={user.role} />
-      </Panel>
-    </>
-  );
-}
-
-function AdminShortcuts({ userRole }: { userRole: string }) {
-  const links = [
-    { href: "/admin/products", label: "محصولات", cap: "manage_store" },
-    { href: "/admin/orders", label: "سفارش‌ها", cap: "manage_orders" },
-    { href: "/admin/posts", label: "نوشته‌ها", cap: "manage_content" },
-    { href: "/admin/homepage", label: "صفحه اصلی", cap: "manage_appearance" },
-    { href: "/admin/settings", label: "تنظیمات", cap: "manage_settings" },
-  ].filter((l) => can(userRole, l.cap as import("@/lib/roles").Capability));
-  return (
-    <div className="flex flex-wrap gap-2">
-      {links.map((l) => (
-        <Link key={l.href} href={l.href} className="btn btn-outline btn-sm">{l.label}</Link>
-      ))}
+      <div className="grid gap-3 sm:grid-cols-3">
+        {cards.map(([label, value, href]) => (
+          <Link key={href} href={href} className="rounded-3xl border border-white/10 p-5 hover:border-[var(--accent)]">
+            <p className="text-sm text-white/50">{label}</p>
+            <p className="mt-3 text-4xl font-black text-[var(--accent)]">{value}</p>
+          </Link>
+        ))}
+      </div>
+      <section>
+        <h2 className="mb-3 font-bold">آخرین پیام‌ها</h2>
+        {recent.length === 0 ? <p className="text-sm text-white/45">صندوق خالی است.</p> : (
+          <ul className="divide-y divide-white/10 rounded-3xl border border-white/10">
+            {recent.map((message) => (
+              <li key={message.id}>
+                <Link href={`/admin/messages/${message.id}`} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
+                  <span>{message.name} — {message.subject || "بدون موضوع"}</span>
+                  <span className={message.read ? "text-white/35" : "text-[var(--accent)]"}>{message.read ? "خوانده" : "جدید"}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
