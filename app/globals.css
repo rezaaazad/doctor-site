@@ -359,3 +359,9 @@ html[data-motion="on"] .live-dot { animation: pulse-ring 1.8s infinite; }
   .no-print { display: none !important; }
   body { background: #fff; }
 }
+
+/* Admin */
+.admin-scroll { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.15) transparent; }
+html[data-motion="on"] .anim-slide-in { animation: slide-in-right 0.28s var(--ease-out) both; }
+@media (min-width: 768px) { .admin .input { min-height: 42px; font-size: 0.92rem; } }
+.admin textarea.input { min-height: 96px; }

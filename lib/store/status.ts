@@ -61,3 +61,32 @@ export const TRACKING_STEPS: { status: OrderStatus; label: string }[] = [
   { status: "shipped", label: "ارسال" },
   { status: "delivered", label: "تحویل" },
 ];
+
+export const TICKET_STATUSES: Record<string, { label: string; tone: string }> = {
+  open: { label: "در انتظار پاسخ", tone: "warn" },
+  customer_reply: { label: "پاسخ مشتری", tone: "warn" },
+  answered: { label: "پاسخ داده شد", tone: "success" },
+  closed: { label: "بسته", tone: "muted" },
+};
+
+export const TICKET_DEPARTMENTS: Record<string, string> = {
+  support: "پشتیبانی فنی",
+  sales: "فروش و مشاوره",
+  orders: "پیگیری سفارش",
+  finance: "مالی و اقساط",
+};
+
+export const LEAD_STATUSES: Record<string, { label: string; tone: string }> = {
+  new: { label: "جدید", tone: "info" },
+  contacted: { label: "تماس گرفته شد", tone: "warn" },
+  qualified: { label: "در حال مذاکره", tone: "gold" },
+  won: { label: "قرارداد بسته شد", tone: "success" },
+  lost: { label: "منتفی", tone: "muted" },
+};
+
+export const COMMENT_STATUSES: Record<string, { label: string; tone: string }> = {
+  pending: { label: "در انتظار تأیید", tone: "warn" },
+  approved: { label: "تأییدشده", tone: "success" },
+  spam: { label: "هرزنامه", tone: "danger" },
+  trash: { label: "زباله‌دان", tone: "muted" },
+};
