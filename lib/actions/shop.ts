@@ -5,8 +5,9 @@ import { prisma } from "@/lib/db";
 import { clientIp } from "@/lib/auth";
 import { getCustomer, logoutCustomer, requestOtp, safeCustomerNext, verifyOtp } from "@/lib/customer-auth";
 import { PROVINCES } from "@/lib/iran";
-import { startPayment, type GatewayId } from "@/lib/payments";
+import { callbackUrl, recordMockDecision, startPayment, type GatewayId } from "@/lib/payments";
 import { computeQuote, createOrder, sanitizeLines, type Quote } from "@/lib/store/checkout";
+export type { Quote } from "@/lib/store/checkout";
 import { RequestError } from "@/lib/utils";
 
 const hits = new Map<string, number[]>();
@@ -167,4 +168,11 @@ export async function verifyOtpAction(mobile: string, code: string, next: string
 export async function logoutCustomerAction() {
   await logoutCustomer();
   return { ok: true };
+}
+
+export async function mockPayDecisionAction(tx: string, approved: boolean) {
+  const payment = await prisma.payment.findUnique({ where: { transactionId: tx } });
+  if (!payment || !payment.authority.startsWith("mock_")) return { ok: false as const, message: "تراکنش پیدا نشد." };
+  await recordMockDecision(tx, approved);
+  return { ok: true as const, callback: `${callbackUrl(payment.gateway)}?tx=${encodeURIComponent(tx)}&state=${approved ? "OK" : "FAILED"}` };
 }

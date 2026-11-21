@@ -1,42 +1,81 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { cache } from "react";
+import { getProduct, productCards } from "@/lib/store/catalog";
+import { buildMetadata } from "@/lib/seo";
+import { getCustomer } from "@/lib/customer-auth";
+import { getOptions } from "@/lib/options";
 import { prisma } from "@/lib/db";
+import { parseBlocks } from "@/lib/blocks";
+import { Blocks } from "@/components/content/blocks";
+import { ProductBuy } from "@/components/store/product-buy";
+import { ProductGrid } from "@/components/store/product-card";
 
 export const dynamic = "force-dynamic";
 
 type Props = { params: Promise<{ slug: string }> };
 
-const getProduct = cache(async (slug: string) => {
-  const product = await prisma.storeProduct.findUnique({
-    where: { slug, published: true },
-    select: { title: true, summary: true, priceRial: true, category: { select: { name: true } } },
-  });
-  if (!product) notFound();
-  return product;
-});
-
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
-  return {
-    title: product.title,
-    description: product.summary,
-    alternates: { canonical: "/store/" + encodeURIComponent(slug) },
-  };
+  if (!product) return { title: "محصول پیدا نشد" };
+  return buildMetadata({
+    path: `/store/${slug}`,
+    title: product.seoTitle || product.title,
+    description: product.seoDescription || product.summary,
+  });
 }
 
 export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const product = await getProduct(slug);
+  if (!product) notFound();
+  const [customer, options, related] = await Promise.all([
+    getCustomer().catch(() => null),
+    getOptions(),
+    productCards({ categoryId: product.category.id, id: { not: product.id } }, [{ salesCount: "desc" }], 4),
+  ]);
+  const wished = customer ? !!(await prisma.wishlistItem.findUnique({ where: { customerId_productId: { customerId: customer.id, productId: product.id } } }).catch(() => null)) : false;
+  const blocks = parseBlocks(product.blocks);
+  const specs = product.specs;
+
   return (
-    <article className="wrap pad pb-16">
-      <Link href="/store" className="underline">همه محصولات</Link>
-      <p className="muted mt-8">{product.category.name}</p>
-      <h1 className="my-4 text-4xl font-bold">{product.title}</h1>
-      <p className="whitespace-pre-line">{product.summary}</p>
-      <p className="mt-6">قیمت محصول: {product.priceRial.toLocaleString("fa-IR")} ریال</p>
-    </article>
+    <div className="wrap pad pb-28 lg:pb-16">
+      <ProductBuy product={product} wished={wished} guarantee={String(options.store.guaranteeText || "")} />
+
+      <section className="mt-14 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]" data-reveal>
+        <div>
+          {product.description ? (
+            <div className="mb-8 whitespace-pre-line text-[0.95rem] leading-8 text-muted">{product.description}</div>
+          ) : null}
+          {blocks.length ? <Blocks blocks={blocks} /> : null}
+        </div>
+        {specs.length ? (
+          <aside className="card h-fit p-4">
+            <h2 className="mb-3 font-bold">مشخصات</h2>
+            <dl className="divide-y divide-line text-[0.85rem]">
+              {specs.map((s) => (
+                <div key={s.name} className="flex justify-between gap-3 py-2.5">
+                  <dt className="text-muted">{s.name}</dt>
+                  <dd className="font-semibold">{s.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        ) : null}
+      </section>
+
+      {related.length ? (
+        <section className="mt-16" data-reveal>
+          <div className="mb-5 flex items-end justify-between gap-4">
+            <h2 className="font-display text-[1.35rem] font-extrabold">محصولات مرتبط</h2>
+            <Link href={`/store/category/${product.category.slug}`} className="text-[0.82rem] font-semibold text-primary hover:underline">
+              همه {product.category.name}
+            </Link>
+          </div>
+          <ProductGrid products={related} className="lg:grid-cols-4" />
+        </section>
+      ) : null}
+    </div>
   );
 }
