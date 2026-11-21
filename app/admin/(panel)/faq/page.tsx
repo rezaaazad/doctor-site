@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { ConfirmButton } from "@/components/admin/bits";
 import { FaqForm } from "@/components/admin/sales-forms";
 import { deleteFaq } from "@/lib/actions-sales";
 import { prisma } from "@/lib/db";
 
 export default async function FaqAdminPage() {
+  await requireStaff("manage_content");
   const items = await prisma.faq.findMany({ orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-4">

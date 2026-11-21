@@ -90,6 +90,33 @@ Then open `https://doctor-site.ir` and `https://www.doctor-site.ir`.
 
 ## 6. Updates
 
+### Live server (doctor-site.ir): use `ops/release.sh`
+
+The production Caddy container also serves an unrelated WordPress site (`reza.noorproxy.shop`) on the same Docker network, and `/opt/doctor-site` is not a git checkout. Release a reviewed commit with:
+
+```bash
+sudo bash ops/release.sh <full-40-character-commit-sha>
+```
+
+The script:
+
+1. builds the image from a clean shallow clone of that exact commit (it never reads or changes `/opt/doctor-site` or its `.env`);
+2. takes a `pg_dump` into `/var/backups/doctor-site/` and proves it restores into a throwaway, network-less Postgres container (keeps the last 14 dumps);
+3. tags the running app image for rollback;
+4. replaces **only** the `app` container (`up -d --no-deps --no-build`); `db` and `caddy` are not recreated;
+5. checks `/api/health`, `/`, `/store` and `/admin/login` from inside the container, and starts the previous image again if any check fails.
+
+The app entrypoint runs `prisma migrate deploy`. All migrations in this repo are additive (new tables/columns with defaults), so the previous image keeps working against the migrated database after a rollback. The boot seed only fills rows that are missing; it never overwrites edited content.
+
+Never do these on the live server:
+
+- `docker compose down` (takes down the shared network and the WordPress neighbour);
+- replace `Caddyfile` with a version that lacks the `reza.noorproxy.shop` block;
+- recreate `caddy` or `db` as part of an app release;
+- open port 443 to the whole internet (the CDN firewall `centimelk-dockeruser-fw` allows only CDN ranges).
+
+### Fresh server
+
 ```bash
 git pull
 docker compose up -d --build
@@ -97,16 +124,22 @@ docker compose up -d --build
 
 Postgres data and uploaded media live in Docker volumes (`pgdata` and `uploads`) and survive rebuilds.
 
+### After the first release of the store version
+
+Log in to `/admin` and work through **Settings** (`/admin/settings`): identity and contact, theme, store, payment gateways (Zarinpal, Snapp Pay, Torob Pay, card-to-card, cash on delivery, test gateway), SMS (Kavenegar or Melipayamak, needed for customer OTP login), email (SMTP), Telegram and order notifications, Torob and Snapp Shop. Each gateway has a sandbox/stage switch; turn on the live mode only after a successful test order. The full admin guide is in `README.md`.
+
 ## 7. Backups
 
+`ops/release.sh` takes a verified dump before every release. For a scheduled backup, a database dump can also be downloaded from **Admin → Tools → Backup** (`/admin/tools`), or run on the server:
+
 ```bash
-docker compose exec db pg_dump -U doctor doctor_site > backup.sql
+docker compose exec -T db sh -c 'pg_dump -Fc -U "$POSTGRES_USER" -d "$POSTGRES_DB"' > backup.dump
 docker run --rm -v doctor-site_uploads:/data -v "$PWD":/backup alpine tar czf /backup/uploads.tgz -C /data .
 ```
 
 The volume name is prefixed with the compose project name. Check it with `docker volume ls`.
 
-Restore the database with `psql` inside the `db` container, and unpack uploads into the uploads volume.
+Restore a `.dump` with `pg_restore --clean --if-exists --no-owner -U "$POSTGRES_USER" -d "$POSTGRES_DB"` inside the `db` container (pipe the file to `docker compose exec -T db ...`), and unpack uploads into the uploads volume. Private digital-product files live under `private/` in the same volume, so the uploads archive covers them too.
 
 ## 8. Where things live
 

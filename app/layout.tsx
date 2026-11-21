@@ -1,13 +1,21 @@
+import { Reveal } from "@/components/ui/reveal";
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { getLocale, getSiteSafe } from "@/lib/site";
+import { getSiteSafe } from "@/lib/site";
+import { getOptions } from "@/lib/options";
+import { themeFonts, themeStyle } from "@/lib/theme";
 import { siteUrl } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const site = await getSiteSafe();
+  const [site, options] = await Promise.all([getSiteSafe(), getOptions()]);
+  const seo = options.seo;
+  const torob = options.torob;
+  const other: Record<string, string> = {};
+  if (seo.enamadVerification) other.enamad = String(seo.enamadVerification);
+  if (torob.verification) other["torob-site-verification"] = String(torob.verification);
   return {
     metadataBase: new URL(siteUrl()),
     applicationName: site.settings.siteName,
@@ -15,48 +23,41 @@ export async function generateMetadata(): Promise<Metadata> {
     creator: site.settings.siteName,
     robots: { index: true, follow: true },
     icons: site.settings.faviconUrl ? { icon: site.settings.faviconUrl, apple: site.settings.faviconUrl } : undefined,
+    verification: {
+      google: seo.googleVerification ? String(seo.googleVerification) : undefined,
+      yandex: seo.yandexVerification ? String(seo.yandexVerification) : undefined,
+      other: { ...(seo.bingVerification ? { "msvalidate.01": String(seo.bingVerification) } : {}), ...other },
+    },
   };
 }
 
 export async function generateViewport(): Promise<Viewport> {
-  const site = await getSiteSafe();
+  const options = await getOptions();
   return {
-    themeColor: site.settings.backgroundColor,
-    colorScheme: "dark",
+    themeColor: String(options.theme.ink || "#0B1530"),
+    colorScheme: "light",
     width: "device-width",
     initialScale: 1,
+    viewportFit: "cover",
   };
 }
 
+const REVEAL_SCRIPT = `(function(){try{var d=document.documentElement;if(d.dataset.motion==='on'&&'IntersectionObserver' in window&&!matchMedia('(prefers-reduced-motion: reduce)').matches)d.setAttribute('data-rv','')}catch(e){}})();`;
+
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [site, locale] = await Promise.all([getSiteSafe(), getLocale()]);
-  const font = site.settings.fontFamily === "Estedad" ? "Estedad" : "Vazirmatn";
-  const style = {
-    "--accent": site.settings.accentColor,
-    "--bg": site.settings.backgroundColor,
-    "--surface": site.settings.surfaceColor,
-    "--fg": site.settings.textColor,
-    "--muted": site.settings.mutedColor,
-    "--font-family": font,
-  } as React.CSSProperties;
+  const options = await getOptions();
+  const theme = options.theme;
   return (
-    <html lang={locale === "en" ? "en" : "fa"} dir={locale === "en" ? "ltr" : "rtl"} data-animate={site.settings.animationsEnabled ? "on" : "off"} style={style}>
+    <html lang="fa" dir="rtl" data-motion={theme.motion ? "on" : "off"} style={themeStyle(theme)} suppressHydrationWarning>
       <head>
-        <link
-          rel="preload"
-          href={font === "Estedad" ? "/fonts/Estedad-Variable.woff2" : "/fonts/Vazirmatn-Variable.woff2"}
-          as="font"
-          type="font/woff2"
-          crossOrigin="anonymous"
-        />
+        {themeFonts(theme).map((href) => (
+          <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="anonymous" />
+        ))}
+        <script dangerouslySetInnerHTML={{ __html: REVEAL_SCRIPT }} />
       </head>
       <body>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: "try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)document.documentElement.dataset.reduce='1'}catch(e){}",
-          }}
-        />
         {children}
+        <Reveal />
       </body>
     </html>
   );

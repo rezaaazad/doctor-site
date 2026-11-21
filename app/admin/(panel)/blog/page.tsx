@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import Link from "next/link";
 import { ConfirmButton } from "@/components/admin/bits";
 import { deletePost } from "@/lib/actions-sales";
 import { prisma } from "@/lib/db";
 
 export default async function BlogAdminPage() {
+  await requireStaff("manage_content");
   const posts = await prisma.blogPost.findMany({ orderBy: { publishedAt: "desc" } });
   return (
     <div className="grid gap-6">

@@ -1,26 +1,27 @@
 "use client";
 
 import { useActionState } from "react";
-import { loginAction, type ActionState } from "@/lib/actions";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { LockKeyhole } from "lucide-react";
+import { loginStaffAction } from "@/lib/actions/admin/session";
+import type { AdminState } from "@/lib/admin/action";
+import { Field, FormMessage, Input, SubmitButton } from "@/components/ui/form";
 
 export function LoginForm({ nextPath }: { nextPath: string }) {
-  const [state, action, pending] = useActionState(loginAction, null as ActionState);
+  const [state, action] = useActionState(loginStaffAction, null as AdminState);
   return (
     <form action={action} className="mt-8 grid gap-4">
       <input type="hidden" name="next" value={nextPath} />
-      <div className="grid gap-2">
-        <Label htmlFor="email">ایمیل</Label>
-        <Input id="email" name="email" type="email" autoComplete="username" required dir="ltr" />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="password">رمز عبور</Label>
-        <Input id="password" name="password" type="password" autoComplete="current-password" required />
-      </div>
-      {state && !state.ok ? <p className="text-sm text-red-300">{state.message}</p> : null}
-      <Button type="submit" disabled={pending}>{pending ? "در حال بررسی…" : "ورود"}</Button>
+      <Field label="ایمیل" htmlFor="email">
+        <Input id="email" name="email" type="email" autoComplete="username" required dir="ltr" placeholder="you@example.com" />
+      </Field>
+      <Field label="رمز عبور" htmlFor="password">
+        <Input id="password" name="password" type="password" autoComplete="current-password" required dir="ltr" />
+      </Field>
+      <FormMessage state={state} />
+      <SubmitButton variant="ink" size="lg" className="w-full" pendingText="در حال بررسی…">
+        <LockKeyhole className="size-4" aria-hidden />
+        ورود به پنل
+      </SubmitButton>
     </form>
   );
 }

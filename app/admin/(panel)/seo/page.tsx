@@ -1,7 +1,9 @@
+import { requireStaff } from "@/lib/auth";
 import { SeoForm } from "@/components/admin/record-forms";
 import { prisma } from "@/lib/db";
 
 export default async function SeoPage() {
+  await requireStaff("manage_seo");
   const pages = await prisma.pageSeo.findMany({ orderBy: { path: "asc" } });
   return (
     <div className="grid gap-6">

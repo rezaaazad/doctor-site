@@ -3,13 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { assertSameOrigin, getSessionUser } from "@/lib/auth";
+import { guardAction } from "@/lib/auth";
 
-async function guard() {
-  await assertSameOrigin();
-  const user = await getSessionUser();
-  if (!user) redirect("/admin/login");
-}
+async function guard() { await guardAction("publish_content"); }
 
 function text(formData: FormData, name: string) {
   return String(formData.get(name) ?? "");

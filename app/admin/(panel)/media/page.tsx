@@ -1,9 +1,13 @@
+import { requireStaff } from "@/lib/auth";
 import { MediaAltForm } from "@/components/admin/record-forms";
 import { UploadButton } from "@/components/admin/settings-forms";
 import { useMedia } from "@/lib/actions";
 import { prisma } from "@/lib/db";
+import { ActionForm } from "@/components/admin/forms";
+import { cropImage } from "@/lib/actions/admin/content";
 
 export default async function MediaPage() {
+  await requireStaff("manage_media");
   const media = await prisma.media.findMany({ orderBy: { createdAt: "desc" } });
   return (
     <div className="grid gap-8">
@@ -20,6 +24,7 @@ export default async function MediaPage() {
               <img src={`/media/${item.storedName}`} alt={item.alt} className="h-40 w-full rounded-2xl object-cover" />
               <p className="truncate text-xs text-white/40" dir="ltr">/media/{item.storedName}</p>
               <MediaAltForm id={item.id} alt={item.alt} />
+              {!item.isPrivate && item.width>0 && item.height>0 && <details><summary>برش تصویر</summary><ActionForm action={cropImage.bind(null,item.id)}>{[["x","چپ",0],["y","بالا",0],["width","عرض",item.width],["height","ارتفاع",item.height]].map(([key,label,v])=><label key={key}>{label}<input className="admin-field" name={String(key)} type="number" min={0} defaultValue={v}/></label>)}<button className="rounded-lg bg-primary text-white p-2">ایجاد تصویر برش‌خورده</button></ActionForm></details>}
               <div className="flex flex-wrap gap-2">
                 <form action={useMedia}>
                   <input type="hidden" name="url" value={`/media/${item.storedName}`} />

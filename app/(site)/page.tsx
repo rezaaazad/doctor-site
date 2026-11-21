@@ -1,14 +1,80 @@
 import type { Metadata } from "next";
-import { HomeView } from "@/components/site/home-view";
-import { getLocale, getSiteSafe } from "@/lib/site";
-import { pageMetadata } from "@/lib/seo";
+import { loadHome } from "@/lib/home-data";
+import { buildMetadata } from "@/lib/seo";
+import { contactLinks } from "@/lib/contact";
+import { StoreHero } from "@/components/home/hero";
+import {
+  BlogLatest,
+  CategoryGrid,
+  ClientLogos,
+  DealOfDay,
+  FaqList,
+  InstallmentsBanner,
+  LeadSection,
+  PortfolioStrip,
+  PricingPlans,
+  ProcessSteps,
+  ProductsSection,
+  ServicesStrip,
+  SocialProof,
+  TrustBar,
+} from "@/components/home/sections";
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const site = await getSiteSafe();
-  return pageMetadata(site.seo.find((entry) => entry.id === "home"), site.settings, "/");
+  return buildMetadata({ path: "/" });
 }
 
 export default async function HomePage() {
-  const [site, locale] = await Promise.all([getSiteSafe(), getLocale()]);
-  return <HomeView site={site} locale={locale} />;
+  const data = await loadHome();
+  const { site, options } = data;
+  const contact = contactLinks(site.settings);
+  const projects = site.projects;
+  const featuredProjects = projects.filter((p) => p.featured);
+
+  return (
+    <div className="pb-10">
+      {data.sections.map((section) => {
+        const c = section.content;
+        switch (section.key) {
+          case "storeHero":
+            return <StoreHero key={section.id} content={c} spotlight={data.spotlight} dark={Boolean(options.theme.darkHero)} installmentsOn={data.installmentsOn} />;
+          case "trustBar":
+            return <TrustBar key={section.id} content={c} />;
+          case "categoryGrid":
+            return <CategoryGrid key={section.id} content={c} categories={data.categories} />;
+          case "dealOfDay":
+            return <DealOfDay key={section.id} content={c} deal={data.deal} />;
+          case "featuredProducts":
+          case "newArrivals":
+            return <ProductsSection key={section.id} content={c} products={section.products ?? []} />;
+          case "bestsellers":
+            return <ProductsSection key={section.id} content={c} products={section.products ?? []} layout="row" />;
+          case "installments":
+            return <InstallmentsBanner key={section.id} content={c} enabled={data.installmentsOn} />;
+          case "socialProof":
+            return <SocialProof key={section.id} content={c} testimonials={site.testimonials.filter((t) => t.visible)} reviews={data.reviews} stats={data.reviewStats} />;
+          case "servicesStrip":
+            return <ServicesStrip key={section.id} content={c} services={site.services.filter((s) => s.visible)} />;
+          case "portfolioStrip":
+            return <PortfolioStrip key={section.id} content={c} projects={featuredProjects.length ? featuredProjects : projects} />;
+          case "processSteps":
+            return <ProcessSteps key={section.id} content={c} steps={site.steps} />;
+          case "pricingPlans":
+            return <PricingPlans key={section.id} content={c} packages={site.packages} />;
+          case "clientLogos":
+            return <ClientLogos key={section.id} content={c} logos={site.logos} />;
+          case "faqList":
+            return <FaqList key={section.id} content={c} faqs={site.faqs} />;
+          case "leadForm":
+            return <LeadSection key={section.id} content={c} phone={site.settings.phone} phoneHref={contact.phoneHref} />;
+          case "blogLatest":
+            return <BlogLatest key={section.id} content={c} posts={site.posts} />;
+          default:
+            return null;
+        }
+      })}
+    </div>
+  );
 }

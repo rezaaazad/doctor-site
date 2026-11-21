@@ -13,6 +13,7 @@ const MIME: Record<string, string> = {
   gif: "image/gif",
   avif: "image/avif",
   ico: "image/x-icon",
+  svg: "image/svg+xml",
 };
 
 export async function GET(_request: Request, context: { params: Promise<{ name: string }> }) {
@@ -30,6 +31,7 @@ export async function GET(_request: Request, context: { params: Promise<{ name: 
         "Content-Length": String(info.size),
         "Cache-Control": "public, max-age=31536000, immutable",
         "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'; img-src data:",
       },
     });
   } catch {

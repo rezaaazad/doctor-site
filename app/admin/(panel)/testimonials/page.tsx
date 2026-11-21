@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { ConfirmButton, OrderButtons } from "@/components/admin/bits";
 import { TestimonialForm } from "@/components/admin/record-forms";
 import { deleteTestimonial } from "@/lib/actions";
 import { prisma } from "@/lib/db";
 
 export default async function TestimonialsPage() {
+  await requireStaff("manage_content");
   const items = await prisma.testimonial.findMany({ orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-6">

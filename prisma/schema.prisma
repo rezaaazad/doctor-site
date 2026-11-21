@@ -8,14 +8,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────── Staff & auth ───────────────────────────────
+
 model AdminUser {
-  id           String    @id @default(cuid())
-  email        String    @unique
+  id           String        @id @default(cuid())
+  email        String        @unique
   name         String
   passwordHash String
+  role         String        @default("admin")
+  active       Boolean       @default(true)
+  lastLoginAt  DateTime?
   sessions     Session[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  activity     ActivityLog[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Session {
@@ -37,6 +43,31 @@ model LoginAttempt {
 
   @@index([ip, createdAt])
 }
+
+model ActivityLog {
+  id        String     @id @default(cuid())
+  userId    String?
+  user      AdminUser? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userName  String     @default("")
+  action    String
+  entity    String     @default("")
+  entityId  String     @default("")
+  summary   String     @default("")
+  ip        String     @default("")
+  createdAt DateTime   @default(now())
+
+  @@index([createdAt])
+  @@index([entity, entityId])
+}
+
+// Key/value settings store (like wp_options). Values are validated by code-side schemas with defaults.
+model Option {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────── Site content ───────────────────────────────
 
 model SiteSettings {
   id                String   @id @default("default")
@@ -83,6 +114,10 @@ model MenuItem {
   location  String
   sortOrder Int
   visible   Boolean @default(true)
+  parentId  String?
+  icon      String  @default("")
+  highlight Boolean @default(false)
+  newTab    Boolean @default(false)
 }
 
 model Section {
@@ -121,6 +156,7 @@ model Project {
   sortOrder      Int      @default(0)
   seoTitle       String   @default("")
   seoDescription String   @default("")
+  results        Json     @default("[]")
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -137,6 +173,7 @@ model Service {
   priceLabel String  @default("")
   includes   Json    @default("[]")
   href       String  @default("/services")
+  icon       String  @default("")
   visible    Boolean @default(true)
   sortOrder  Int     @default(0)
 }
@@ -148,17 +185,20 @@ model Testimonial {
   roleEn    String  @default("")
   quote     String
   quoteEn   String  @default("")
+  avatarUrl String  @default("")
+  rating    Int     @default(5)
   visible   Boolean @default(true)
   sortOrder Int     @default(0)
 }
 
 model PageSeo {
-  id          String @id
+  id          String  @id
   path        String
   title       String
   description String
-  ogImage     String @default("")
-  keywords    String @default("")
+  ogImage     String  @default("")
+  keywords    String  @default("")
+  noindex     Boolean @default(false)
 }
 
 model Media {
@@ -168,25 +208,35 @@ model Media {
   mime       String
   size       Int
   alt        String   @default("")
+  width      Int      @default(0)
+  height     Int      @default(0)
+  folder     String   @default("")
+  isPrivate  Boolean  @default(false)
   createdAt  DateTime @default(now())
+
+  @@index([createdAt])
 }
 
 model ContactMessage {
-  id        String   @id @default(cuid())
-  name      String
-  email     String
+  id          String   @id @default(cuid())
+  name        String
+  email       String
   phone       String   @default("")
   subject     String   @default("")
   projectType String   @default("")
   budget      String   @default("")
   message     String
-  ip        String   @default("")
-  read      Boolean  @default(false)
-  createdAt DateTime @default(now())
+  ip          String   @default("")
+  read        Boolean  @default(false)
+  status      String   @default("new")
+  source      String   @default("")
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
 
   @@index([createdAt])
   @@index([read])
   @@index([ip, createdAt])
+  @@index([status])
 }
 
 model Package {
@@ -196,6 +246,9 @@ model Package {
   summary     String  @default("")
   features    Json    @default("[]")
   highlighted Boolean @default(false)
+  badge       String  @default("")
+  ctaLabel    String  @default("")
+  ctaHref     String  @default("")
   visible     Boolean @default(true)
   sortOrder   Int     @default(0)
 }
@@ -221,6 +274,7 @@ model ClientLogo {
   id        String  @id @default(cuid())
   name      String
   imageUrl  String  @default("")
+  url       String  @default("")
   visible   Boolean @default(true)
   sortOrder Int     @default(0)
 }
@@ -229,23 +283,77 @@ model Faq {
   id        String  @id @default(cuid())
   question  String
   answer    String
+  group     String  @default("general")
   visible   Boolean @default(true)
   sortOrder Int     @default(0)
 }
 
 model BlogPost {
-  id             String   @id @default(cuid())
-  slug           String   @unique
+  id             String     @id @default(cuid())
+  slug           String     @unique
   title          String
   excerpt        String
   body           String
-  coverUrl       String   @default("")
-  published      Boolean  @default(true)
-  publishedAt    DateTime @default(now())
-  seoTitle       String   @default("")
-  seoDescription String   @default("")
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  coverUrl       String     @default("")
+  published      Boolean    @default(true)
+  publishedAt    DateTime   @default(now())
+  seoTitle       String     @default("")
+  seoDescription String     @default("")
+  blocks         Json?
+  status         String     @default("published")
+  authorName     String     @default("")
+  allowComments  Boolean    @default(true)
+  views          Int        @default(0)
+  terms          Term[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([status, publishedAt])
+}
+
+model Term {
+  id          String     @id @default(cuid())
+  taxonomy    String
+  slug        String
+  name        String
+  description String     @default("")
+  parentId    String?
+  sortOrder   Int        @default(0)
+  posts       BlogPost[]
+
+  @@unique([taxonomy, slug])
+}
+
+model Revision {
+  id         String   @id @default(cuid())
+  entityType String
+  entityId   String
+  data       Json
+  authorName String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId, createdAt])
+}
+
+model Comment {
+  id         String    @id @default(cuid())
+  targetType String
+  targetId   String
+  parentId   String?
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  name       String
+  email      String    @default("")
+  body       String
+  rating     Int?
+  status     String    @default("pending")
+  isStaff    Boolean   @default(false)
+  verified   Boolean   @default(false)
+  ip         String    @default("")
+  createdAt  DateTime  @default(now())
+
+  @@index([targetType, targetId, status])
+  @@index([status, createdAt])
 }
 
 model PageView {
@@ -266,41 +374,458 @@ model PageView {
 model NewsletterSubscriber {
   id        String   @id @default(cuid())
   email     String   @unique
+  source    String   @default("")
   createdAt DateTime @default(now())
 }
 
 model LandingPage {
-  id             String   @id @default(cuid())
-  slug           String   @unique
+  id             String    @id @default(cuid())
+  slug           String    @unique
   title          String
   h1             String
   excerpt        String
   body           String
-  faqs           Json     @default("[]")
-  seoTitle       String   @default("")
-  seoDescription String   @default("")
-  keywords       String   @default("")
-  published      Boolean  @default(true)
-  sortOrder      Int      @default(0)
-  updatedAt      DateTime @updatedAt
+  faqs           Json      @default("[]")
+  seoTitle       String    @default("")
+  seoDescription String    @default("")
+  keywords       String    @default("")
+  published      Boolean   @default(true)
+  sortOrder      Int       @default(0)
+  blocks         Json?
+  status         String    @default("published")
+  publishAt      DateTime?
+  template       String    @default("landing")
+  heroImage      String    @default("")
+  ctaLabel       String    @default("")
+  ctaHref        String    @default("")
+  updatedAt      DateTime  @updatedAt
 }
 
+model Redirect {
+  id        String   @id @default(cuid())
+  from      String   @unique
+  to        String
+  code      Int      @default(301)
+  hits      Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────── Store catalog ───────────────────────────────
+
 model StoreCategory {
-  id       String         @id @default(cuid())
-  slug     String         @unique
-  name     String
-  products StoreProduct[]
+  id             String         @id @default(cuid())
+  slug           String         @unique
+  name           String
+  description    String         @default("")
+  imageUrl       String         @default("")
+  icon           String         @default("")
+  parentId       String?
+  featured       Boolean        @default(false)
+  visible        Boolean        @default(true)
+  sortOrder      Int            @default(0)
+  seoTitle       String         @default("")
+  seoDescription String         @default("")
+  torobName      String         @default("")
+  products       StoreProduct[]
 }
 
 model StoreProduct {
-  id         String        @id @default(cuid())
-  slug       String        @unique
-  title      String
-  summary    String
-  priceRial  BigInt
-  published  Boolean       @default(false)
-  categoryId String
-  category   StoreCategory @relation(fields: [categoryId], references: [id])
+  id             String           @id @default(cuid())
+  code           Int              @unique @default(autoincrement())
+  slug           String           @unique
+  title          String
+  summary        String
+  priceRial      BigInt
+  published      Boolean          @default(false)
+  categoryId     String
+  category       StoreCategory    @relation(fields: [categoryId], references: [id])
+  subtitle       String           @default("")
+  description    String           @default("")
+  blocks         Json?
+  type           String           @default("digital")
+  sku            String           @default("")
+  compareAtRial  BigInt?
+  saleEndsAt     DateTime?
+  images         Json             @default("[]")
+  specs          Json             @default("[]")
+  options        Json             @default("[]")
+  tags           Json             @default("[]")
+  brand          String           @default("")
+  guarantee      String           @default("")
+  manageStock    Boolean          @default(false)
+  stock          Int              @default(0)
+  lowStockAt     Int              @default(3)
+  allowBackorder Boolean          @default(false)
+  weightGrams    Int              @default(0)
+  featured       Boolean          @default(false)
+  badge          String           @default("")
+  salesCount     Int              @default(0)
+  ratingAvg      Float            @default(0)
+  ratingCount    Int              @default(0)
+  downloadUrl    String           @default("")
+  downloadMedia  String           @default("")
+  downloadLimit  Int              @default(5)
+  downloadDays   Int              @default(30)
+  licenseNote    String           @default("")
+  maxPerOrder    Int              @default(0)
+  installments   Boolean          @default(true)
+  torobEnabled   Boolean          @default(true)
+  snappEnabled   Boolean          @default(true)
+  seoTitle       String           @default("")
+  seoDescription String           @default("")
+  sortOrder      Int              @default(0)
+  variants       ProductVariant[]
+  orderItems     OrderItem[]
+  wishlist       WishlistItem[]
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
 
   @@index([categoryId, published])
+  @@index([published, featured])
+  @@index([published, createdAt])
+}
+
+model ProductVariant {
+  id            String       @id @default(cuid())
+  productId     String
+  product       StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  title         String
+  sku           String       @default("")
+  values        Json         @default("{}")
+  priceRial     BigInt
+  compareAtRial BigInt?
+  stock         Int          @default(0)
+  imageUrl      String       @default("")
+  active        Boolean      @default(true)
+  sortOrder     Int          @default(0)
+  orderItems    OrderItem[]
+
+  @@index([productId])
+}
+
+model ProductAttribute {
+  id        String @id @default(cuid())
+  name      String
+  slug      String @unique
+  values    Json   @default("[]")
+  sortOrder Int    @default(0)
+}
+
+model Coupon {
+  id             String    @id @default(cuid())
+  code           String    @unique
+  description    String    @default("")
+  type           String    @default("percent")
+  amount         BigInt    @default(0)
+  maxDiscount    BigInt?
+  minSubtotal    BigInt    @default(0)
+  usageLimit     Int?
+  perCustomer    Int?
+  usedCount      Int       @default(0)
+  productIds     Json      @default("[]")
+  categoryIds    Json      @default("[]")
+  customerMobile String    @default("")
+  startsAt       DateTime?
+  expiresAt      DateTime?
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+}
+
+model ShippingZone {
+  id        String           @id @default(cuid())
+  name      String
+  provinces Json             @default("[]")
+  sortOrder Int              @default(0)
+  methods   ShippingMethod[]
+}
+
+model ShippingMethod {
+  id         String       @id @default(cuid())
+  zoneId     String
+  zone       ShippingZone @relation(fields: [zoneId], references: [id], onDelete: Cascade)
+  title      String
+  kind       String       @default("flat")
+  costRial   BigInt       @default(0)
+  perKgRial  BigInt       @default(0)
+  freeAbove  BigInt?
+  minDays    Int          @default(1)
+  maxDays    Int          @default(3)
+  active     Boolean      @default(true)
+  sortOrder  Int          @default(0)
+}
+
+model TaxRate {
+  id        String  @id @default(cuid())
+  name      String
+  rateBp    Int
+  provinces Json    @default("[]")
+  appliesTo String  @default("all")
+  active    Boolean @default(true)
+  sortOrder Int     @default(0)
+}
+
+// ─────────────────────────────── Customers ───────────────────────────────
+
+model Customer {
+  id            String              @id @default(cuid())
+  mobile        String              @unique
+  name          String              @default("")
+  email         String              @default("")
+  nationalCode  String              @default("")
+  walletRial    BigInt              @default(0)
+  smsOptIn      Boolean             @default(true)
+  blocked       Boolean             @default(false)
+  note          String              @default("")
+  lastLoginAt   DateTime?
+  createdAt     DateTime            @default(now())
+  sessions      CustomerSession[]
+  addresses     Address[]
+  orders        Order[]
+  wishlist      WishlistItem[]
+  comments      Comment[]
+  tickets       Ticket[]
+  notifications Notification[]
+  wallet        WalletTransaction[]
+}
+
+model CustomerSession {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  mobile    String
+  codeHash  String
+  attempts  Int      @default(0)
+  ip        String   @default("")
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime @default(now())
+
+  @@index([mobile, createdAt])
+  @@index([ip, createdAt])
+}
+
+model Address {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title      String   @default("")
+  receiver   String
+  mobile     String
+  province   String
+  city       String
+  line       String
+  postalCode String   @default("")
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model WishlistItem {
+  id         String       @id @default(cuid())
+  customerId String
+  customer   Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime     @default(now())
+
+  @@unique([customerId, productId])
+}
+
+model WalletTransaction {
+  id         String   @id @default(cuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  amountRial BigInt
+  reason     String
+  orderId    String?
+  createdAt  DateTime @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+model Notification {
+  id         String    @id @default(cuid())
+  customerId String
+  customer   Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  title      String
+  body       String    @default("")
+  href       String    @default("")
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([customerId, createdAt])
+}
+
+model Ticket {
+  id         String          @id @default(cuid())
+  number     Int             @unique @default(autoincrement())
+  customerId String
+  customer   Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subject    String
+  department String          @default("support")
+  status     String          @default("open")
+  priority   String          @default("normal")
+  orderId    String?
+  messages   TicketMessage[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([status, updatedAt])
+  @@index([customerId])
+}
+
+model TicketMessage {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  fromStaff  Boolean  @default(false)
+  authorName String   @default("")
+  body       String
+  createdAt  DateTime @default(now())
+
+  @@index([ticketId, createdAt])
+}
+
+// ─────────────────────────────── Orders & payments ───────────────────────────────
+
+model Order {
+  id             String          @id @default(cuid())
+  number         Int             @unique @default(autoincrement())
+  accessKey      String          @unique
+  customerId     String?
+  customer       Customer?       @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  status         String          @default("pending")
+  paymentStatus  String          @default("unpaid")
+  gateway        String          @default("")
+  currency       String          @default("IRR")
+  subtotalRial   BigInt
+  discountRial   BigInt          @default(0)
+  shippingRial   BigInt          @default(0)
+  taxRial        BigInt          @default(0)
+  feeRial        BigInt          @default(0)
+  walletRial     BigInt          @default(0)
+  totalRial      BigInt
+  refundedRial   BigInt          @default(0)
+  couponCode     String          @default("")
+  shippingTitle  String          @default("")
+  shippingMethod String          @default("")
+  needsShipping  Boolean         @default(false)
+  name           String
+  mobile         String
+  email          String          @default("")
+  province       String          @default("")
+  city           String          @default("")
+  addressLine    String          @default("")
+  postalCode     String          @default("")
+  customerNote   String          @default("")
+  trackingCode   String          @default("")
+  carrier        String          @default("")
+  stockReduced   Boolean         @default(false)
+  ip             String          @default("")
+  source         String          @default("web")
+  paidAt         DateTime?
+  completedAt    DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  items          OrderItem[]
+  notes          OrderNote[]
+  payments       Payment[]
+  refunds        Refund[]
+  downloads      DownloadGrant[]
+
+  @@index([status, createdAt])
+  @@index([customerId, createdAt])
+  @@index([paymentStatus, createdAt])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id           String          @id @default(cuid())
+  orderId      String
+  order        Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String?
+  product      StoreProduct?   @relation(fields: [productId], references: [id], onDelete: SetNull)
+  variantId    String?
+  variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  title        String
+  variantTitle String          @default("")
+  sku          String          @default("")
+  type         String          @default("physical")
+  category     String          @default("")
+  unitRial     BigInt
+  quantity     Int
+  totalRial    BigInt
+  downloads    DownloadGrant[]
+}
+
+model OrderNote {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  body       String
+  toCustomer Boolean  @default(false)
+  system     Boolean  @default(false)
+  authorName String   @default("")
+  createdAt  DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  orderId       String
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  gateway       String
+  amountRial    BigInt
+  status        String   @default("initiated")
+  transactionId String   @unique
+  authority     String   @default("")
+  refId         String   @default("")
+  cardPan       String   @default("")
+  sandbox       Boolean  @default(false)
+  message       String   @default("")
+  raw           Json     @default("{}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([orderId])
+  @@index([gateway, authority])
+  @@index([status, createdAt])
+}
+
+model Refund {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  amountRial BigInt
+  method     String   @default("manual")
+  reason     String   @default("")
+  authorName String   @default("")
+  createdAt  DateTime @default(now())
+}
+
+model DownloadGrant {
+  id          String    @id @default(cuid())
+  orderId     String
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderItemId String
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  token       String    @unique
+  title       String
+  remaining   Int
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([orderId])
 }

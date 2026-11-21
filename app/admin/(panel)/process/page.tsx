@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { ConfirmButton } from "@/components/admin/bits";
 import { LogoForm, StatForm, StepForm } from "@/components/admin/sales-forms";
 import { deleteLogo, deleteStat, deleteStep } from "@/lib/actions-sales";
 import { prisma } from "@/lib/db";
 
 export default async function ProcessAdminPage() {
+  await requireStaff("manage_content");
   const [steps, stats, logos] = await Promise.all([
     prisma.processStep.findMany({ orderBy: { sortOrder: "asc" } }),
     prisma.stat.findMany({ orderBy: { sortOrder: "asc" } }),
