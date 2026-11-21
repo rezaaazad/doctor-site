@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { ConfirmButton, OrderButtons } from "@/components/admin/bits";
 import { MenuForm } from "@/components/admin/record-forms";
 import { deleteMenu } from "@/lib/actions";
 import { prisma } from "@/lib/db";
 
 export default async function MenuPage() {
+  await requireStaff("manage_appearance");
   const items = await prisma.menuItem.findMany({ orderBy: [{ location: "asc" }, { sortOrder: "asc" }] });
   return (
     <div className="grid gap-6">

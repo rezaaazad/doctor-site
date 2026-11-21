@@ -1,4 +1,5 @@
 "use server";
+import { guardAction } from "@/lib/auth";
 
 import { randomBytes } from "crypto";
 import { mkdir, unlink, writeFile } from "fs/promises";
@@ -123,7 +124,7 @@ export async function logoutAction() {
 
 export async function updateAppearance(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_appearance");
     const data = appearanceSchema.parse({
       accentColor: text(formData, "accentColor"),
       backgroundColor: text(formData, "backgroundColor"),
@@ -149,7 +150,7 @@ export async function updateAppearance(_prev: ActionState, formData: FormData): 
 
 export async function updateHero(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_appearance");
     const data = heroSchema.parse({
       heroShape: text(formData, "heroShape"),
       heroColorA: text(formData, "heroColorA"),
@@ -168,7 +169,7 @@ export async function updateHero(_prev: ActionState, formData: FormData): Promis
 
 export async function updateProfile(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_settings");
     const data = profileSchema.parse({
       siteName: text(formData, "siteName"),
       tagline: text(formData, "tagline"),
@@ -202,7 +203,7 @@ export async function updateProfile(_prev: ActionState, formData: FormData): Pro
 
 export async function updateSection(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_appearance");
     const id = text(formData, "id");
     const existing = await prisma.section.findUnique({ where: { id } });
     if (!existing) return { ok: false, message: "بخش پیدا نشد." };
@@ -319,7 +320,7 @@ async function writeOrder<T extends { id: string }>(
 
 export async function moveRecord(formData: FormData) {
   try {
-    await guard();
+    await guardAction("manage_content");
     const id = text(formData, "id");
     const kind = text(formData, "kind");
     const dir = text(formData, "dir") === "up" ? "up" : "down";
@@ -333,7 +334,7 @@ export async function moveRecord(formData: FormData) {
 
 export async function saveMenu(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_appearance");
     const data = menuSchema.parse({
       label: text(formData, "label"),
       labelEn: text(formData, "labelEn"),
@@ -355,14 +356,14 @@ export async function saveMenu(_prev: ActionState, formData: FormData): Promise<
 }
 
 export async function deleteMenu(id: string) {
-  await guard();
+  await guardAction("manage_appearance");
   await prisma.menuItem.delete({ where: { id } });
   refresh();
 }
 
 export async function saveProject(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const images = text(formData, "images")
       .split("\n")
       .map((line) => line.trim())
@@ -409,7 +410,7 @@ export async function saveProject(_prev: ActionState, formData: FormData): Promi
 }
 
 export async function deleteProject(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.project.delete({ where: { id } });
   refresh();
   redirect("/admin/projects");
@@ -417,7 +418,7 @@ export async function deleteProject(id: string) {
 
 export async function saveService(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = serviceSchema.parse({
       number: text(formData, "number"),
       title: text(formData, "title"),
@@ -443,14 +444,14 @@ export async function saveService(_prev: ActionState, formData: FormData): Promi
 }
 
 export async function deleteService(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.service.delete({ where: { id } });
   refresh();
 }
 
 export async function saveTestimonial(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = testimonialSchema.parse({
       name: text(formData, "name"),
       role: text(formData, "role"),
@@ -471,14 +472,14 @@ export async function saveTestimonial(_prev: ActionState, formData: FormData): P
 }
 
 export async function deleteTestimonial(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.testimonial.delete({ where: { id } });
   refresh();
 }
 
 export async function updateSeo(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_seo");
     const data = seoSchema.parse({
       id: text(formData, "id"),
       title: text(formData, "title"),
@@ -496,7 +497,7 @@ export async function updateSeo(_prev: ActionState, formData: FormData): Promise
 
 export async function uploadMedia(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_media");
     const file = formData.get("file");
     if (!(file instanceof File) || file.size === 0) return { ok: false, message: "فایلی انتخاب نشده." };
     if (file.size > 8 * 1024 * 1024) return { ok: false, message: "حداکثر حجم ۸ مگابایت است." };
@@ -526,7 +527,7 @@ export async function uploadMedia(_prev: ActionState, formData: FormData): Promi
 
 export async function updateMediaAlt(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_media");
     await prisma.media.update({
       where: { id: text(formData, "id") },
       data: { alt: text(formData, "alt").trim().slice(0, 180) },
@@ -538,14 +539,14 @@ export async function updateMediaAlt(_prev: ActionState, formData: FormData): Pr
 }
 
 export async function deleteMedia(id: string) {
-  await guard();
+  await guardAction("manage_media");
   const media = await prisma.media.delete({ where: { id } });
   await unlink(path.join(uploadDir(), media.storedName)).catch(() => undefined);
   revalidatePath("/admin/media");
 }
 
 export async function useMedia(formData: FormData) {
-  await guard();
+  await guardAction("manage_appearance");
   const url = text(formData, "url");
   const target = text(formData, "target");
   if (!url.startsWith("/media/")) return;
@@ -555,7 +556,7 @@ export async function useMedia(formData: FormData) {
 }
 
 export async function setMessageRead(formData: FormData) {
-  await guard();
+  await guardAction("manage_leads");
   await prisma.contactMessage.update({
     where: { id: text(formData, "id") },
     data: { read: flag(formData, "read") },
@@ -564,7 +565,7 @@ export async function setMessageRead(formData: FormData) {
 }
 
 export async function deleteMessage(id: string) {
-  await guard();
+  await guardAction("manage_leads");
   await prisma.contactMessage.delete({ where: { id } });
   refresh();
   redirect("/admin/messages");
@@ -572,7 +573,7 @@ export async function deleteMessage(id: string) {
 
 export async function createAdmin(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_users");
     const data = userSchema.parse({
       name: text(formData, "name"),
       email: text(formData, "email").trim().toLowerCase(),
@@ -607,7 +608,7 @@ export async function changePassword(_prev: ActionState, formData: FormData): Pr
 }
 
 export async function deleteAdmin(id: string) {
-  const user = await guard();
+  const user = await guardAction("manage_users");
   if (id === user.id) return;
   const count = await prisma.adminUser.count();
   if (count <= 1) return;

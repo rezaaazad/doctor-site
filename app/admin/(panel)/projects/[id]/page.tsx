@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { ProjectForm } from "@/components/admin/record-forms";
 import { projectFields } from "@/lib/admin-data";
 import { prisma } from "@/lib/db";
 
 export default async function EditProjectPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireStaff("manage_content");
   const { id } = await params;
   const project = await prisma.project.findUnique({ where: { id } });
   if (!project) notFound();

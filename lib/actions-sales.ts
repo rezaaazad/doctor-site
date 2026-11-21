@@ -1,22 +1,16 @@
 "use server";
+import { guardAction } from "@/lib/auth";
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
-import { assertSameOrigin, getSessionUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { isRedirectError, RequestError } from "@/lib/utils";
 import { blogSchema, faqSchema, logoSchema, packageSchema, processSchema, statSchema } from "@/lib/validators";
 
 type ActionState = { ok: boolean; message: string } | null;
 
-async function guard() {
-  const user = await getSessionUser();
-  if (!user) redirect("/admin/login");
-  await assertSameOrigin();
-  return user;
-}
 
 function text(formData: FormData, name: string) {
   return String(formData.get(name) ?? "");
@@ -48,7 +42,7 @@ function refresh() {
 
 export async function savePackage(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = packageSchema.parse({
       name: text(formData, "name"),
       price: text(formData, "price"),
@@ -69,14 +63,14 @@ export async function savePackage(_prev: ActionState, formData: FormData): Promi
 }
 
 export async function deletePackage(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.package.delete({ where: { id } });
   refresh();
 }
 
 export async function saveStep(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = processSchema.parse({
       number: text(formData, "number"),
       title: text(formData, "title"),
@@ -95,14 +89,14 @@ export async function saveStep(_prev: ActionState, formData: FormData): Promise<
 }
 
 export async function deleteStep(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.processStep.delete({ where: { id } });
   refresh();
 }
 
 export async function saveStat(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = statSchema.parse({
       value: text(formData, "value"),
       label: text(formData, "label"),
@@ -120,14 +114,14 @@ export async function saveStat(_prev: ActionState, formData: FormData): Promise<
 }
 
 export async function deleteStat(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.stat.delete({ where: { id } });
   refresh();
 }
 
 export async function saveLogo(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = logoSchema.parse({
       name: text(formData, "name"),
       imageUrl: text(formData, "imageUrl").trim(),
@@ -145,14 +139,14 @@ export async function saveLogo(_prev: ActionState, formData: FormData): Promise<
 }
 
 export async function deleteLogo(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.clientLogo.delete({ where: { id } });
   refresh();
 }
 
 export async function saveFaq(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("manage_content");
     const data = faqSchema.parse({
       question: text(formData, "question"),
       answer: text(formData, "answer"),
@@ -170,14 +164,14 @@ export async function saveFaq(_prev: ActionState, formData: FormData): Promise<A
 }
 
 export async function deleteFaq(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.faq.delete({ where: { id } });
   refresh();
 }
 
 export async function savePost(_prev: ActionState, formData: FormData): Promise<ActionState> {
   try {
-    await guard();
+    await guardAction("publish_content");
     const data = blogSchema.parse({
       slug: text(formData, "slug").trim().toLowerCase(),
       title: text(formData, "title"),
@@ -203,7 +197,7 @@ export async function savePost(_prev: ActionState, formData: FormData): Promise<
 }
 
 export async function deletePost(id: string) {
-  await guard();
+  await guardAction("manage_content");
   await prisma.blogPost.delete({ where: { id } });
   refresh();
   redirect("/admin/blog");

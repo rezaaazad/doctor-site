@@ -1,3 +1,4 @@
+import { requireStaff } from "@/lib/auth";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { saveLanding } from "@/lib/actions-landing";
@@ -5,6 +6,7 @@ import { saveLanding } from "@/lib/actions-landing";
 export const dynamic = "force-dynamic";
 
 export default async function LandingEditPage({ params }: { params: Promise<{ id: string }> }) {
+  await requireStaff("manage_content");
   const { id } = await params;
   const page = await prisma.landingPage.findUnique({ where: { id } });
   if (!page) notFound();

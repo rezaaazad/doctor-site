@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 export default async function LandingsAdminPage() {
+  await requireStaff("manage_content");
   const pages = await prisma.landingPage.findMany({ orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-4">

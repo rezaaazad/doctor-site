@@ -1,9 +1,11 @@
+import { requireStaff } from "@/lib/auth";
 import { MediaAltForm } from "@/components/admin/record-forms";
 import { UploadButton } from "@/components/admin/settings-forms";
 import { useMedia } from "@/lib/actions";
 import { prisma } from "@/lib/db";
 
 export default async function MediaPage() {
+  await requireStaff("manage_media");
   const media = await prisma.media.findMany({ orderBy: { createdAt: "desc" } });
   return (
     <div className="grid gap-8">

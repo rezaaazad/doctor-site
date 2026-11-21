@@ -1,7 +1,9 @@
+import { requireStaff } from "@/lib/auth";
 import Link from "next/link";
 import { prisma } from "@/lib/db";
 
 export default async function MessagesPage() {
+  await requireStaff("manage_leads");
   const messages = await prisma.contactMessage.findMany({ orderBy: { createdAt: "desc" } });
   return (
     <div className="grid gap-6">

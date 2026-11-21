@@ -1,7 +1,9 @@
+import { requireStaff } from "@/lib/auth";
 import { HeroForm } from "@/components/admin/settings-forms";
 import { requireSettings } from "@/lib/admin-data";
 
 export default async function HeroAdminPage() {
+  await requireStaff("manage_appearance");
   const settings = await requireSettings();
   return (
     <div className="grid gap-6">

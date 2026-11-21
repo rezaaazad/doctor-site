@@ -1,3 +1,4 @@
+import { requireStaff } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +16,7 @@ async function totals(from: Date) {
 }
 
 export default async function AnalyticsPage() {
+  await requireStaff("view_reports");
   const now = new Date();
   const startToday = new Date(now);
   startToday.setHours(0, 0, 0, 0);
