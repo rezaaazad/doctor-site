@@ -1,77 +1,95 @@
-import { Chrome } from "@/components/site/chrome";
+import { getSiteSafe } from "@/lib/site";
+import { getOptions } from "@/lib/options";
+import { getCustomer } from "@/lib/customer-auth";
+import { storeCategories } from "@/lib/store/catalog";
+import { contactLinks } from "@/lib/contact";
+import { prisma } from "@/lib/db";
+import { CartProvider } from "@/components/store/cart";
+import { CartDrawer } from "@/components/store/cart-drawer";
+import { SiteHeader, type NavLink } from "@/components/site/header";
+import { SiteFooter } from "@/components/site/footer";
+import { Announcement } from "@/components/site/announcement";
+import { FloatingContact, MobileBar } from "@/components/site/contact-dock";
 import { JsonLd, organizationLd } from "@/components/site/json-ld";
-import { NewsletterForm } from "@/components/site/newsletter-form";
 import { Tracker } from "@/components/site/tracker";
-import { TrustHtml } from "@/components/site/trust-html";
-import { getSiteSafe, menuOf } from "@/lib/site";
-import { telHref, telegramHref, whatsappHref } from "@/lib/reach";
-import Link from "next/link";
+
+async function menu(location: string): Promise<NavLink[]> {
+  const rows = await prisma.menuItem
+    .findMany({ where: { location, visible: true }, orderBy: { sortOrder: "asc" } })
+    .catch(() => []);
+  const top = rows.filter((r) => !r.parentId);
+  return top.map((r) => ({
+    id: r.id,
+    label: r.label,
+    href: r.href,
+    highlight: r.highlight,
+    newTab: r.newTab,
+    children: rows.filter((c) => c.parentId === r.id).map((c) => ({ id: c.id, label: c.label, href: c.href, newTab: c.newTab })),
+  }));
+}
 
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
-  const site = await getSiteSafe();
-  const phone = site.settings.phone;
-  const tel = telHref(phone);
-  const wa = whatsappHref(site.settings.socials.whatsapp);
-  const tg = telegramHref(site.settings.socials.telegram);
+  const [site, options, customer, categories, headerLinks, footerLinks] = await Promise.all([
+    getSiteSafe(),
+    getOptions(),
+    getCustomer().catch(() => null),
+    storeCategories().catch(() => []),
+    menu("header"),
+    menu("footer"),
+  ]);
+  const header = options.header;
+  const store = options.store;
+  const contact = contactLinks(site.settings);
+  const navCategories = categories
+    .filter((c) => !c.parentId)
+    .map((c) => ({ slug: c.slug, name: c.name, count: c.count, icon: c.icon, description: c.description }));
+  const payments = [
+    options.pay_zarinpal.enabled ? "زرین‌پال" : "",
+    options.pay_snapppay.enabled ? "اسنپ‌پی" : "",
+    options.pay_torobpay.enabled ? "ترب‌پی" : "",
+  ].filter(Boolean);
+
   return (
-    <>
+    <CartProvider>
       <JsonLd data={organizationLd(site.settings)} />
       <Tracker />
-      <Chrome
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:right-2 focus:z-[100] focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-white">
+        رفتن به محتوای اصلی
+      </a>
+      {header.announceOn ? <Announcement text={String(header.announceText || "")} href={String(header.announceHref || "")} endsAt={String(header.announceEndsAt || "")} /> : null}
+      <SiteHeader
         siteName={site.settings.siteName}
         logoUrl={site.settings.logoUrl}
-        phone={phone}
-        tel={tel}
-        links={menuOf(site, "header")}
-        services={site.services}
-      >
+        links={headerLinks}
+        categories={navCategories}
+        phone={contact.phone}
+        phoneHref={contact.phoneHref}
+        showPhone={Boolean(header.showPhoneInHeader)}
+        cta={{ label: String(header.ctaLabel || ""), href: String(header.ctaHref || "/contact") }}
+        signedIn={Boolean(customer)}
+      />
+      <main id="main" className="min-h-[60vh]">
         {children}
-        <footer className="foot">
-          <div className="cta-strip">
-            <div>
-              <strong>پروژه بعدی را با محدوده روشن شروع کنیم.</strong>
-              <p className="muted" style={{ margin: "4px 0 0" }}>مشاوره اول رایگان است. نام و شماره کافی است.</p>
-            </div>
-            <Link className="pill solid" href="/contact">مشاوره رایگان</Link>
-          </div>
-          <div className="foot-panel">
-            <div className="cols">
-              <div>
-                <h2>{site.settings.siteName}</h2>
-                <p className="lead">{site.settings.footerNote || site.settings.description}</p>
-                <NewsletterForm title={site.settings.newsletterTitle || "یادداشت‌های کوتاه درباره سایت و سئو"} />
-              </div>
-              <div>
-                <h2>خدمات</h2>
-                {site.services.map((service) => (
-                  <Link key={service.id} href={service.href || "/services"}>{service.title}</Link>
-                ))}
-              </div>
-              <div>
-                <h2>دسترسی</h2>
-                {menuOf(site, "footer").map((link) => (
-                  <Link key={link.id} href={link.href}>{link.label}</Link>
-                ))}
-                <Link href="/tarahi-site">طراحی سایت</Link>
-                <Link href="/barname-nevisi">برنامه نویسی</Link>
-                <Link href="/branding-marketing">برندینگ و مارکتینگ</Link>
-              </div>
-              <div>
-                <h2>تماس</h2>
-                {tel ? <a href={tel}>{phone}</a> : null}
-                {site.settings.email ? <a href={`mailto:${site.settings.email}`}>{site.settings.email}</a> : null}
-                {site.settings.address ? <p>{site.settings.address}</p> : null}
-                {site.settings.hours ? <p>{site.settings.hours}</p> : null}
-                {wa ? <a href={wa}>واتساپ</a> : null}
-                {tg ? <a href={tg}>تلگرام</a> : null}
-                {site.settings.socials.instagram ? <a href={site.settings.socials.instagram}>اینستاگرام</a> : null}
-              </div>
-            </div>
-            <TrustHtml html={site.settings.enamadHtml} />
-          </div>
-          <p className="wordmark">{site.settings.copyright || site.settings.siteName}</p>
-        </footer>
-      </Chrome>
-    </>
+      </main>
+      <SiteFooter
+        siteName={site.settings.siteName}
+        logoUrl={site.settings.logoUrl}
+        description={site.settings.footerNote || site.settings.description}
+        address={site.settings.address}
+        hours={site.settings.hours}
+        copyright={site.settings.copyright}
+        newsletterTitle={site.settings.newsletterTitle}
+        enamadHtml={site.settings.enamadHtml}
+        links={footerLinks}
+        categories={navCategories}
+        contact={contact}
+        guarantee={String(store.guaranteeText || "")}
+        support={String(store.supportText || "")}
+        payments={payments}
+      />
+      <CartDrawer freeShippingAbove={(Number(store.freeShippingAboveToman) || 0) * 10} />
+      <MobileBar links={contact} enabled={Boolean(header.stickyBar)} />
+      <FloatingContact links={contact} enabled={Boolean(header.floatingContact)} />
+    </CartProvider>
   );
 }

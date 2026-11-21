@@ -104,6 +104,7 @@ export type ServiceItem = {
   priceLabel: string;
   includes: string[];
   href: string;
+  icon: string;
   visible: boolean;
   sortOrder: number;
 };
@@ -115,13 +116,16 @@ export type PricePackage = {
   summary: string;
   features: string[];
   highlighted: boolean;
+  badge: string;
+  ctaLabel: string;
+  ctaHref: string;
   sortOrder: number;
 };
 
 export type Step = { id: string; number: string; title: string; body: string; sortOrder: number };
 export type StatItem = { id: string; value: string; label: string; sortOrder: number };
-export type LogoItem = { id: string; name: string; imageUrl: string; sortOrder: number };
-export type FaqItem = { id: string; question: string; answer: string; sortOrder: number };
+export type LogoItem = { id: string; name: string; imageUrl: string; url: string; sortOrder: number };
+export type FaqItem = { id: string; question: string; answer: string; group: string; sortOrder: number };
 export type PostCard = {
   id: string;
   slug: string;
@@ -141,6 +145,8 @@ export type Quote = {
   roleEn: string;
   quote: string;
   quoteEn: string;
+  avatarUrl: string;
+  rating: number;
   visible: boolean;
   sortOrder: number;
 };
@@ -152,6 +158,7 @@ export type SeoEntry = {
   description: string;
   ogImage: string;
   keywords: string;
+  noindex?: boolean;
 };
 
 export type SiteData = {
@@ -209,7 +216,7 @@ export const getSite = cache(async (): Promise<SiteData> => {
     prisma.stat.findMany({ where: { visible: true }, orderBy: { sortOrder: "asc" } }),
     prisma.clientLogo.findMany({ where: { visible: true }, orderBy: { sortOrder: "asc" } }),
     prisma.faq.findMany({ where: { visible: true }, orderBy: { sortOrder: "asc" } }),
-    prisma.blogPost.findMany({ where: { published: true }, orderBy: { publishedAt: "desc" } }),
+    prisma.blogPost.findMany({ where: { published: true, status: "published", publishedAt: { lte: new Date() } }, orderBy: { publishedAt: "desc" }, take: 24 }),
     prisma.pageSeo.findMany(),
   ]);
   if (!settings) throw new Error("NO_SETTINGS");
