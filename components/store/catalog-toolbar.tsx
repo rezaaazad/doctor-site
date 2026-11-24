@@ -1,137 +1,176 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
-import { Filter, SlidersHorizontal } from "lucide-react";
+import { useState, type FormEvent, type ReactNode } from "react";
+import { SlidersHorizontal, X } from "lucide-react";
 import type { CategoryView } from "@/lib/store/catalog";
 import { Drawer } from "@/components/ui/drawer";
 
-const SORTS = [
-  { value: "", label: "پیشنهادی" },
-  { value: "newest", label: "جدیدترین" },
-  { value: "bestseller", label: "پرفروش‌ترین" },
-  { value: "cheap", label: "ارزان‌ترین" },
-  { value: "expensive", label: "گران‌ترین" },
-  { value: "rating", label: "بیشترین امتیاز" },
-] as const;
-
-export function CatalogToolbar({ categories, total }: { categories: CategoryView[]; total: number }) {
+const sorts = [
+  ["", "پیشنهادی"],
+  ["newest", "جدیدترین"],
+  ["bestseller", "پرفروش‌ترین"],
+  ["cheap", "ارزان‌ترین"],
+  ["expensive", "گران‌ترین"],
+  ["rating", "بیشترین امتیاز"],
+];
+export function CatalogToolbar({
+  categories,
+  total,
+  category,
+  children,
+}: {
+  categories: CategoryView[];
+  total: number;
+  category?: string;
+  children: ReactNode;
+}) {
   const router = useRouter();
   const sp = useSearchParams();
-  const [sheet, setSheet] = useState(false);
-  const q = sp.get("q") ?? "";
-  const sort = sp.get("sort") ?? "";
-  const category = sp.get("category") ?? "";
-
-  const patch = useCallback(
-    (next: Record<string, string | null>) => {
-      const params = new URLSearchParams(sp.toString());
-      for (const [k, v] of Object.entries(next)) {
-        if (v === null || v === "") params.delete(k);
-        else params.set(k, v);
-      }
-      params.delete("page");
-      router.push(`?${params.toString()}`, { scroll: false });
-    },
-    [router, sp],
+  const [open, setOpen] = useState(false);
+  const base = category ? `/store/category/${category}` : "/store";
+  const activeCategory = category || sp.get("category") || "";
+  function destination(key: string, value: string) {
+    const params = new URLSearchParams(sp);
+    params.delete("page");
+    if (value) params.set(key, value);
+    else params.delete(key);
+    return (key === "category" ? "/store" : base) + (params.size ? "?" + params : "");
+  }
+  function apply(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = new FormData(event.currentTarget);
+    const params = new URLSearchParams(sp);
+    params.delete("page");
+    for (const key of ["category", "q", "min", "max", "sale", "stock"]) {
+      const value = String(form.get(key) || "").trim();
+      if (value) params.set(key, value);
+      else params.delete(key);
+    }
+    const keepCategory = category && params.get("category") === category;
+    if (keepCategory) params.delete("category");
+    router.push((keepCategory ? base : "/store") + (params.size ? "?" + params : ""));
+    setOpen(false);
+  }
+  const filters = (
+    <form key={base + sp.toString()} onSubmit={apply} className="catalog-filter-form">
+      <label>
+        جست‌وجو
+        <input className="input" name="q" defaultValue={sp.get("q") || ""} placeholder="نام محصول یا برند" />
+      </label>
+      <label>
+        دسته‌بندی
+        <select className="input" name="category" defaultValue={activeCategory}>
+          <option value="">همه دسته‌ها</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.slug}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      <fieldset>
+        <legend>محدوده قیمت (تومان)</legend>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            ["min", "از"],
+            ["max", "تا"],
+          ].map(([key, label]) => (
+            <label key={key}>
+              {label}
+              <input
+                name={key}
+                type="number"
+                min="0"
+                max="99999999999999"
+                step="1"
+                dir="ltr"
+                className="input"
+                defaultValue={sp.get(key) || ""}
+              />
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      {[
+        ["stock", "فقط کالاهای موجود"],
+        ["sale", "فقط تخفیف‌دارها"],
+      ].map(([key, label]) => (
+        <label className="catalog-check" key={key}>
+          <input type="checkbox" name={key} value="1" defaultChecked={sp.get(key) === "1"} />
+          {label}
+        </label>
+      ))}
+      <button className="btn btn-primary">اعمال فیلترها</button>
+    </form>
   );
-
+  const chips = [
+    ["category", categories.find((c) => c.slug === activeCategory)?.name],
+    ["q", sp.get("q")],
+    ...[
+      ["min", "از"],
+      ["max", "تا"],
+    ].map(
+      ([key, label]) =>
+        [key, sp.get(key) && label + " " + Number(sp.get(key)).toLocaleString("fa-IR") + " تومان"] as const,
+    ),
+    ["stock", sp.get("stock") === "1" && "موجود"],
+    ["sale", sp.get("sale") === "1" && "تخفیف‌دار"],
+  ] as const;
   return (
-    <>
-      <div className="card mb-5 flex flex-wrap items-center justify-between gap-3 p-3" data-reveal>
-        <p className="text-[0.85rem] text-muted">
-          <span className="num font-bold text-fg">{total.toLocaleString("fa-IR")}</span> محصول
-        </p>
-        <div className="flex flex-wrap items-center gap-2">
-          <label className="hidden items-center gap-2 rounded-full border border-line bg-surface px-3 py-2 text-[0.82rem] sm:flex">
-            <span className="text-muted">مرتب‌سازی</span>
+    <div className="catalog-layout">
+      <aside className="catalog-sidebar">
+        <h2>
+          <SlidersHorizontal size={18} /> فیلتر محصولات
+        </h2>
+        {filters}
+      </aside>
+      <div className="min-w-0">
+        <div className="catalog-controls">
+          <b>{total.toLocaleString("fa-IR")} محصول</b>
+          <button className="btn btn-outline btn-sm lg:hidden" onClick={() => setOpen(true)}>
+            فیلترها
+          </button>
+          <label>
+            چیدمان{" "}
             <select
-              value={sort}
-              onChange={(e) => patch({ sort: e.target.value || null })}
-              className="bg-transparent font-semibold outline-none"
-              aria-label="مرتب‌سازی"
+              value={sp.get("sort") || ""}
+              onChange={(e) => router.push(destination("sort", e.target.value))}
             >
-              {SORTS.map((s) => (
-                <option key={s.value || "default"} value={s.value}>
-                  {s.label}
+              {sorts.map(([v, l]) => (
+                <option key={v} value={v}>
+                  {l}
                 </option>
               ))}
             </select>
           </label>
-          <button type="button" onClick={() => setSheet(true)} className="btn btn-outline btn-sm">
-            <Filter className="size-4" aria-hidden />
-            فیلتر
+        </div>
+        {chips.some(([, v]) => v) && (
+          <div className="catalog-chips">
+            {chips.map(
+              ([key, label]) =>
+                label && (
+                  <Link key={key} href={destination(key, "")} aria-label={"حذف فیلتر " + label}>
+                    {label}
+                    <X size={14} />
+                  </Link>
+                ),
+            )}
+            <Link href="/store">پاک کردن همه</Link>
+          </div>
+        )}
+        {children}
+      </div>
+      <Drawer open={open} onOpenChange={setOpen} title="فیلتر محصولات" className="catalog-sheet">
+        <div className="flex items-center justify-between">
+          <h2>فیلتر محصولات</h2>
+          <button className="btn btn-icon" aria-label="بستن فیلترها" onClick={() => setOpen(false)}>
+            <X />
           </button>
         </div>
-      </div>
-
-      <div className="mb-6 hidden flex-wrap gap-2 lg:flex">
-        <button type="button" onClick={() => patch({ category: null })} className="chip" data-active={!category ? "true" : undefined}>
-          همه
-        </button>
-        {categories.map((c) => (
-          <button key={c.id} type="button" onClick={() => patch({ category: c.slug })} className="chip" data-active={category === c.slug ? "true" : undefined}>
-            {c.icon ? <span aria-hidden>{c.icon}</span> : null} {c.name}
-            <span className="num opacity-60">({c.count})</span>
-          </button>
-        ))}
-      </div>
-
-      <form
-        className="mb-6 flex gap-2"
-        onSubmit={(e) => {
-          e.preventDefault();
-          const fd = new FormData(e.currentTarget);
-          patch({ q: String(fd.get("q") || "").trim() || null });
-        }}
-      >
-        <input name="q" key={q} defaultValue={q} aria-label="جستجوی محصول" placeholder="جستجوی محصول، برند یا کد…" className="input min-w-0 flex-1 text-base" autoComplete="off" />
-        <button type="submit" className="btn btn-primary">
-          جستجو
-        </button>
-      </form>
-
-      <Drawer open={sheet} onOpenChange={setSheet} title="فیلتر محصولات" className="p-5">
-            <div className="mb-4 flex items-center justify-between">
-              <b className="flex items-center gap-2 font-bold">
-                <SlidersHorizontal className="size-4" /> فیلتر و مرتب‌سازی
-              </b>
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSheet(false)}>
-                بستن
-              </button>
-            </div>
-            <label className="mb-4 grid gap-2 text-[0.85rem] font-semibold">
-              مرتب‌سازی
-              <select value={sort} onChange={(e) => patch({ sort: e.target.value || null })} className="field">
-                {SORTS.map((s) => (
-                  <option key={s.value || "d"} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="mb-4 grid gap-3"><label className="flex items-center gap-2"><input type="checkbox" checked={sp.get("stock")==="1"} onChange={e=>patch({stock:e.target.checked?"1":null})}/> فقط موجود</label><label className="flex items-center gap-2"><input type="checkbox" checked={sp.get("sale")==="1"} onChange={e=>patch({sale:e.target.checked?"1":null})}/> فقط تخفیف‌دار</label></div>
-            <p className="mb-2 text-[0.85rem] font-bold">دسته‌بندی</p>
-            <div className="flex flex-wrap gap-2">
-              <button type="button" onClick={() => { patch({ category: null }); setSheet(false); }} className="chip" data-active={!category ? "true" : undefined}>
-                همه
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  onClick={() => {
-                    patch({ category: c.slug });
-                    setSheet(false);
-                  }}
-                  className="chip"
-                  data-active={category === c.slug ? "true" : undefined}
-                >
-                  {c.name}
-                </button>
-              ))}
-            </div>
+        {filters}
       </Drawer>
-    </>
+    </div>
   );
 }

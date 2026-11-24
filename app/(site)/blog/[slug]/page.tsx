@@ -15,7 +15,7 @@ type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const post = await findPublicBlogPost(slug);
-  if (!post) return {};
+  if (!post) notFound();
   const site = await getSiteSafe();
   return pageMetadata(
     { id: post.slug, path: `/blog/${post.slug}`, title: post.seoTitle || post.title, description: post.seoDescription || post.excerpt, ogImage: post.coverUrl, keywords: "" },

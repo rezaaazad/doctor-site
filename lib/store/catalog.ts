@@ -51,6 +51,7 @@ export type ProductDetail = ProductCard & {
   guarantee: string;
   sku: string;
   variants: VariantView[];
+  stock: number;
   maxPerOrder: number;
   manageStock: boolean;
   allowBackorder: boolean;
@@ -151,6 +152,7 @@ export function toDetail(row: ProductRow, lowStockThreshold = 3): ProductDetail 
     guarantee: row.guarantee,
     sku: row.sku,
     variants: row.variants.filter((v) => v.active).map((v) => variantView(v, row.manageStock, row.allowBackorder)),
+    stock: row.stock,
     maxPerOrder: row.maxPerOrder,
     manageStock: row.manageStock,
     allowBackorder: row.allowBackorder,
@@ -216,13 +218,34 @@ export async function queryCatalog(query: CatalogQuery) {
       { brand: { contains: query.q, mode: "insensitive" } },
     ];
   }
-  if (query.min || query.max) {
-    where.priceRial = {};
-    if (query.min) where.priceRial.gte = BigInt(query.min) * BigInt(10);
-    if (query.max) where.priceRial.lte = BigInt(query.max) * BigInt(10);
+  const conditions: Prisma.StoreProductWhereInput[] = [];
+  if (query.min !== undefined || query.max !== undefined) {
+    const gte = query.min === undefined ? undefined : BigInt(query.min) * BigInt(10);
+    const lte = query.max === undefined ? undefined : BigInt(query.max) * BigInt(10);
+    // Variable product cards advertise the lowest active variant price.
+    conditions.push({ OR: [
+      { variants: { none: { active: true } }, priceRial: { gte, lte } },
+      { variants: {
+        some: { active: true, priceRial: { lte } },
+        ...(gte === undefined ? {} : { none: { active: true, priceRial: { lt: gte } } }),
+      } },
+    ] });
   }
-  if (query.onSale) where.compareAtRial = { not: null };
-  if (query.inStock) where.AND = [{ OR: [{ manageStock: false }, { stock: { gt: 0 } }, { allowBackorder: true }, { variants: { some: { stock: { gt: 0 }, active: true } } }] }];
+  if (query.onSale) {
+    conditions.push(
+      { OR: [{ saleEndsAt: null }, { saleEndsAt: { gt: new Date() } }] },
+      { OR: [
+        { variants: { none: { active: true } }, compareAtRial: { gt: prisma.storeProduct.fields.priceRial } },
+        { variants: { some: { active: true, compareAtRial: { gt: prisma.productVariant.fields.priceRial } } } },
+      ] },
+    );
+  }
+  if (query.inStock) conditions.push({ OR: [
+    { manageStock: false }, { allowBackorder: true },
+    { variants: { none: { active: true } }, stock: { gt: 0 } },
+    { variants: { some: { active: true, stock: { gt: 0 } } } },
+  ] });
+  if (conditions.length) where.AND = conditions;
   const [total, rows] = await Promise.all([
     prisma.storeProduct.count({ where }),
     prisma.storeProduct.findMany({ where, include: productInclude, orderBy: catalogOrder(query.sort), skip: (page - 1) * perPage, take: perPage }),
