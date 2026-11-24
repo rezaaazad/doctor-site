@@ -124,7 +124,7 @@ export const SECTIONS: SectionDef[] = [
     description: "دسته‌های فروشگاه که «ویژه» علامت خورده‌اند (یا همه، اگر هیچ‌کدام ویژه نیست).",
     order: 30,
     source: { label: "مدیریت دسته‌ها", href: "/admin/store/categories" },
-    defaults: { promos: [{title:"پرفروش‌های فروشگاه",image:"/covers/orbit.svg",href:"/store?sort=bestseller"},{title:"محصولات تخفیف‌دار",image:"/covers/noir.svg",href:"/store?sale=1"}],  eyebrow: "خرید بر اساس نیاز", title: "از کجا شروع کنیم؟", body: "", limit: 6 },
+    defaults: { promos: [{title:"پرفروش‌های فروشگاه",image:"/covers/orbit.svg",href:"/store?sort=sales"},{title:"محصولات تخفیف‌دار",image:"/covers/noir.svg",href:"/store?sale=1"}],  eyebrow: "خرید بر اساس نیاز", title: "از کجا شروع کنیم؟", body: "", limit: 6 },
     fields: [list("promos","بنرها", [text("title","عنوان"),image("image","تصویر"),url("href","پیوند")], 3), text("eyebrow", "روتیتر"), text("title", "عنوان"), area("body", "توضیح"), num("limit", "حداکثر تعداد", 12)],
   },
   {
