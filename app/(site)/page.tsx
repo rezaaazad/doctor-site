@@ -1,3 +1,4 @@
+import { PromoStrip, StoreIntro } from "@/components/home/promotions";
 import type { Metadata } from "next";
 import { loadHome } from "@/lib/home-data";
 import { buildMetadata } from "@/lib/seo";
@@ -39,18 +40,18 @@ export default async function HomePage() {
         const c = section.content;
         switch (section.key) {
           case "storeHero":
-            return <StoreHero key={section.id} content={c} spotlight={data.spotlight} dark={Boolean(options.theme.darkHero)} installmentsOn={data.installmentsOn} />;
+            return <StoreHero key={section.id} content={c} spotlight={data.spotlight} dark={Boolean(options.theme.darkHero)} />;
           case "trustBar":
             return <TrustBar key={section.id} content={c} />;
           case "categoryGrid":
-            return <CategoryGrid key={section.id} content={c} categories={data.categories} />;
+            return <div key={section.id}><CategoryGrid content={c} categories={data.categories} /><PromoStrip content={c}/></div>;
           case "dealOfDay":
-            return <DealOfDay key={section.id} content={c} deal={data.deal} />;
+            return <DealOfDay key={section.id} content={c} deal={data.deal} products={section.products ?? []} />;
           case "featuredProducts":
           case "newArrivals":
             return <ProductsSection key={section.id} content={c} products={section.products ?? []} />;
           case "bestsellers":
-            return <ProductsSection key={section.id} content={c} products={section.products ?? []} layout="row" />;
+            return <ProductsSection key={section.id} content={c} products={section.products ?? []} />;
           case "installments":
             return <InstallmentsBanner key={section.id} content={c} enabled={data.installmentsOn} />;
           case "socialProof":
@@ -70,7 +71,7 @@ export default async function HomePage() {
           case "leadForm":
             return <LeadSection key={section.id} content={c} phone={site.settings.phone} phoneHref={contact.phoneHref} />;
           case "blogLatest":
-            return <BlogLatest key={section.id} content={c} posts={site.posts} />;
+            return <div key={section.id}><PromoStrip content={c}/><BlogLatest content={c} posts={site.posts} /><StoreIntro content={c}/></div>;
           default:
             return null;
         }

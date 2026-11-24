@@ -62,6 +62,10 @@ export async function loadHome() {
       if (["featuredProducts", "bestsellers", "newArrivals"].includes(row.key)) {
         section.products = await productsFor(content, Number(def?.defaults.limit) || 8).catch(() => []);
       }
+      if (row.key === "dealOfDay") {
+        const candidates = await productCards({saleEndsAt:{gt:new Date()},compareAtRial:{not:null}}, ORDERS.sale, 16).catch(() => []);
+        section.products = candidates.filter(product => product.inStock && product.compareAt > product.price);
+      }
       return section;
     }),
   );

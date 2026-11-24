@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BadgeCheck, Clock, CreditCard, Headset, Mail, MapPin, Phone, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { Send, Instagram, MessageCircle, BadgeCheck, Clock, CreditCard, Headset, Mail, MapPin, Phone, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import type { ContactLinks } from "@/lib/contact";
 import type { NavCategory, NavLink } from "@/components/site/header";
 import { Logo } from "@/components/site/header";
@@ -14,6 +14,7 @@ export type FooterProps = {
   hours: string;
   copyright: string;
   newsletterTitle: string;
+  samandehiUrl: string;
   enamadHtml: string;
   links: NavLink[];
   categories: NavCategory[];
@@ -32,7 +33,7 @@ export function SiteFooter(props: FooterProps) {
     { icon: <Headset className="size-5" aria-hidden />, title: "پشتیبانی واقعی", body: props.support || "پاسخ در همان روز کاری" },
   ];
   return (
-    <footer className="mt-16 md:mt-24">
+    <footer className="shop-footer mt-16 md:mt-24">
       <div className="container-x">
         <div className="grid grid-cols-2 gap-3 rounded-[calc(var(--r)*1.3)] border border-line bg-surface p-4 shadow-1 md:grid-cols-4 md:gap-6 md:p-6">
           {promises.map((p) => (
@@ -48,7 +49,7 @@ export function SiteFooter(props: FooterProps) {
       </div>
       <div className="surface-ink grain mt-10 rounded-t-[calc(var(--r)*1.8)] pt-12 pb-8 md:mt-14 md:pt-16">
         <div className="container-x">
-          <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-[1.35fr_1fr_1fr_1.2fr]">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-[1.45fr_1fr_1fr_1fr_1.3fr]">
             <div className="col-span-2 max-w-sm lg:col-span-1">
               <Logo siteName={props.siteName} logoUrl={props.logoUrl} light />
               <p className="mt-4 text-[0.9rem] leading-8 text-white/65">{props.description}</p>
@@ -89,6 +90,7 @@ export function SiteFooter(props: FooterProps) {
                     </Link>
                   </li>
                 ))}
+              </ul></div><div><h2 className="mb-4 text-sm font-extrabold">خدمات مشتریان</h2><ul className="space-y-3 text-sm text-white/75"><li><Link href="/contact">تماس با پشتیبانی</Link></li>
                 <li>
                   <Link href="/account/orders" className="hover:text-white">
                     پیگیری سفارش
@@ -131,21 +133,22 @@ export function SiteFooter(props: FooterProps) {
               <div className="mt-5 flex flex-wrap items-center gap-2">
                 {props.contact.whatsapp ? (
                   <a href={props.contact.whatsapp} target="_blank" rel="noopener" className="btn btn-light btn-sm">
-                    واتساپ
+                    <MessageCircle size={16}/> واتساپ
                   </a>
                 ) : null}
                 {props.contact.telegram ? (
                   <a href={props.contact.telegram} target="_blank" rel="noopener" className="btn btn-light btn-sm">
-                    تلگرام
+                    <Send size={16}/> تلگرام
                   </a>
                 ) : null}
                 {props.contact.instagram ? (
                   <a href={props.contact.instagram} target="_blank" rel="noopener" className="btn btn-light btn-sm">
-                    اینستاگرام
+                    <Instagram size={16}/> اینستاگرام
                   </a>
                 ) : null}
               </div>
               <div className="mt-5 flex flex-wrap items-center gap-3">
+                {/^https:\/\//i.test(props.samandehiUrl) && <a className="btn btn-light btn-sm" href={props.samandehiUrl} rel="noopener" target="_blank">نشان ساماندهی</a>}
                 <TrustHtml html={props.enamadHtml} />
                 {!props.enamadHtml ? (
                   <span className="flex items-center gap-2 rounded-xl bg-white/6 px-3 py-2 text-[0.75rem] text-white/60 ring-1 ring-white/10">
@@ -155,6 +158,7 @@ export function SiteFooter(props: FooterProps) {
               </div>
             </div>
           </div>
+          {!!props.payments.length && <div className="footer-payments"><CreditCard size={20}/> روش‌های پرداخت {props.payments.map(name=><span key={name}>{name}</span>)}</div>}
           <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-center text-[0.78rem] text-white/70 md:flex-row">
             <p>{props.copyright || `© ${year} ${props.siteName}. همه حقوق محفوظ است.`}</p>
             <p className="flex items-center gap-1.5">

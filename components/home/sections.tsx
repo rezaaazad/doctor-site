@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Award, BadgeCheck, Check, Clock, CreditCard, Headset, Quote as QuoteIcon, RotateCcw, ShieldCheck, Truck, Zap } from "lucide-react";
+import { LayoutGrid, ArrowLeft, Award, BadgeCheck, Check, Clock, CreditCard, Headset, Quote as QuoteIcon, RotateCcw, ShieldCheck, Truck, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber, formatToman } from "@/lib/money";
 import { faShortDate } from "@/lib/iran";
@@ -7,12 +8,10 @@ import { lines, listOf, str } from "@/lib/sections";
 import type { CategoryView, ProductCard as Card } from "@/lib/store/catalog";
 import type { FaqItem, LogoItem, PostCard, PricePackage, ProjectCard, Quote, ServiceItem, Step } from "@/lib/site";
 import { SectionHead } from "@/components/ui/bits";
-import { Price } from "@/components/ui/price";
 import { Stars } from "@/components/ui/stars";
 import { Countdown } from "@/components/ui/countdown";
-import { paletteOf, ProductArt } from "@/components/ui/product-art";
-import { ProductCard, ProductGrid, ProductImage } from "@/components/store/product-card";
-import { AddToCartButton } from "@/components/store/add-to-cart";
+import { ProductArt } from "@/components/ui/product-art";
+import { ProductCard, ProductGrid } from "@/components/store/product-card";
 import { LeadForm } from "@/components/site/forms";
 import { JsonLd } from "@/components/site/json-ld";
 
@@ -35,8 +34,8 @@ export function TrustBar({ content }: { content: C }) {
   const items = listOf(content.items).slice(0, 6);
   if (!items.length) return null;
   return (
-    <section className="container-x relative z-[2] -mt-1 md:-mt-8">
-      <div className="card-raised mx-auto grid grid-cols-2 gap-x-3 gap-y-5 p-4 md:max-w-[1100px] md:grid-cols-4 md:p-6">
+    <section className="container-x benefits-shelf relative z-[2]">
+      <div className="mx-auto grid grid-cols-2 gap-x-3 gap-y-5 p-4 md:max-w-[1100px] md:grid-cols-4 md:p-6">
         {items.map((item, i) => (
           <div key={`${item.title}-${i}`} data-reveal style={{ ["--d" as string]: i }} className="flex items-center gap-3">
             <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary-soft text-primary">{ICONS[item.icon] ?? ICONS.shield}</span>
@@ -56,130 +55,33 @@ export function CategoryGrid({ content, categories }: { content: C; categories: 
   const featured = roots.filter((c) => c.featured);
   const list = (featured.length ? featured : roots).slice(0, Math.max(1, Number(content.limit) || 6));
   if (!list.length) return null;
-  const [lead, ...rest] = list;
-  const tiles = rest.slice(0, 4);
-  const extra = [...rest.slice(4), ...roots.filter((r) => !list.includes(r))];
-  return (
-    <section className="container-x mt-14 md:mt-20">
-      <SectionHead eyebrow={str(content.eyebrow)} title={str(content.title)} body={str(content.body)} action={{ label: "همه دسته‌ها", href: "/store" }} />
-      <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-4 lg:grid-rows-2">
-        <CategoryTile cat={lead} big index={0} />
-        {tiles.map((cat, i) => (
-          <CategoryTile key={cat.id} cat={cat} index={i + 1} />
-        ))}
-      </div>
-      {extra.length ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <span className="self-center text-[0.8rem] font-bold text-muted">دسته‌های دیگر:</span>
-          {extra.map((cat) => (
-            <Link key={cat.id} href={`/store/category/${cat.slug}`} className="chip hover:border-primary hover:text-primary">
-              {cat.name}
-              <span className="num text-muted">{formatNumber(cat.count)}</span>
-            </Link>
-          ))}
-        </div>
-      ) : null}
-    </section>
-  );
+  return <section className="container-x category-shelf">
+    <SectionHead title={str(content.title)} body={str(content.body)} action={{label:"همه دسته‌ها",href:"/store"}}/>
+    <div className="category-track">{list.map(cat=><Link key={cat.id} href={`/store/category/${cat.slug}`}>
+      <span className="category-disc">
+        {cat.imageUrl ? <Image unoptimized src={cat.imageUrl} fill sizes="96px" alt=""/> : cat.icon || <LayoutGrid/>}
+      </span>
+      <strong>{cat.name}</strong><small>{formatNumber(cat.count)} محصول</small>
+    </Link>)}</div>
+  </section>;
 }
 
-function CategoryTile({ cat, big = false, index }: { cat: CategoryView; big?: boolean; index: number }) {
-  const [deep, mid, light] = paletteOf(cat.slug);
-  return (
-    <Link
-      href={`/store/category/${cat.slug}`}
-      data-reveal
-      style={{ ["--d" as string]: index, background: `radial-gradient(120% 110% at 100% 0%, ${mid} 0%, ${deep} 72%)` }}
-      className={cn(
-        "group relative isolate flex flex-col justify-between overflow-hidden rounded-[var(--r)] text-white shadow-2 transition-[translate,box-shadow] duration-300 hover:-translate-y-1 hover:shadow-3",
-        big ? "col-span-2 min-h-[220px] p-5 md:p-7 lg:row-span-2 lg:min-h-[420px]" : "min-h-[150px] p-4 md:min-h-[200px] md:p-5",
-      )}
-    >
-      {cat.imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={cat.imageUrl} alt="" className="absolute inset-0 -z-[1] size-full object-cover opacity-45 mix-blend-luminosity transition-transform duration-700 group-hover:scale-105" loading="lazy" />
-      ) : null}
-      <span className="absolute -bottom-16 -left-12 -z-[1] size-56 rounded-full blur-3xl" style={{ background: `${light}38` }} aria-hidden />
-      <span
-        className={cn("absolute -z-[1] font-display leading-none font-black text-white/[0.07] transition-transform duration-700 group-hover:scale-110", big ? "-bottom-10 -left-4 text-[15rem]" : "-bottom-6 -left-2 text-[7.5rem]")}
-        aria-hidden
-      >
-        {cat.icon || cat.name.slice(0, 1)}
-      </span>
-      <span className="flex items-start justify-between">
-        <span className={cn("grid place-items-center rounded-2xl bg-white/12 font-black ring-1 ring-white/20 backdrop-blur", big ? "size-14 text-2xl" : "size-11 text-lg")}>{cat.icon || cat.name.slice(0, 1)}</span>
-        <span className="grid size-9 place-items-center rounded-full bg-white/0 ring-1 ring-white/25 transition group-hover:bg-white group-hover:text-ink">
-          <ArrowLeft className="size-4" aria-hidden />
-        </span>
-      </span>
-      <span>
-        <b className={cn("block font-display leading-tight", big ? "text-[1.7rem] md:text-[2.3rem]" : "text-[1.02rem] md:text-[1.15rem]")}>{cat.name}</b>
-        {big && cat.description ? <span className="mt-3 line-clamp-2 block max-w-sm text-[0.92rem] leading-7 text-white/75">{cat.description}</span> : null}
-        <span className="num mt-2 block text-[0.78rem] text-white/65">{formatNumber(cat.count)} محصول</span>
-      </span>
-    </Link>
-  );
-}
-
-export function DealOfDay({ content, deal }: { content: C; deal: (Card & { stock: number | null }) | null }) {
-  if (!deal || !deal.saleEndsAt) return null;
-  const saved = deal.compareAt - deal.price;
-  return (
-    <section className="container-x mt-14 md:mt-20">
-      <div data-reveal className="relative overflow-hidden rounded-[calc(var(--r)*1.4)] border border-line bg-surface shadow-2">
-        <div className="absolute inset-y-0 left-0 w-2/3 bg-[radial-gradient(60%_80%_at_0%_50%,var(--urgency-soft),transparent)]" aria-hidden />
-        <div className="relative grid gap-6 p-4 md:grid-cols-[0.9fr_1.1fr] md:items-center md:gap-10 md:p-8 lg:p-10">
-          <Link href={`/store/${deal.slug}`} className="relative block aspect-[4/3] overflow-hidden rounded-[var(--r)] bg-sunken md:aspect-square">
-            <ProductImage product={deal} sizes="(min-width: 768px) 40vw, 92vw" />
-            <span className="badge badge-urgency absolute top-3 right-3 !h-7 !px-3 !text-[0.8rem] num">
-              ٪{formatNumber(Math.round((saved / deal.compareAt) * 100))} تخفیف
-            </span>
-          </Link>
-          <div>
-            <span className="eyebrow !text-urgency">{str(content.eyebrow, "پیشنهاد محدود")}</span>
-            <h2 className="h-section mt-2">{str(content.title)}</h2>
-            <Link href={`/store/${deal.slug}`} className="mt-4 block font-display text-[1.25rem] font-extrabold leading-8 hover:text-primary md:text-[1.45rem]">
-              {deal.title}
-            </Link>
-            {deal.summary ? <p className="mt-2 line-clamp-2 text-[0.92rem] leading-7 text-muted">{deal.summary}</p> : null}
-            <div className="mt-5 flex flex-wrap items-end gap-x-6 gap-y-3">
-              <Price value={deal.price} compareAt={deal.compareAt} size="xl" />
-              <span className="rounded-xl bg-success-soft px-3 py-2 text-[0.82rem] font-bold text-success">
-                سود شما: <span className="num">{formatToman(saved)}</span>
-              </span>
-            </div>
-            <div className="mt-6">
-              <p className="mb-2 text-[0.8rem] font-bold text-muted">تا پایان این قیمت:</p>
-              <Countdown endsAt={deal.saleEndsAt} />
-            </div>
-            {deal.stock !== null && deal.stock > 0 && deal.stock <= 20 ? (
-              <p className="mt-4 text-[0.85rem] font-bold text-urgency">فقط {formatNumber(deal.stock)} عدد با این قیمت باقی مانده است.</p>
-            ) : deal.salesCount > 0 ? (
-              <p className="mt-4 text-[0.85rem] font-semibold text-muted">
-                <b className="num text-fg">{formatNumber(deal.salesCount)}</b> نفر این محصول را خریده‌اند.
-              </p>
-            ) : null}
-            <div className="mt-6 flex flex-wrap gap-3">
-              {deal.hasVariants ? (
-                <Link href={`/store/${deal.slug}`} className="btn btn-primary btn-lg">
-                  {str(content.ctaLabel, "خرید با تخفیف")}
-                </Link>
-              ) : (
-                <AddToCartButton
-                  size="lg"
-                  label={str(content.ctaLabel, "خرید با تخفیف")}
-                  line={{ productId: deal.id, variantId: null, title: deal.title, variantTitle: "", slug: deal.slug, image: deal.image, price: deal.price, compareAt: deal.compareAt, type: deal.type, max: deal.stock ?? 99 }}
-                />
-              )}
-              <Link href={`/store/${deal.slug}`} className="btn btn-outline btn-lg">
-                جزئیات محصول
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
+export function DealOfDay({ content, deal, products }: { content: C; deal: Card | null; products: Card[] }) {
+  const active = deal?.saleEndsAt && new Date(deal.saleEndsAt).getTime() > Date.now() && deal.inStock ? deal : null;
+  const offers = active ? [active, ...products.filter(item => item.id !== active.id)] : products;
+  if (!offers.length) return null;
+  return <section className="container-x offers">
+    <div className="offer-heading">
+      <div><span>{str(content.eyebrow)}</span><h2>{str(content.title)}</h2></div>
+      <Link href="/store?sale=1">همه تخفیف‌ها ←</Link>
+    </div>
+    <div className="offer-rail" tabIndex={0} role="region" aria-label="محصولات تخفیف‌دار">
+      {offers.map(item => <div key={item.id} className="offer-item">
+        <ProductCard product={item}/>
+        {item.saleEndsAt && <div className="offer-time"><Clock size={14}/> زمان باقی‌مانده <Countdown endsAt={item.saleEndsAt} compact/></div>}
+      </div>)}
+    </div>
+  </section>;
 }
 
 export function ProductsSection({ content, products, layout = "grid" }: { content: C; products: Card[]; layout?: "grid" | "row" }) {
@@ -452,7 +354,7 @@ export function ClientLogos({ content, logos }: { content: C; logos: LogoItem[] 
   if (!logos.length) return null;
   const row = [...logos, ...logos];
   return (
-    <section className="mt-14 overflow-hidden md:mt-20" aria-label={str(content.title)}>
+    <section className="brand-strip mt-14 overflow-hidden md:mt-20" aria-label={str(content.title)}>
       <p className="container-x mb-6 text-center text-[0.85rem] font-bold text-muted">{str(content.title)}</p>
       <div className="relative [mask-image:linear-gradient(90deg,transparent,black_12%,black_88%,transparent)]">
         <div className="marquee-track">
@@ -539,11 +441,11 @@ export function BlogLatest({ content, posts }: { content: C; posts: PostCard[] }
   return (
     <section className="container-x mt-14 md:mt-20">
       <SectionHead eyebrow={str(content.eyebrow)} title={str(content.title)} body={str(content.body)} action={action(content)} />
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="journal-grid grid gap-4 md:grid-cols-3">
         {list.map((post, i) => (
           <Link key={post.id} href={`/blog/${post.slug}`} data-reveal style={{ ["--d" as string]: i }} className="group card card-hover flex flex-col overflow-hidden">
             <span className="block aspect-[16/9] overflow-hidden bg-sunken">
-              {post.coverUrl && !post.coverUrl.endsWith(".svg") ? (
+              {post.coverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={post.coverUrl} alt="" loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
               ) : (

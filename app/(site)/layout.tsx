@@ -42,7 +42,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   const contact = contactLinks(site.settings);
   const navCategories = categories
     .filter((c) => !c.parentId)
-    .map((c) => ({ slug: c.slug, name: c.name, count: c.count, icon: c.icon, description: c.description }));
+    .map((c) => ({ slug: c.slug, name: c.name, count: c.count, icon: c.icon, description: c.description, children: categories.filter(child => child.parentId === c.id).map(child => ({slug:child.slug, name:child.name})) }));
   const payments = [
     options.pay_zarinpal.enabled ? "زرین‌پال" : "",
     options.pay_snapppay.enabled ? "اسنپ‌پی" : "",
@@ -79,6 +79,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         hours={site.settings.hours}
         copyright={site.settings.copyright}
         newsletterTitle={site.settings.newsletterTitle}
+        samandehiUrl={String(options.header.samandehiUrl || "")}
         enamadHtml={site.settings.enamadHtml}
         links={footerLinks}
         categories={navCategories}
@@ -88,7 +89,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         payments={payments}
       />
       <CartDrawer freeShippingAbove={(Number(store.freeShippingAboveToman) || 0) * 10} />
-      <MobileBar links={contact} enabled={Boolean(header.stickyBar)} />
+      <MobileBar enabled={Boolean(header.stickyBar)} />
       <FloatingContact links={contact} enabled={Boolean(header.floatingContact)} />
     </CartProvider>
   );
