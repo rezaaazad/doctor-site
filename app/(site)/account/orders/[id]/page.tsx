@@ -33,6 +33,7 @@ export default async function AccountOrderPage({ params }: Props) {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <h1 className="font-display text-[1.4rem] font-extrabold">سفارش #{order.number.toLocaleString("fa-IR")}</h1>
+            <p className="mt-2 font-semibold text-primary">{statusLabel(order.status)}</p>
             <p className="mt-1 text-[0.85rem] text-muted">{new Date(order.createdAt).toLocaleString("fa-IR")}</p>
           </div>
           <Link href={`/account/orders/${order.id}/invoice`} className="btn btn-outline btn-sm" target="_blank">

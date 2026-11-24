@@ -78,7 +78,7 @@ export function MobileBar({ links, enabled }: { links: ContactLinks; enabled: bo
             <Store className="size-[21px]" aria-hidden /> فروشگاه
           </Link>
           <button type="button" onClick={() => setContact(true)} className={cn(item, "text-fg")}>
-            <span className="-mt-6 grid size-[52px] place-items-center rounded-full bg-action text-white shadow-[0_10px_24px_-8px_var(--action)] ring-4 ring-surface">
+            <span className="-mt-6 grid size-[52px] place-items-center rounded-full bg-primary text-white shadow-[0_10px_24px_-8px_var(--primary)] ring-4 ring-surface">
               <Headset className="size-6" aria-hidden />
             </span>
             مشاوره
@@ -87,7 +87,7 @@ export function MobileBar({ links, enabled }: { links: ContactLinks; enabled: bo
             <span className="relative">
               <ShoppingBag className="size-[21px]" aria-hidden />
               {ready && count > 0 ? (
-                <span className="num absolute -top-1.5 -left-2.5 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-action px-1 text-[0.62rem] text-white">{formatNumber(count)}</span>
+                <span className="num absolute -top-1.5 -left-2.5 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-primary px-1 text-[0.62rem] text-white">{formatNumber(count)}</span>
               ) : null}
             </span>
             سبد خرید
@@ -134,7 +134,7 @@ export function FloatingContact({ links, enabled }: { links: ContactLinks; enabl
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-label={open ? "بستن راه‌های تماس" : "تماس با ما"}
-        className="group relative grid size-14 place-items-center rounded-full bg-action text-white shadow-[0_16px_36px_-12px_var(--action)] transition-transform hover:scale-105"
+        className="group relative grid size-14 place-items-center rounded-full bg-primary text-white shadow-[0_16px_36px_-12px_var(--primary)] transition-transform hover:scale-105"
       >
         {open ? <X className="size-6" aria-hidden /> : <Headset className="size-6" aria-hidden />}
         {!open ? <span className="absolute top-0.5 right-0.5 size-3 rounded-full bg-success ring-2 ring-white" /> : null}

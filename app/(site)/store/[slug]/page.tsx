@@ -10,6 +10,7 @@ import { parseBlocks } from "@/lib/blocks";
 import { Blocks } from "@/components/content/blocks";
 import { ProductBuy } from "@/components/store/product-buy";
 import { ProductGrid } from "@/components/store/product-card";
+import { Breadcrumbs } from "@/components/ui/bits";
 
 export const dynamic = "force-dynamic";
 
@@ -41,9 +42,10 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <div className="wrap pad pb-[calc(10rem+env(safe-area-inset-bottom))] lg:pb-16">
+      <Breadcrumbs className="mb-5 pt-5" items={[{label:"خانه",href:"/"},{label:"فروشگاه",href:"/store"},{label:product.category.name,href:`/store/category/${product.category.slug}`},{label:product.title}]}/>
       <ProductBuy product={product} wished={wished} guarantee={String(options.store.guaranteeText || "")} />
-
-      <section className="mt-14 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]" data-reveal>
+      <nav aria-label="جزئیات محصول" className="card mt-8 flex flex-wrap gap-2 p-2"><a href="#description" className="btn btn-ghost">توضیحات</a>{specs.length>0&&<a href="#specifications" className="btn btn-ghost">مشخصات</a>}{related.length>0&&<a href="#related" className="btn btn-ghost">محصولات مرتبط</a>}</nav>
+      <section id="description" className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]" data-reveal>
         <div>
           {product.description ? (
             <div className="mb-8 whitespace-pre-line text-[0.95rem] leading-8 text-muted">{product.description}</div>
@@ -51,7 +53,7 @@ export default async function ProductPage({ params }: Props) {
           {blocks.length ? <Blocks blocks={blocks} /> : null}
         </div>
         {specs.length ? (
-          <aside className="card h-fit p-4">
+          <aside id="specifications" className="card h-fit p-4">
             <h2 className="mb-3 font-bold">مشخصات</h2>
             <dl className="divide-y divide-line text-[0.85rem]">
               {specs.map((s) => (
@@ -66,7 +68,7 @@ export default async function ProductPage({ params }: Props) {
       </section>
 
       {related.length ? (
-        <section className="mt-16" data-reveal>
+        <section id="related" className="mt-16" data-reveal>
           <div className="mb-5 flex items-end justify-between gap-4">
             <h2 className="font-display text-[1.35rem] font-extrabold">محصولات مرتبط</h2>
             <Link href={`/store/category/${product.category.slug}`} className="text-[0.82rem] font-semibold text-primary hover:underline">

@@ -13,7 +13,7 @@ export function Field({ label, children, hint }: { label: string; children: Reac
     <label className="grid gap-2">
       <Label>{label}</Label>
       {children}
-      {hint ? <span className="text-xs text-white/40">{hint}</span> : null}
+      {hint ? <span className="text-xs text-muted">{hint}</span> : null}
     </label>
   );
 }
@@ -21,7 +21,7 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 export function FormMessage({ state }: { state: ActionState }) {
   if (!state) return null;
   return (
-    <p role="status" className={state.ok ? "text-sm text-[var(--accent)]" : "text-sm text-red-300"}>
+    <p role="status" className={state.ok ? "text-sm text-primary" : "text-sm text-urgency"}>
       {state.message}
     </p>
   );
@@ -39,7 +39,7 @@ export function SaveButton({ children = "ذخیره" }: { children?: React.React
 export function SwitchField({ name, label, defaultOn = false }: { name: string; label: string; defaultOn?: boolean }) {
   const [on, setOn] = useState(defaultOn);
   return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+    <div className="flex items-center justify-between gap-4 rounded-2xl border border-line bg-surface px-4 py-3">
       <span className="text-sm">{label}</span>
       <input type="hidden" name={name} value={on ? "1" : "0"} />
       <Switch checked={on} onCheckedChange={setOn} aria-label={label} />

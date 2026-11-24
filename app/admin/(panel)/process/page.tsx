@@ -35,7 +35,7 @@ export default async function ProcessAdminPage() {
       </section>
       <section className="grid gap-4">
         <h2 className="text-2xl font-black">لوگوی مشتری‌ها</h2>
-        <p className="text-sm text-white/50">اگر تصویر نگذارید، نام به‌صورت نشان متنی دیده می‌شود. نام‌ها نمونه هستند؛ قبل از انتشار عوضشان کنید.</p>
+        <p className="text-sm text-muted">اگر تصویر نگذارید، نام به‌صورت نشان متنی دیده می‌شود. نام‌ها نمونه هستند؛ قبل از انتشار عوضشان کنید.</p>
         <LogoForm />
         {logos.map((item) => (
           <div key={item.id} className="grid gap-2">

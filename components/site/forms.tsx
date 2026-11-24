@@ -104,7 +104,7 @@ export function NewsletterForm({ source = "footer", tone = "light" }: { source?:
           aria-label="ایمیل برای خبرنامه"
           className={cn("min-w-0 flex-1 bg-transparent px-3 text-[0.9rem] outline-none", tone === "light" ? "text-white placeholder:text-white/40" : "placeholder:text-muted")}
         />
-        <SubmitButton size="sm" variant="action" pendingText="…">
+        <SubmitButton size="sm" variant="primary" pendingText="…">
           عضویت
         </SubmitButton>
       </div>

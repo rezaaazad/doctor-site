@@ -7,6 +7,7 @@ import { ChevronDown, Heart, LayoutGrid, Menu, Phone, Search, ShoppingBag, User,
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/money";
 import { useCart } from "@/components/store/cart";
+import { Drawer } from "@/components/ui/drawer";
 
 export type NavLink = { id: string; label: string; href: string; highlight?: boolean; newTab?: boolean; children?: NavLink[] };
 export type NavCategory = { slug: string; name: string; count: number; icon: string; description: string };
@@ -33,7 +34,7 @@ export function Logo({ siteName, logoUrl, light = false }: { siteName: string; l
       <span className={cn("relative grid size-9 place-items-center overflow-hidden rounded-[11px] md:size-10", light ? "bg-white text-ink" : "bg-ink text-white")}>
         <svg viewBox="0 0 32 32" className="size-5 md:size-6" fill="none" aria-hidden>
           <path d="M9 7h7.5a9 9 0 0 1 0 18H9z" stroke="currentColor" strokeWidth="3" strokeLinejoin="round" />
-          <circle cx="16.5" cy="16" r="2.6" fill="var(--action)" />
+          <circle cx="16.5" cy="16" r="2.6" fill="var(--primary)" />
         </svg>
       </span>
       <span className="flex flex-col leading-none">
@@ -50,7 +51,7 @@ function CartButton() {
     <button type="button" onClick={() => setOpen(true)} className="btn btn-ghost btn-icon relative" aria-label={`سبد خرید، ${count} کالا`}>
       <ShoppingBag className="size-[21px]" aria-hidden />
       {ready && count > 0 ? (
-        <span key={count} className="anim-pop num absolute -top-0.5 -left-0.5 grid h-[19px] min-w-[19px] place-items-center rounded-full bg-action px-1 text-[0.68rem] font-black text-white ring-2 ring-surface">
+        <span key={count} className="anim-pop num absolute -top-0.5 -left-0.5 grid h-[19px] min-w-[19px] place-items-center rounded-full bg-primary px-1 text-[0.68rem] font-black text-white ring-2 ring-surface">
           {formatNumber(count)}
         </span>
       ) : null}
@@ -58,9 +59,11 @@ function CartButton() {
   );
 }
 
-function SearchBox({ className, autoFocus, onDone }: { className?: string; autoFocus?: boolean; onDone?: () => void }) {
+function SearchBox({ className, autoFocus, onDone, categories=[] }: { className?: string; autoFocus?: boolean; onDone?: () => void; categories?:NavCategory[] }) {
   const router = useRouter();
   const [q, setQ] = useState("");
+  const [focused,setFocused]=useState(false);
+  const matches=q.trim()?categories.filter(c=>c.name.includes(q.trim())).slice(0,5):[];
   return (
     <form
       role="search"
@@ -71,6 +74,9 @@ function SearchBox({ className, autoFocus, onDone }: { className?: string; autoF
         onDone?.();
       }}
       className={cn("relative", className)}
+      onFocus={()=>setFocused(true)}
+      onBlur={e=>{if(!e.currentTarget.contains(e.relatedTarget))setFocused(false)}}
+      onKeyDown={e=>{if(e.key==="Escape")setFocused(false)}}
     >
       <Search className="pointer-events-none absolute top-1/2 right-3.5 size-[18px] -translate-y-1/2 text-muted" aria-hidden />
       <input
@@ -82,6 +88,10 @@ function SearchBox({ className, autoFocus, onDone }: { className?: string; autoF
         aria-label="جست‌وجو در فروشگاه"
         className="input !min-h-[44px] !rounded-full !bg-sunken !pr-10 !shadow-none hover:!bg-surface focus:!bg-surface"
       />
+      {focused&&q.trim()&&<div className="card-raised absolute inset-x-0 top-full z-50 mt-2 grid p-2">
+        {matches.map(c=><Link key={c.slug} href={`/store/category/${c.slug}`} onClick={()=>{setFocused(false);onDone?.()}} className="rounded-lg p-2 text-sm hover:bg-sunken">{c.name}</Link>)}
+        <button type="submit" className="rounded-lg bg-primary-soft p-2 text-start text-sm font-bold text-primary">جست‌وجوی «{q.trim()}» در محصولات</button>
+      </div>}
     </form>
   );
 }
@@ -108,10 +118,6 @@ export function SiteHeader(props: HeaderProps) {
   }, [pathname]);
 
   useEffect(() => {
-    document.documentElement.style.overflow = menuOpen ? "hidden" : "";
-  }, [menuOpen]);
-
-  useEffect(() => {
     if (!catsOpen) return;
     const close = (event: MouseEvent) => {
       if (catsRef.current && !catsRef.current.contains(event.target as Node)) setCatsOpen(false);
@@ -135,8 +141,8 @@ export function SiteHeader(props: HeaderProps) {
           scrolled ? "border-line bg-surface/85 shadow-[0_8px_30px_-18px_rgba(11,21,48,0.35)] backdrop-blur-xl" : "border-transparent bg-bg",
         )}
       >
-        <div className="container-x flex h-[var(--header-h)] items-center gap-3 lg:gap-6">
-          <button type="button" className="btn btn-ghost btn-icon -mr-2 lg:hidden" onClick={() => setMenuOpen(true)} aria-label="باز کردن منو" aria-expanded={menuOpen}>
+        <div className={cn("container-x flex items-center gap-1.5 sm:gap-3 lg:gap-6", scrolled?"h-[60px]":"h-[var(--header-h)]")}>
+          <button type="button" className="btn btn-ghost btn-icon -mr-2 xl:hidden" onClick={() => setMenuOpen(true)} aria-label="باز کردن منو" aria-expanded={menuOpen}>
             <Menu className="size-[22px]" aria-hidden />
           </button>
           <Link href="/" className="shrink-0" aria-label={`${props.siteName} — صفحه اصلی`}>
@@ -177,22 +183,26 @@ export function SiteHeader(props: HeaderProps) {
             ) : null}
           </div>
 
-          <SearchBox className="hidden max-w-md flex-1 md:block" />
+          <SearchBox categories={props.categories} className="hidden min-w-0 max-w-md flex-1 md:block" />
 
           <nav aria-label="منوی اصلی" className="hidden items-center gap-0.5 xl:flex">
             {props.links.slice(0, 6).map((link) => (
+              <div key={link.id} className="group relative">
               <Link
                 key={link.id}
                 href={link.href}
                 target={link.newTab ? "_blank" : undefined}
+                aria-current={isActive(link.href)?"page":undefined}
                 className={cn(
                   "rounded-full px-3 py-2 text-[0.9rem] font-semibold transition-colors hover:bg-sunken",
                   isActive(link.href) ? "text-primary" : "text-fg/80",
-                  link.highlight && "text-action",
+                  link.highlight && "text-primary",
                 )}
               >
                 {link.label}
               </Link>
+              {!!link.children?.length&&<div className="card-raised absolute top-full right-0 hidden min-w-48 p-2 group-hover:grid group-focus-within:grid">{link.children.map(child=><Link key={child.id} href={child.href} target={child.newTab?"_blank":undefined} className="rounded-lg p-2 text-sm hover:bg-sunken">{child.label}</Link>)}</div>}
+              </div>
             ))}
           </nav>
 
@@ -209,12 +219,13 @@ export function SiteHeader(props: HeaderProps) {
             <Link href="/account/wishlist" className="btn btn-ghost btn-icon hidden md:inline-flex" aria-label="علاقه‌مندی‌ها">
               <Heart className="size-[21px]" aria-hidden />
             </Link>
-            <Link href={props.signedIn ? "/account" : "/account/login"} className="btn btn-ghost btn-icon" aria-label={props.signedIn ? "حساب کاربری" : "ورود یا ثبت‌نام"}>
+            <div className="group relative"><Link href={props.signedIn ? "/account" : "/account/login"} className="btn btn-ghost btn-icon" aria-label={props.signedIn ? "حساب کاربری" : "ورود یا ثبت‌نام"}>
               <User className="size-[21px]" aria-hidden />
             </Link>
+            {props.signedIn&&<div className="card-raised absolute left-0 top-full z-50 hidden min-w-48 p-2 group-hover:grid group-focus-within:grid">{[["/account","پیشخوان حساب"],["/account/orders","سفارش‌ها"],["/account/wishlist","علاقه‌مندی‌ها"]].map(([href,label])=><Link key={href} href={href} className="rounded-lg p-2 text-sm hover:bg-sunken">{label}</Link>)}</div>}</div>
             <CartButton />
             {props.cta.label ? (
-              <Link href={props.cta.href} className="btn btn-action btn-sm mr-1 hidden lg:inline-flex">
+              <Link href={props.cta.href} className="btn btn-primary btn-sm mr-1 hidden lg:inline-flex">
                 {props.cta.label}
               </Link>
             ) : null}
@@ -222,15 +233,12 @@ export function SiteHeader(props: HeaderProps) {
         </div>
         {searchOpen ? (
           <div className="container-x anim-rise pb-3 md:hidden">
-            <SearchBox autoFocus onDone={() => setSearchOpen(false)} />
+            <SearchBox categories={props.categories} autoFocus onDone={() => setSearchOpen(false)} />
           </div>
         ) : null}
       </header>
 
-      {menuOpen ? (
-        <div className="fixed inset-0 z-[60] lg:hidden" role="dialog" aria-modal="true" aria-label="منو">
-          <button type="button" className="absolute inset-0 bg-ink/50 backdrop-blur-sm" style={{ animation: "fade .2s both" }} onClick={() => setMenuOpen(false)} aria-label="بستن منو" />
-          <div className="absolute inset-y-0 right-0 flex w-[min(88vw,380px)] flex-col overflow-y-auto bg-surface shadow-3" style={{ animation: "slide-in-right .32s var(--ease-out) both" }}>
+      <Drawer open={menuOpen} onOpenChange={setMenuOpen} title="منوی اصلی" className="flex flex-col">
             <div className="flex items-center justify-between border-b border-line p-4">
               <Logo siteName={props.siteName} logoUrl={props.logoUrl} />
               <button type="button" className="btn btn-ghost btn-icon" onClick={() => setMenuOpen(false)} aria-label="بستن">
@@ -238,7 +246,7 @@ export function SiteHeader(props: HeaderProps) {
               </button>
             </div>
             <div className="p-4">
-              <SearchBox onDone={() => setMenuOpen(false)} />
+              <SearchBox categories={props.categories} onDone={() => setMenuOpen(false)} />
             </div>
             <p className="px-5 pt-1 pb-2 text-[0.75rem] font-bold text-muted">دسته‌بندی‌ها</p>
             <div className="grid grid-cols-2 gap-2 px-4">
@@ -252,9 +260,9 @@ export function SiteHeader(props: HeaderProps) {
             <p className="px-5 pt-5 pb-2 text-[0.75rem] font-bold text-muted">صفحه‌ها</p>
             <nav className="flex flex-col px-2" aria-label="منوی موبایل">
               {props.links.map((link) => (
-                <Link key={link.id} href={link.href} className={cn("rounded-xl px-3 py-3 text-[0.98rem] font-bold", isActive(link.href) ? "bg-primary-soft text-primary" : "hover:bg-sunken")}>
+                <div key={link.id}><Link href={link.href} onClick={()=>setMenuOpen(false)} className={cn("block rounded-xl px-3 py-3 text-[0.98rem] font-bold", isActive(link.href) ? "bg-primary-soft text-primary" : "hover:bg-sunken")}>
                   {link.label}
-                </Link>
+                </Link>{link.children?.map(child=><Link key={child.id} href={child.href} onClick={()=>setMenuOpen(false)} className="block py-2 ps-6 text-sm text-muted">{child.label}</Link>)}</div>
               ))}
             </nav>
             <div className="mt-auto space-y-2 border-t border-line p-4">
@@ -265,14 +273,12 @@ export function SiteHeader(props: HeaderProps) {
                 </a>
               ) : null}
               {props.cta.label ? (
-                <Link href={props.cta.href} className="btn btn-action btn-block">
+                <Link href={props.cta.href} className="btn btn-primary btn-block">
                   {props.cta.label}
                 </Link>
               ) : null}
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Drawer>
     </>
   );
 }

@@ -118,7 +118,7 @@ export default async function LandingRoute({ params }: Params) {
         </section>
       ) : null}
       <p className="mt-10 flex flex-wrap gap-3">
-        <Link className="btn btn-action" href={ctaHref}>
+        <Link className="btn btn-primary" href={ctaHref}>
           {ctaLabel}
         </Link>
         <Link className="btn btn-outline" href="/store">

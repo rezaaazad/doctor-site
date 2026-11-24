@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   output: "standalone",
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
-  images: { unoptimized: true },
+  images: { localPatterns: [{ pathname: "/media/**", search: "" }] },
   serverExternalPackages: ["@prisma/client", "prisma"],
   outputFileTracingIncludes: {
     "/*": ["./assets/**/*", "./node_modules/.prisma/**/*", "./node_modules/@prisma/client/**/*"],

@@ -15,7 +15,7 @@ export function CartPageClient() {
     return (
       <div className="card p-10 text-center">
         <p className="font-bold">سبد شما خالی است.</p>
-        <Link href="/store" className="btn btn-action mt-4">
+        <Link href="/store" className="btn btn-primary mt-4">
           مشاهده فروشگاه
         </Link>
       </div>

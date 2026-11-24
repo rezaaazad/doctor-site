@@ -13,10 +13,10 @@ export default async function BlogAdminPage() {
         <h1 className="text-3xl font-black">وبلاگ</h1>
         <Link href="/admin/blog/new" className="inline-flex h-11 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-black">یادداشت جدید</Link>
       </div>
-      {posts.length === 0 ? <p className="text-sm text-white/50">یادداشتی نیست.</p> : null}
+      {posts.length === 0 ? <p className="text-sm text-muted">یادداشتی نیست.</p> : null}
       <ul className="grid gap-3">
         {posts.map((post) => (
-          <li key={post.id} className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 px-4 py-3">
+          <li key={post.id} className="flex items-center justify-between gap-3 rounded-3xl border border-line px-4 py-3">
             <Link href={`/admin/blog/${post.id}`} className="font-bold">{post.title}</Link>
             <ConfirmButton action={deletePost.bind(null, post.id)} />
           </li>

@@ -11,7 +11,7 @@ export const Switch = React.forwardRef<
   <SwitchPrimitives.Root
     dir="ltr"
     className={cn(
-      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-white/15 transition-colors data-[state=checked]:bg-[var(--accent)] data-[state=unchecked]:bg-white/10",
+      "peer inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-line transition-colors data-[state=checked]:bg-primary data-[state=unchecked]:bg-sunken",
       className,
     )}
     {...props}

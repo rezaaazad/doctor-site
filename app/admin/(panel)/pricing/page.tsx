@@ -11,7 +11,7 @@ export default async function PricingAdminPage() {
   return (
     <div className="grid gap-6">
       <h1 className="text-3xl font-black">تعرفه</h1>
-      <p className="text-sm text-white/50">شروع قیمت و موارد هر پکیج. روی سایت، کنار خدمات دیده می‌شود.</p>
+      <p className="text-sm text-muted">شروع قیمت و موارد هر پکیج. روی سایت، کنار خدمات دیده می‌شود.</p>
       <PackageForm />
       {items.map((item) => (
         <div key={item.id} className="grid gap-2">

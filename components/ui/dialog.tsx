@@ -14,7 +14,7 @@ export function DialogContent({ className, children, ...props }: React.Component
       <DialogPrimitive.Overlay className="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm" />
       <DialogPrimitive.Content
         className={cn(
-          "fixed top-1/2 left-1/2 z-[81] w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-white/10 bg-[#101012] p-6 text-white shadow-2xl",
+          "fixed top-1/2 left-1/2 z-[81] max-h-[85dvh] w-[min(92vw,28rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-card border border-line bg-surface p-6 text-fg shadow-3",
           className,
         )}
         {...props}
@@ -30,5 +30,5 @@ export function DialogTitle({ className, ...props }: React.ComponentProps<typeof
 }
 
 export function DialogDescription({ className, ...props }: React.ComponentProps<typeof DialogPrimitive.Description>) {
-  return <DialogPrimitive.Description className={cn("mt-2 text-sm leading-7 text-white/60", className)} {...props} />;
+  return <DialogPrimitive.Description className={cn("mt-2 text-sm leading-7 text-muted", className)} {...props} />;
 }

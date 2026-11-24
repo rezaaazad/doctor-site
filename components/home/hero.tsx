@@ -23,11 +23,11 @@ export function StoreHero({ content, spotlight, dark, installmentsOn }: { conten
             <h1 className={cn("anim-rise h-display mt-5 text-[2.05rem] sm:text-[2.6rem] lg:text-[3.35rem] xl:text-[3.7rem]", dark && "text-white")} style={{ ["--d" as string]: 1 }}>
               {str(content.title)}{" "}
               <span className="relative inline-block whitespace-nowrap">
-                <span className={cn("relative z-[1]", dark ? "text-transparent bg-clip-text bg-[linear-gradient(100deg,#fff_0%,color-mix(in_oklab,var(--gold)_80%,white)_45%,color-mix(in_oklab,var(--action)_65%,white)_100%)]" : "text-action")}>
+                <span className={cn("relative z-[1]", dark ? "text-transparent bg-clip-text bg-[linear-gradient(100deg,#fff_0%,color-mix(in_oklab,var(--gold)_80%,white)_45%,color-mix(in_oklab,var(--primary)_65%,white)_100%)]" : "text-primary")}>
                   {str(content.highlight)}
                 </span>
                 <svg viewBox="0 0 300 18" className="absolute -bottom-2 left-0 h-3 w-full" preserveAspectRatio="none" aria-hidden>
-                  <path d="M3 13C60 5 140 3 297 9" fill="none" stroke="var(--action)" strokeWidth="5" strokeLinecap="round" opacity={dark ? 0.85 : 0.35} />
+                  <path d="M3 13C60 5 140 3 297 9" fill="none" stroke="var(--primary)" strokeWidth="5" strokeLinecap="round" opacity={dark ? 0.85 : 0.35} />
                 </svg>
               </span>
             </h1>
@@ -35,7 +35,7 @@ export function StoreHero({ content, spotlight, dark, installmentsOn }: { conten
               {str(content.body)}
             </p>
             <div className="anim-rise mt-8 flex flex-wrap items-center gap-3" style={{ ["--d" as string]: 3 }}>
-              <Link href={str(content.primaryHref, "/store")} className="btn btn-action btn-lg min-h-[52px]">
+              <Link href={str(content.primaryHref, "/store")} className="btn btn-primary btn-lg min-h-[52px]">
                 {str(content.primaryLabel, "مشاهده محصولات")}
                 <ArrowLeft className="size-[18px]" aria-hidden />
               </Link>
@@ -115,13 +115,13 @@ export function StoreHero({ content, spotlight, dark, installmentsOn }: { conten
                 {spotlight.inStock ? (
                   <div className="absolute bottom-[5.6rem] left-5 z-[2]">
                     {spotlight.hasVariants ? (
-                      <Link href={`/store/${spotlight.slug}`} className="btn btn-action shadow-[0_14px_30px_-10px_var(--action)]">
+                      <Link href={`/store/${spotlight.slug}`} className="btn btn-primary shadow-[0_14px_30px_-10px_var(--primary)]">
                         انتخاب گزینه و خرید
                       </Link>
                     ) : (
                       <AddToCartButton
                         variant="action"
-                        className="shadow-[0_14px_30px_-10px_var(--action)]"
+                        className="shadow-[0_14px_30px_-10px_var(--primary)]"
                         label="خرید سریع"
                         line={{ productId: spotlight.id, variantId: null, title: spotlight.title, variantTitle: "", slug: spotlight.slug, image: spotlight.image, price: spotlight.price, compareAt: spotlight.compareAt, type: spotlight.type, max: spotlight.stockLeft ?? 99 }}
                       />

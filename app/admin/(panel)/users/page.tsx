@@ -17,14 +17,14 @@ export default async function UsersPage() {
         <h1 className="text-3xl font-black">مدیران</h1>
         <ul className="grid gap-3">
           {users.map((user) => (
-            <li key={user.id} className="flex items-center justify-between gap-3 rounded-3xl border border-white/10 px-4 py-3">
+            <li key={user.id} className="flex items-center justify-between gap-3 rounded-3xl border border-line px-4 py-3">
               <span>
                 <span className="block font-bold">{user.name}</span>
-                <span className="text-xs text-white/45" dir="ltr">{user.email}</span>
+                <span className="text-xs text-muted" dir="ltr">{user.email}</span>
                 <span className="block text-sm">{roleLabel(user.role)}</span>
                 {current && current.id !== user.id && <ActionForm action={manageRecord.bind(null,"staffRole",user.id)}><select className="rounded-lg border border-line bg-surface p-2" name="role" defaultValue={user.role}>{Object.entries(ROLES).map(([id,r])=><option key={id} value={id}>{r.label}</option>)}</select><button className="rounded-lg bg-primary px-3 py-2 text-white">ذخیره نقش</button></ActionForm>}
               </span>
-              {current && user.id !== current.id ? <ConfirmButton action={deleteAdmin.bind(null, user.id)} title="این مدیر حذف شود؟" /> : <span className="text-xs text-white/40">شما</span>}
+              {current && user.id !== current.id ? <ConfirmButton action={deleteAdmin.bind(null, user.id)} title="این مدیر حذف شود؟" /> : <span className="text-xs text-muted">شما</span>}
             </li>
           ))}
         </ul>
