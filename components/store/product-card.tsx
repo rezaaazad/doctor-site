@@ -33,7 +33,7 @@ export function ProductCard({ product, className, priority = false, wished = fal
   const alternate = product.images.find(src => src && src !== product.image);
   const pct = product.compareAt > product.price ? Math.round(((product.compareAt - product.price) / product.compareAt) * 100) : 0;
   return (
-    <article className={cn("catalog-tile group card card-hover relative flex flex-col overflow-hidden", className)}>
+    <article data-unavailable={!product.inStock || undefined} className={cn("catalog-tile group card card-hover relative flex flex-col overflow-hidden", className)}>
       <Link href={href} className="relative block aspect-[5/4] overflow-hidden bg-sunken" aria-label={product.title}>
         <ProductImage product={product} priority={priority} className="transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.04]" />
         {alternate && <span aria-hidden="true" className="catalog-alternate"><ProductImage product={{...product,image:alternate}}/></span>}

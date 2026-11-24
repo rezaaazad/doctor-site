@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  // Resolve metadata (including missing slugs) before sending HTTP headers.
+  htmlLimitedBots: /.*/,
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
   images: { localPatterns: [{ pathname: "/media/**", search: "" }] },

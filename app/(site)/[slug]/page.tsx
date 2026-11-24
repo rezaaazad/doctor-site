@@ -15,7 +15,7 @@ type Params = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { slug } = await params;
   const page = await findPublicLandingPage(slug);
-  if (!page) return {};
+  if (!page) notFound();
   const site = await getSiteSafe();
   return pageMetadata(
     {

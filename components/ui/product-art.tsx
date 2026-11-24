@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 export const ART_PALETTES = [
-  ["#0B1530", "#3B5BDB", "#9DB2FF"],
+  ["var(--ink)", "var(--primary)", "var(--gold)"],
   ["#1B1F3B", "#D04A0D", "#FFB38A"],
   ["#062925", "#0F766E", "#7EE2D0"],
   ["#22104A", "#6D28D9", "#C9B6FF"],
@@ -72,8 +72,8 @@ export function ProductArt({ seed, title, type, label, className, kind: forced }
           maskImage: "radial-gradient(ellipse at 50% 30%, black 10%, transparent 70%)",
         }}
       />
-      <div className="absolute -bottom-[30%] -left-[20%] size-[80%] rounded-full blur-3xl" style={{ background: `${light}40` }} />
-      <div className="absolute -top-[25%] -right-[15%] size-[55%] rounded-full blur-3xl" style={{ background: `${mid}aa` }} />
+      <div className="absolute -bottom-[30%] -left-[20%] size-[80%] rounded-full blur-3xl" style={{ background: `color-mix(in srgb, ${light} 25%, transparent)` }} />
+      <div className="absolute -top-[25%] -right-[15%] size-[55%] rounded-full blur-3xl" style={{ background: `color-mix(in srgb, ${mid} 67%, transparent)` }} />
 
       <div className="absolute inset-0 flex items-center justify-center p-[11%]" style={{ transform: `rotate(${tilt}deg)` }}>
         {kind === "template" ? <Template mark={mark} light={light} mid={mid} /> : null}

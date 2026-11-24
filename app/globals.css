@@ -509,3 +509,70 @@ html[data-motion="on"] .anim-slide-in { animation: slide-in-right 0.28s var(--ea
   [role=dialog]:has(.drawer-categories)[data-state=open] {animation:drawer-enter .24s ease-out}
   @keyframes drawer-enter {from {transform:translateX(100%)}to {transform:translateX(0)}}
 }
+
+/* Catalog and product workspaces */
+.catalog-page {padding-block:32px 80px}
+.catalog-intro {background:linear-gradient(115deg,var(--primary-soft),var(--surface));border-inline-start:4px solid var(--primary);border-radius:16px;padding:clamp(20px,4vw,48px);font-size:.85rem;color:var(--muted);margin-bottom:32px}
+.catalog-intro h1,.staff-inbox h1 {font-size:var(--type-h1);font-weight:900;color:var(--ink);margin-block:8px}
+.catalog-intro p {font-size:1rem}
+.catalog-sidebar {display:none}
+.catalog-controls,.catalog-chips,.catalog-pages,.gallery-dialog-bar,.gallery-dialog-controls {display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.catalog-controls {margin-bottom:16px;justify-content:space-between;padding-block:12px;border-bottom:1px solid var(--border);font-size:.875rem}
+.catalog-controls select {padding:6px;border-radius:8px;background:var(--surface);color:var(--primary)}
+.catalog-filter-form {display:grid;gap:18px;margin-top:20px}
+.catalog-filter-form label,.catalog-filter-form fieldset {display:grid;gap:6px;min-width:0;font-size:.85rem;font-weight:650}
+.catalog-filter-form legend {margin-bottom:8px}
+.catalog-filter-form label.catalog-check {display:flex;align-items:center;gap:8px}
+.catalog-filter-form input {min-width:0;accent-color:var(--primary)}
+.catalog-sheet[role=dialog] {top:auto;bottom:0;inset-inline:0;width:100%;max-height:90dvh;border-radius:16px 16px 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom))}
+.catalog-chips {margin-bottom:16px}
+.catalog-chips a,.catalog-pages a {display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:12px;padding:6px 12px;font-size:.82rem}
+.catalog-chips a[aria-current=page],.catalog-chips a:hover,.catalog-pages a:hover {background:var(--primary-soft);color:var(--primary)}
+.catalog-empty,.missing-page {display:grid;justify-items:center;align-content:center;gap:16px;padding-block:64px;text-align:center;background:var(--primary-soft);border-radius:16px}
+.catalog-empty h2,.missing-page h1 {font-size:var(--type-h2);font-weight:850}
+.catalog-pages {justify-content:center;margin-top:24px}
+.missing-page {min-height:70svh;margin-block:48px;padding-inline:20px}
+.missing-page div {display:flex;gap:12px}
+.gallery-main {position:relative;width:100%;aspect-ratio:1;display:block;touch-action:pan-y;cursor:zoom-in}
+.gallery-main>span:last-child:not(:first-child){position:absolute;inset-inline-end:12px;bottom:12px;border-radius:50%;background:var(--surface);padding:10px}
+.gallery-thumbs,.related-rail {display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x proximity;padding:12px;background:var(--surface)}
+.gallery-thumbs button {width:64px;height:64px;flex:none;border:2px solid transparent;border-radius:10px;overflow:hidden}
+.gallery-thumbs button[aria-pressed=true]{border-color:var(--primary)}
+.gallery-dialog {margin:auto;width:min(92vw,960px);max-height:94dvh;padding:16px;background:var(--surface);color:var(--ink);border-radius:16px}
+.gallery-dialog::backdrop {background:#071717cf}
+.gallery-dialog-bar,.gallery-dialog-controls {justify-content:space-between}
+.gallery-dialog-controls {justify-content:center}
+.gallery-dialog-controls button {padding:12px}
+.gallery-zoom {height:65dvh;touch-action:pan-y}
+.gallery-zoom img {object-fit:contain}
+.detail-price {border-inline-start:4px solid var(--primary);padding:16px 20px;border-radius:12px;background:var(--primary-soft)}
+.detail-price small {display:block;margin-bottom:8px}
+.purchase-assurances {display:flex;flex-wrap:wrap;gap:8px}
+.purchase-assurances li {display:flex;align-items:center;gap:6px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:.8rem}
+.detail-tabs {margin-block:32px;border:1px solid var(--border);border-radius:16px;background:var(--surface)}
+.detail-tabs [role=tablist] {display:flex;border-bottom:1px solid var(--border)}
+.detail-tabs [role=tab] {flex:1;padding:14px 8px;font-weight:700}
+.detail-tabs [aria-selected=true] {color:var(--primary);box-shadow:inset 0 -3px var(--primary)}
+.detail-tabs [role=tabpanel] {padding:24px;line-height:2}
+.detail-spec,.detail-review {padding:10px;border-block-end:1px solid var(--border)}
+.detail-spec {display:flex;justify-content:space-between;gap:16px}
+.related-rail {background:transparent;padding:4px 4px 16px}
+.related-rail article {flex:0 0 clamp(190px,28%,280px);scroll-snap-align:start}
+.staff-inbox {display:grid;align-content:start;gap:16px}
+.staff-inbox table {width:100%;text-align:start;background:var(--surface)}
+.staff-inbox td,.staff-inbox th {text-align:start;padding:12px;border-block-end:1px solid var(--border)}
+.ticket-row {display:flex;align-items:center;gap:16px;padding:16px;background:var(--surface);border-bottom:1px solid var(--border)}
+.ticket-row div {flex:1;min-width:0}
+.ticket-row strong,.ticket-thread time {display:block}
+.ticket-thread li {padding:16px;margin-block:12px;border-radius:12px;background:var(--surface)}
+.ticket-thread li[data-staff=true] {background:var(--primary-soft)}
+.ticket-thread p {white-space:pre-wrap;overflow-wrap:anywhere}
+.ticket-thread time,.ticket-row time {font-size:.78rem;color:var(--muted)}
+@media(min-width:1024px){
+  .catalog-layout {display:grid;grid-template-columns:clamp(220px,22%,296px) minmax(0,1fr);gap:24px}
+  .catalog-sidebar {display:block;position:sticky;top:132px;align-self:start;max-height:calc(100dvh - 150px);overflow:auto;border:1px solid var(--border);border-radius:16px;padding:20px;background:var(--surface)}
+  .catalog-sidebar h2 {display:flex;gap:8px;align-items:center;font-size:1.1rem;font-weight:800}
+}
+.catalog-layout .catalog-tile {border-color:var(--border);box-shadow:0 3px 14px -9px var(--ink)}
+.catalog-layout .catalog-tile h3 {font-size:clamp(.94rem,1.25vw,1.12rem);line-height:1.65}
+.catalog-tile[data-unavailable=true]>a:first-child img {filter:grayscale(.8);opacity:.76}

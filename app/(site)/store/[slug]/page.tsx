@@ -9,7 +9,10 @@ import { prisma } from "@/lib/db";
 import { parseBlocks } from "@/lib/blocks";
 import { Blocks } from "@/components/content/blocks";
 import { ProductBuy } from "@/components/store/product-buy";
-import { ProductGrid } from "@/components/store/product-card";
+import { DetailTabs } from "@/components/store/detail-tabs";
+import { JsonLd } from "@/components/site/json-ld";
+import { siteUrl } from "@/lib/utils";
+import { ProductCard } from "@/components/store/product-card";
 import { Breadcrumbs } from "@/components/ui/bits";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +22,7 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
-  if (!product) return { title: "محصول پیدا نشد" };
+  if (!product) notFound();
   return buildMetadata({
     path: `/store/${slug}`,
     title: product.seoTitle || product.title,
@@ -31,51 +34,107 @@ export default async function ProductPage({ params }: Props) {
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
-  const [customer, options, related] = await Promise.all([
+  const [customer, options, related, reviews] = await Promise.all([
     getCustomer().catch(() => null),
     getOptions(),
-    productCards({ categoryId: product.category.id, id: { not: product.id } }, [{ salesCount: "desc" }], 4),
+    productCards({ categoryId: product.category.id, id: { not: product.id } }, [{ salesCount: "desc" }], 8),
+    prisma.comment.findMany({
+      where: { targetType: "product", targetId: product.id, status: "approved" },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+    }),
   ]);
-  const wished = customer ? !!(await prisma.wishlistItem.findUnique({ where: { customerId_productId: { customerId: customer.id, productId: product.id } } }).catch(() => null)) : false;
+  const wished = customer
+    ? !!(await prisma.wishlistItem
+        .findUnique({ where: { customerId_productId: { customerId: customer.id, productId: product.id } } })
+        .catch(() => null))
+    : false;
   const blocks = parseBlocks(product.blocks);
   const specs = product.specs;
 
   return (
     <div className="wrap pad pb-[calc(10rem+env(safe-area-inset-bottom))] lg:pb-16">
-      <Breadcrumbs className="mb-5 pt-5" items={[{label:"خانه",href:"/"},{label:"فروشگاه",href:"/store"},{label:product.category.name,href:`/store/category/${product.category.slug}`},{label:product.title}]}/>
+      <Breadcrumbs
+        className="mb-5 pt-5"
+        items={[
+          { label: "خانه", href: "/" },
+          { label: "فروشگاه", href: "/store" },
+          { label: product.category.name, href: `/store/category/${product.category.slug}` },
+          { label: product.title },
+        ]}
+      />
       <ProductBuy product={product} wished={wished} guarantee={String(options.store.guaranteeText || "")} />
-      <nav aria-label="جزئیات محصول" className="card mt-8 flex flex-wrap gap-2 p-2"><a href="#description" className="btn btn-ghost">توضیحات</a>{specs.length>0&&<a href="#specifications" className="btn btn-ghost">مشخصات</a>}{related.length>0&&<a href="#related" className="btn btn-ghost">محصولات مرتبط</a>}</nav>
-      <section id="description" className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]" data-reveal>
-        <div>
-          {product.description ? (
-            <div className="mb-8 whitespace-pre-line text-[0.95rem] leading-8 text-muted">{product.description}</div>
-          ) : null}
-          {blocks.length ? <Blocks blocks={blocks} /> : null}
-        </div>
-        {specs.length ? (
-          <aside id="specifications" className="card h-fit p-4">
-            <h2 className="mb-3 font-bold">مشخصات</h2>
-            <dl className="divide-y divide-line text-[0.85rem]">
-              {specs.map((s) => (
-                <div key={s.name} className="flex justify-between gap-3 py-2.5">
-                  <dt className="text-muted">{s.name}</dt>
-                  <dd className="font-semibold">{s.value}</dd>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.title,
+          description: product.summary,
+          sku: product.sku || undefined,
+          image: [...new Set([product.image, ...product.images].filter(Boolean))].map(
+            (src) => new URL(src, siteUrl()).href,
+          ),
+          offers: {
+            "@type": "Offer",
+            url: siteUrl() + "/store/" + product.slug,
+            price: product.price,
+            priceCurrency: "IRR",
+            availability: "https://schema.org/" + (product.inStock ? "InStock" : "OutOfStock"),
+          },
+          aggregateRating: product.ratingCount
+            ? { "@type": "AggregateRating", ratingValue: product.ratingAvg, ratingCount: product.ratingCount }
+            : undefined,
+        }}
+      />
+      <DetailTabs
+        panels={[
+          <div key="description">
+            <p className="whitespace-pre-line">{product.description || product.summary}</p>
+            {blocks.length > 0 && <Blocks blocks={blocks} />}
+          </div>,
+          specs.length ? (
+            <dl key="specs">
+              {specs.map((spec, i) => (
+                <div className="detail-spec" key={i}>
+                  <dt>{spec.name}</dt>
+                  <dd>{spec.value}</dd>
                 </div>
               ))}
             </dl>
-          </aside>
-        ) : null}
-      </section>
+          ) : (
+            "مشخصاتی برای این محصول ثبت نشده است."
+          ),
+          reviews.length ? (
+            <ul key="reviews">
+              {reviews.map((r) => (
+                <li className="detail-review" key={r.id}>
+                  <b>{r.name}</b> {r.rating && <span>{r.rating.toLocaleString("fa-IR")} از ۵</span>}
+                  <p>{r.body}</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            "هنوز دیدگاهی برای این محصول منتشر نشده است."
+          ),
+        ]}
+      />
 
       {related.length ? (
         <section id="related" className="mt-16" data-reveal>
           <div className="mb-5 flex items-end justify-between gap-4">
             <h2 className="font-display text-[1.35rem] font-extrabold">محصولات مرتبط</h2>
-            <Link href={`/store/category/${product.category.slug}`} className="text-[0.82rem] font-semibold text-primary hover:underline">
+            <Link
+              href={`/store/category/${product.category.slug}`}
+              className="text-[0.82rem] font-semibold text-primary hover:underline"
+            >
               همه {product.category.name}
             </Link>
           </div>
-          <ProductGrid products={related} className="lg:grid-cols-4" />
+          <div className="related-rail" tabIndex={0} role="region" aria-label="مرور محصولات مرتبط">
+            {related.map((item) => (
+              <ProductCard key={item.id} product={item} />
+            ))}
+          </div>
         </section>
       ) : null}
     </div>
