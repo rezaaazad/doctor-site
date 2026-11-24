@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Download, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/money";
@@ -11,6 +12,7 @@ import { WishlistButton } from "@/components/store/wishlist-button";
 
 export function ProductImage({ product, className, sizes = "(min-width: 1024px) 25vw, 50vw", priority = false }: { product: Pick<Card, "image" | "slug" | "title" | "type">; className?: string; sizes?: string; priority?: boolean }) {
   if (product.image) {
+    if(/^\/media\/[a-zA-Z0-9._-]+\.(?:jpg|jpeg|png|webp|avif)$/i.test(product.image))return <span className="relative block size-full"><Image src={product.image} alt={product.title} fill sizes={sizes} priority={priority} className={cn("object-cover",className)} /></span>;
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
@@ -40,7 +42,7 @@ export function ProductCard({ product, className, priority = false, wished = fal
         </span>
       </Link>
       <WishlistButton productId={product.id} initial={wished} className="absolute top-3 left-3" />
-      <div className="flex flex-1 flex-col gap-2 p-3.5 md:p-4">
+      <div className="flex min-w-0 flex-1 flex-col gap-2 p-3 md:p-4">
         <div className="flex items-center justify-between gap-2 text-[0.72rem] text-muted">
           <span className="truncate">{product.category.name}</span>
           <span className="flex shrink-0 items-center gap-1">
@@ -54,7 +56,7 @@ export function ProductCard({ product, className, priority = false, wished = fal
           </Link>
         </h3>
         {product.ratingCount > 0 ? <Stars value={product.ratingAvg} count={product.ratingCount} size={12} /> : <span className="h-[18px]" />}
-        <div className="mt-auto flex items-end justify-between gap-2 pt-1">
+        <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-1">
           <Price value={product.price} compareAt={product.compareAt} showPercent={false} />
           {product.hasVariants || !product.inStock ? (
             <Link href={href} className="btn btn-outline btn-sm relative z-[1]">
@@ -63,7 +65,7 @@ export function ProductCard({ product, className, priority = false, wished = fal
           ) : (
             <AddToCartButton
               iconOnly
-              variant="ink"
+              variant="action"
               className="relative z-[1] !size-10 !min-h-10"
               label={`افزودن ${product.title} به سبد`}
               line={{

@@ -83,7 +83,7 @@ export function SubmitButton({
   children,
   pendingText,
   className,
-  variant = "action",
+  variant = "primary",
   size,
   ...props
 }: React.ComponentProps<"button"> & { pendingText?: string; variant?: "action" | "primary" | "ink" | "outline" | "ghost"; size?: "sm" | "lg" }) {

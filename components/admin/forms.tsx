@@ -6,6 +6,7 @@ import { ImagePlus, Loader2, Search, Trash2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminState } from "@/lib/admin/action";
 import { FormMessage } from "@/components/ui/form";
+import { Dialog,DialogContent,DialogTitle,DialogDescription,DialogClose } from "@/components/ui/dialog";
 
 type Action = (prev: AdminState, formData: FormData) => Promise<AdminState>;
 
@@ -91,7 +92,16 @@ export function ConfirmButton({
 }) {
   const [pending, start] = useTransition();
   const [message, setMessage] = useState<AdminState>(null);
+  const [confirmOpen,setConfirmOpen]=useState(false);
   const router = useRouter();
+  function execute(){
+    setConfirmOpen(false);
+    start(async()=>{
+      const result=await action();
+      if(result&&result.ok===false)setMessage(result);
+      else{setMessage(null);if(result?.redirect)router.push(result.redirect);else router.refresh();}
+    });
+  }
   return (
     <span className="inline-flex flex-col items-start">
       <button
@@ -100,22 +110,14 @@ export function ConfirmButton({
         disabled={pending}
         className={cn("btn", size === "sm" && "btn-sm", variant === "danger" ? "btn-outline !border-urgency/30 !text-urgency hover:!bg-urgency-soft" : `btn-${variant}`, className)}
         onClick={() => {
-          if (confirm && !window.confirm(confirm)) return;
-          start(async () => {
-            const result = await action();
-            if (result && result.ok === false) setMessage(result);
-            else {
-              setMessage(null);
-              if (result?.redirect) router.push(result.redirect);
-              else router.refresh();
-            }
-          });
+          if(confirm)setConfirmOpen(true);else execute();
         }}
       >
         {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
         {children}
       </button>
       {message?.message ? <span className="mt-1 text-[0.75rem] font-semibold text-urgency">{message.message}</span> : null}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}><DialogContent><DialogTitle>تأیید عملیات</DialogTitle><DialogDescription>{confirm}</DialogDescription><div className="mt-5 flex justify-end gap-2"><DialogClose asChild><button type="button" className="btn btn-outline">انصراف</button></DialogClose><button type="button" className="btn btn-primary" onClick={execute}>تأیید</button></div></DialogContent></Dialog>
     </span>
   );
 }

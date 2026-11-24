@@ -13,7 +13,7 @@ export default async function MessagePage({ params }: { params: Promise<{ id: st
   return (
     <article className="grid max-w-3xl gap-5">
       <h1 className="text-3xl font-black">{message.subject || "پیام"}</h1>
-      <dl className="grid gap-2 text-sm text-white/70">
+      <dl className="grid gap-2 text-sm text-muted">
         <div>از: {message.name}</div>
         <div dir="ltr">{message.email}</div>
         {message.phone ? <div dir="ltr">{message.phone}</div> : null}
@@ -21,12 +21,12 @@ export default async function MessagePage({ params }: { params: Promise<{ id: st
         {message.budget ? <div>بودجه: {message.budget}</div> : null}
         <div>{new Intl.DateTimeFormat("fa-IR", { dateStyle: "full", timeStyle: "short" }).format(message.createdAt)}</div>
       </dl>
-      <p className="whitespace-pre-wrap rounded-3xl border border-white/10 p-5 leading-8">{message.message}</p>
+      <p className="whitespace-pre-wrap rounded-3xl border border-line p-5 leading-8">{message.message}</p>
       <div className="flex flex-wrap gap-3">
         <form action={setMessageRead}>
           <input type="hidden" name="id" value={message.id} />
           <input type="hidden" name="read" value="0" />
-          <button type="submit" className="rounded-full border border-white/15 px-4 py-2 text-sm">علامت به‌عنوان نخوانده</button>
+          <button type="submit" className="rounded-full border border-line px-4 py-2 text-sm">علامت به‌عنوان نخوانده</button>
         </form>
         <ConfirmButton action={deleteMessage.bind(null, message.id)} title="این پیام حذف شود؟" />
       </div>

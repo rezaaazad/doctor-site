@@ -11,7 +11,7 @@ export default async function TestimonialsPage() {
     <div className="grid gap-6">
       <div>
         <h1 className="text-3xl font-black">نظرات</h1>
-        <p className="mt-2 text-sm text-white/50">نقل‌قول‌های اولیه نمونه هستند. قبل از انتشار عمومی با نقل‌قول واقعی عوضشان کنید یا پنهانشان کنید.</p>
+        <p className="mt-2 text-sm text-muted">نقل‌قول‌های اولیه نمونه هستند. قبل از انتشار عمومی با نقل‌قول واقعی عوضشان کنید یا پنهانشان کنید.</p>
       </div>
       <TestimonialForm />
       {items.map((item) => (

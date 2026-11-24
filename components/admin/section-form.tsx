@@ -18,7 +18,7 @@ export function SectionForm({
   const spec = SECTION_FORMS[section.key];
   const en = asObject(section.content.en);
   return (
-    <div className="grid gap-4 rounded-3xl border border-white/10 bg-white/[0.02] p-5">
+    <div className="grid gap-4 rounded-3xl border border-line bg-surface p-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-lg font-bold">{spec?.label || section.label}</h3>
         <OrderButtons kind="section" id={section.id} />
@@ -34,16 +34,16 @@ export function SectionForm({
           <FaField key={field.name} field={field} content={section.content} />
         ))}
       </div>
-      <details className="rounded-2xl border border-white/10 p-4">
-        <summary className="cursor-pointer text-sm text-white/70">متن انگلیسی</summary>
+      <details className="rounded-2xl border border-line p-4">
+        <summary className="cursor-pointer text-sm text-muted">متن انگلیسی</summary>
         <div className="mt-4 grid gap-4">
           {spec?.fields.map((field) => (
             <EnField key={field.name} field={field} en={en} />
           ))}
         </div>
       </details>
-      <details className="rounded-2xl border border-white/10 p-4">
-        <summary className="cursor-pointer text-sm text-white/70">ویرایش پیشرفته JSON</summary>
+      <details className="rounded-2xl border border-line p-4">
+        <summary className="cursor-pointer text-sm text-muted">ویرایش پیشرفته JSON</summary>
         <Textarea name="raw" dir="ltr" className="mt-4 font-mono text-xs" defaultValue={JSON.stringify(section.content, null, 2)} />
         <Button type="submit" name="mode" value="raw" variant="outline" className="mt-3">ذخیره JSON</Button>
       </details>
@@ -66,11 +66,11 @@ function FaField({ field, content }: { field: FieldDef; content: Record<string, 
     const rows = Array.isArray(content[field.name]) ? (content[field.name] as unknown[]) : [];
     return (
       <div className="grid gap-3">
-        <p className="text-sm text-white/75">{field.label}</p>
+        <p className="text-sm text-muted">{field.label}</p>
         {Array.from({ length: 4 }, (_, index) => {
           const row = asObject(rows[index]);
           return (
-            <div key={index} className="grid gap-2 rounded-2xl border border-white/10 p-3">
+            <div key={index} className="grid gap-2 rounded-2xl border border-line p-3">
               <Input name={`fa_${field.name}_${index}_title`} defaultValue={typeof row.title === "string" ? row.title : ""} placeholder={`عنوان ${index + 1}`} />
               <Textarea name={`fa_${field.name}_${index}_body`} defaultValue={typeof row.body === "string" ? row.body : ""} />
             </div>
@@ -100,11 +100,11 @@ function EnField({ field, en }: { field: FieldDef; en: Record<string, unknown> }
     const rows = Array.isArray(en[field.name]) ? (en[field.name] as unknown[]) : [];
     return (
       <div className="grid gap-3">
-        <p className="text-sm text-white/75">{field.label}</p>
+        <p className="text-sm text-muted">{field.label}</p>
         {Array.from({ length: 4 }, (_, index) => {
           const row = asObject(rows[index]);
           return (
-            <div key={index} className="grid gap-2 rounded-2xl border border-white/10 p-3">
+            <div key={index} className="grid gap-2 rounded-2xl border border-line p-3">
               <Input dir="ltr" name={`en_${field.name}_${index}_title`} defaultValue={typeof row.title === "string" ? row.title : ""} placeholder="Title" />
               <Textarea dir="ltr" name={`en_${field.name}_${index}_body`} defaultValue={typeof row.body === "string" ? row.body : ""} />
             </div>

@@ -82,7 +82,7 @@ function AccountLoginCard({
             شماره موبایل
             <input value={mobile} onChange={(e) => setMobile(e.target.value)} className="field text-base" dir="ltr" inputMode="tel" autoComplete="tel" placeholder="۰۹۱۲۱۲۳۴۵۶۷" />
           </label>
-          <button type="button" disabled={pending || mobile.length < 10} onClick={send} className="btn btn-action btn-lg mt-4 w-full">
+          <button type="button" disabled={pending || mobile.length < 10} onClick={send} className="btn btn-primary btn-lg mt-4 w-full">
             {pending ? "در حال ارسال…" : "دریافت کد"}
           </button>
         </>
@@ -99,7 +99,7 @@ function AccountLoginCard({
             <input value={code} onChange={(e) => setCode(e.target.value)} className="field text-center text-[1.25rem] tracking-[0.3em]" dir="ltr" inputMode="numeric" maxLength={5} autoComplete="one-time-code" />
           </label>
           {devCode ? <p className="mt-2 text-[0.8rem] text-success">کد توسعه: {devCode}</p> : null}
-          <button type="button" disabled={pending || code.length < 5} onClick={verify} className="btn btn-action btn-lg mt-4 w-full">
+          <button type="button" disabled={pending || code.length < 5} onClick={verify} className="btn btn-primary btn-lg mt-4 w-full">
             {pending ? "در حال ورود…" : "ورود"}
           </button>
           <button type="button" disabled={pending || retryIn > 0} onClick={send} className="btn btn-ghost mt-2 w-full text-[0.85rem]">

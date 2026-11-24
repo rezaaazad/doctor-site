@@ -26,7 +26,7 @@ export function MenuForm({
 }) {
   const [state, action] = useActionState(saveMenu, null as ActionState);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="برچسب"><Input name="label" defaultValue={item?.label} required /></Field>
@@ -71,7 +71,7 @@ export function ServiceForm({
 }) {
   const [state, action] = useActionState(saveService, null as ActionState);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="شماره"><Input name="number" defaultValue={item?.number ?? "06"} /></Field>
@@ -100,7 +100,7 @@ export function TestimonialForm({
 }) {
   const [state, action] = useActionState(saveTestimonial, null as ActionState);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="نام"><Input name="name" defaultValue={item?.name} required /></Field>
@@ -120,9 +120,9 @@ export function TestimonialForm({
 export function SeoForm({ item }: { item: { id: string; path: string; title: string; description: string; keywords: string; ogImage: string } }) {
   const [state, action] = useActionState(updateSeo, null as ActionState);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       <input type="hidden" name="id" value={item.id} />
-      <p className="text-xs text-white/40" dir="ltr">{item.path}</p>
+      <p className="text-xs text-muted" dir="ltr">{item.path}</p>
       <Field label="عنوان"><Input name="title" defaultValue={item.title} required /></Field>
       <Field label="توضیح"><Textarea name="description" defaultValue={item.description} required /></Field>
       <Field label="کلیدواژه‌ها"><Input name="keywords" defaultValue={item.keywords} /></Field>
@@ -212,7 +212,7 @@ export function MediaAltForm({ id, alt }: { id: string; alt: string }) {
 export function CreateUserForm() {
   const [state, action] = useActionState(createAdmin, null as ActionState);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       <h2 className="font-bold">مدیر جدید</h2>
       <Field label="نام"><Input name="name" required /></Field>
       <Field label="ایمیل"><Input name="email" type="email" dir="ltr" required /></Field>
@@ -226,7 +226,7 @@ export function CreateUserForm() {
 export function PasswordForm() {
   const [state, action] = useActionState(changePassword, null as ActionState);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       <h2 className="font-bold">تغییر رمز</h2>
       <Field label="رمز فعلی"><Input name="current" type="password" required /></Field>
       <Field label="رمز جدید"><Input name="next" type="password" required /></Field>

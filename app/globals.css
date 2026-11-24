@@ -29,6 +29,19 @@
   --muted: #5b6478;
   --border: #e4e6ee;
   --r: 18px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --type-sm: .875rem;
+  --type-body: 1rem;
+  --type-title: clamp(1.5rem, 2.5vw, 2rem);
+  --accent: var(--primary);
+  --fg: var(--text);
+  --line: var(--border);
+  --pad: var(--space-4);
   --ff-body: "Vazirmatn";
   --ff-display: "Estedad";
 
@@ -42,6 +55,7 @@
   --ink-3: color-mix(in oklab, var(--ink) 76%, white);
   --sunken: color-mix(in oklab, var(--bg) 70%, var(--border));
   --header-h: 64px;
+  --mobile-nav-h: 64px;
   --elev-1: 0 1px 0 rgb(11 21 48 / 0.04), 0 1px 2px rgb(11 21 48 / 0.06);
   --elev-2: 0 1px 0 rgb(11 21 48 / 0.04), 0 4px 10px -2px rgb(11 21 48 / 0.08), 0 14px 32px -12px rgb(11 21 48 / 0.14);
   --elev-3: 0 2px 0 rgb(11 21 48 / 0.03), 0 10px 24px -6px rgb(11 21 48 / 0.14), 0 32px 64px -24px rgb(11 21 48 / 0.28);
@@ -164,7 +178,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.4; }
     gap: 8px;
     min-height: 46px;
     padding: 0 20px;
-    border-radius: 999px;
+    border-radius: var(--radius-field);
     font-weight: 700;
     font-size: 0.95rem;
     line-height: 1;
@@ -280,7 +294,7 @@ input[type="number"]::-webkit-inner-spin-button { opacity: 0.4; }
     z-index: -1;
     background:
       radial-gradient(40% 45% at 85% 10%, color-mix(in oklab, var(--primary) 55%, transparent) 0%, transparent 70%),
-      radial-gradient(35% 40% at 10% 90%, color-mix(in oklab, var(--action) 35%, transparent) 0%, transparent 70%),
+      radial-gradient(35% 40% at 10% 90%, color-mix(in oklab, var(--primary) 24%, transparent) 0%, transparent 70%),
       radial-gradient(30% 30% at 45% 55%, color-mix(in oklab, var(--primary) 18%, transparent) 0%, transparent 70%);
     filter: saturate(1.1);
   }
@@ -365,3 +379,26 @@ html[data-motion="on"] .live-dot { animation: pulse-ring 1.8s infinite; }
 html[data-motion="on"] .anim-slide-in { animation: slide-in-right 0.28s var(--ease-out) both; }
 @media (min-width: 768px) { .admin .input { min-height: 42px; font-size: 0.92rem; } }
 .admin textarea.input { min-height: 96px; }
+
+/* Shared surfaces for older routes and native form controls. */
+@layer components {
+  .wrap { width: min(1320px, 100%); margin-inline: auto; }
+  .pad { padding-inline: var(--pad); }
+  .h1 { font-family: var(--ff-display), Vazirmatn, sans-serif; font-size: var(--type-title); font-weight: 800; line-height: 1.5; }
+  .kicker { color: var(--muted); font-size: var(--type-sm); font-weight: 600; }
+  .muted { color: var(--muted); }
+  .grad { font-family: var(--ff-display), Vazirmatn, sans-serif; font-weight: 800; color: var(--text); line-height: 1.4; }
+  .admin-field, :is(input, select, textarea).field { width: 100%; min-width: 0; min-height: 44px; padding: 10px 14px; border-radius: var(--radius-field); border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+  .admin-field:focus, :is(input, select, textarea).field:focus { outline: none; border-color: var(--primary); box-shadow: var(--ring); }
+  .admin main form.rounded-3xl { background: var(--surface); border-radius: var(--r); }
+  .admin main select, .admin main input, .admin main textarea { max-width: 100%; }
+  .admin main table { min-width: 640px; border-collapse: collapse; }
+  .admin main th { background: var(--sunken); text-align: start; }
+  .admin main td, .admin main th { padding-block: var(--space-3); }
+  .admin main :is(h1,h2,h3) { text-wrap: balance; }
+  .admin main label { min-width: 0; }
+  .admin main pre { overflow-x: auto; }
+  .surface-ink .kicker { color: rgb(255 255 255 / .8); }
+}
+@media (min-width: 768px) { :root { --pad: var(--space-6); } }
+@media (min-width: 1280px) { :root { --pad: var(--space-8); } }

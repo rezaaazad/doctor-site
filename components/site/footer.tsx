@@ -48,8 +48,8 @@ export function SiteFooter(props: FooterProps) {
       </div>
       <div className="surface-ink grain mt-10 rounded-t-[calc(var(--r)*1.8)] pt-12 pb-8 md:mt-14 md:pt-16">
         <div className="container-x">
-          <div className="grid gap-10 lg:grid-cols-[1.35fr_1fr_1fr_1.2fr]">
-            <div className="max-w-sm">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-10 lg:grid-cols-[1.35fr_1fr_1fr_1.2fr]">
+            <div className="col-span-2 max-w-sm lg:col-span-1">
               <Logo siteName={props.siteName} logoUrl={props.logoUrl} light />
               <p className="mt-4 text-[0.9rem] leading-8 text-white/65">{props.description}</p>
               <div className="mt-5">
@@ -84,7 +84,7 @@ export function SiteFooter(props: FooterProps) {
               <ul className="space-y-2.5 text-[0.88rem] text-white/65">
                 {props.links.map((link) => (
                   <li key={link.id}>
-                    <Link href={link.href} className="hover:text-white">
+                  <Link href={link.href} target={link.newTab?"_blank":undefined} className="hover:text-white">
                       {link.label}
                     </Link>
                   </li>
@@ -96,7 +96,7 @@ export function SiteFooter(props: FooterProps) {
                 </li>
               </ul>
             </div>
-            <div>
+            <div className="col-span-2 lg:col-span-1">
               <h2 className="mb-4 text-[0.92rem] font-extrabold">ارتباط با ما</h2>
               <ul className="space-y-3 text-[0.88rem] text-white/70">
                 {props.contact.phoneHref ? (
@@ -155,7 +155,7 @@ export function SiteFooter(props: FooterProps) {
               </div>
             </div>
           </div>
-          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-[0.78rem] text-white/45 md:flex-row">
+          <div className="mt-12 flex flex-col items-center justify-between gap-3 border-t border-white/10 pt-6 text-center text-[0.78rem] text-white/70 md:flex-row">
             <p>{props.copyright || `© ${year} ${props.siteName}. همه حقوق محفوظ است.`}</p>
             <p className="flex items-center gap-1.5">
               <BadgeCheck className="size-4" aria-hidden /> قیمت‌ها به تومان و شامل همه هزینه‌های اعلام‌شده است.

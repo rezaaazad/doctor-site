@@ -45,13 +45,13 @@ export default async function AnalyticsPage() {
   return (
     <div className="grid gap-6">
       <h1 className="text-3xl font-black">آمارگیر</h1>
-      <p className="text-sm text-white/60">بازدیدها روی همین سرور می‌مانند. ربات و صفحه مدیریت شمرده نمی‌شود. شناسه بازدیدکننده هش روزانه است، نه آی‌پی خام.</p>
+      <p className="text-sm text-muted">بازدیدها روی همین سرور می‌مانند. ربات و صفحه مدیریت شمرده نمی‌شود. شناسه بازدیدکننده هش روزانه است، نه آی‌پی خام.</p>
       <div className="grid gap-3 sm:grid-cols-3">
         {cards.map(([label, stat]) => (
-          <article key={label} className="rounded-3xl border border-white/10 p-4">
-            <p className="text-white/50">{label}</p>
+          <article key={label} className="rounded-3xl border border-line p-4">
+            <p className="text-muted">{label}</p>
             <p className="mt-2 text-3xl font-black">{stat.visitors.toLocaleString("fa-IR")}</p>
-            <p className="text-sm text-white/60">بازدیدکننده یکتا</p>
+            <p className="text-sm text-muted">بازدیدکننده یکتا</p>
             <p className="mt-2 text-xl">{stat.views.toLocaleString("fa-IR")} بازدید صفحه</p>
           </article>
         ))}
@@ -75,9 +75,9 @@ export default async function AnalyticsPage() {
 
 function List({ title, rows }: { title: string; rows: [string, number][] }) {
   return (
-    <section className="rounded-3xl border border-white/10 p-4">
+    <section className="rounded-3xl border border-line p-4">
       <h2 className="mb-3 font-bold">{title}</h2>
-      {rows.length === 0 ? <p className="text-sm text-white/40">هنوز بازدیدی نیست.</p> : null}
+      {rows.length === 0 ? <p className="text-sm text-muted">هنوز بازدیدی نیست.</p> : null}
       <ul className="grid gap-2 text-sm">
         {rows.map(([label, count]) => (
           <li key={label} className="flex justify-between gap-3"><span className="truncate">{label}</span><b>{count.toLocaleString("fa-IR")}</b></li>

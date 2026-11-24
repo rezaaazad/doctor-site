@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { Drawer } from "@/components/ui/drawer";
 import { Minus, Plus, ShoppingBag, Trash2, Truck, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/money";
@@ -42,29 +42,12 @@ export function QuantityStepper({ value, max, onChange, size = "md" }: { value: 
 export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number }) {
   const { open, setOpen, lines, subtotal, savings, setQuantity, count } = useCart();
 
-  useEffect(() => {
-    if (!open) return;
-    const esc = (event: KeyboardEvent) => event.key === "Escape" && setOpen(false);
-    document.addEventListener("keydown", esc);
-    document.documentElement.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", esc);
-      document.documentElement.style.overflow = "";
-    };
-  }, [open, setOpen]);
-
-  if (!open) return null;
   const hasPhysical = lines.some((l) => l.type === "physical");
   const remaining = hasPhysical && freeShippingAbove > 0 ? Math.max(0, freeShippingAbove - subtotal) : 0;
   const progress = hasPhysical && freeShippingAbove > 0 ? Math.min(100, Math.round((subtotal / freeShippingAbove) * 100)) : 0;
 
   return (
-    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label="سبد خرید">
-      <button type="button" aria-label="بستن سبد" className="absolute inset-0 bg-ink/45 backdrop-blur-[3px]" style={{ animation: "fade .2s both" }} onClick={() => setOpen(false)} />
-      <aside
-        className="absolute inset-x-0 bottom-0 flex max-h-[88dvh] flex-col rounded-t-[26px] bg-surface shadow-3 md:inset-y-0 md:right-auto md:left-0 md:max-h-none md:w-[440px] md:rounded-none md:rounded-r-[26px]"
-        style={{ animation: "sheet-up .34s var(--ease-out) both" }}
-      >
+    <Drawer open={open} onOpenChange={setOpen} title="سبد خرید" className="!inset-y-auto !inset-x-0 bottom-0 flex !w-full max-h-[88dvh] flex-col rounded-t-card md:!inset-y-0 md:!right-auto md:!left-0 md:!w-[440px] md:max-h-none md:rounded-none">
         <div className="mx-auto mt-2.5 h-1.5 w-12 rounded-full bg-line md:hidden" />
         <div className="flex items-center justify-between px-5 pt-3 pb-4 md:pt-5">
           <h2 className="font-display text-lg font-extrabold">
@@ -148,7 +131,6 @@ export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number })
             <p className="text-center text-[0.72rem] text-muted">هزینه ارسال و کد تخفیف در مرحله بعد محاسبه می‌شود.</p>
           </div>
         ) : null}
-      </aside>
-    </div>
+    </Drawer>
   );
 }

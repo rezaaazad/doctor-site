@@ -69,7 +69,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
     return (
       <div className="card p-8 text-center">
         <p className="font-bold">سبد خرید شما خالی است.</p>
-        <Link href="/store" className="btn btn-action mt-4">
+        <Link href="/store" className="btn btn-primary mt-4">
           رفتن به فروشگاه
         </Link>
       </div>
@@ -79,7 +79,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
     return (
       <div className="card p-8 text-center">
         <p className="font-bold">برای تکمیل خرید وارد حساب کاربری شوید.</p>
-        <Link href={`/account/login?next=${encodeURIComponent("/checkout")}`} className="btn btn-action mt-4">
+        <Link href={`/account/login?next=${encodeURIComponent("/checkout")}`} className="btn btn-primary mt-4">
           ورود با پیامک
         </Link>
       </div>
@@ -114,6 +114,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
 
   return (
     <form onSubmit={onSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
+      <ol className="card grid grid-cols-3 gap-2 p-3 text-center text-xs font-bold lg:col-span-2" aria-label="مراحل خرید"><li className="rounded-lg bg-success-soft py-2 text-success">۱. سبد خرید</li><li aria-current="step" className="rounded-lg bg-primary-soft py-2 text-primary">۲. اطلاعات و پرداخت</li><li className="rounded-lg py-2 text-muted">۳. نتیجه سفارش</li></ol>
       <CheckoutTrustStrip className="lg:col-span-2" />
       <div className="grid gap-5">
         <section className="card p-4 md:p-5">

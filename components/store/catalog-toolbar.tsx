@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Filter, SlidersHorizontal } from "lucide-react";
 import type { CategoryView } from "@/lib/store/catalog";
-import { cn } from "@/lib/utils";
+import { Drawer } from "@/components/ui/drawer";
 
 const SORTS = [
   { value: "", label: "پیشنهادی" },
@@ -38,7 +38,7 @@ export function CatalogToolbar({ categories, total }: { categories: CategoryView
 
   return (
     <>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3" data-reveal>
+      <div className="card mb-5 flex flex-wrap items-center justify-between gap-3 p-3" data-reveal>
         <p className="text-[0.85rem] text-muted">
           <span className="num font-bold text-fg">{total.toLocaleString("fa-IR")}</span> محصول
         </p>
@@ -58,7 +58,7 @@ export function CatalogToolbar({ categories, total }: { categories: CategoryView
               ))}
             </select>
           </label>
-          <button type="button" onClick={() => setSheet(true)} className="btn btn-outline btn-sm lg:hidden">
+          <button type="button" onClick={() => setSheet(true)} className="btn btn-outline btn-sm">
             <Filter className="size-4" aria-hidden />
             فیلتر
           </button>
@@ -85,16 +85,13 @@ export function CatalogToolbar({ categories, total }: { categories: CategoryView
           patch({ q: String(fd.get("q") || "").trim() || null });
         }}
       >
-        <input name="q" defaultValue={q} placeholder="جستجوی محصول، برند یا کد…" className="field flex-1 text-base" autoComplete="off" />
+        <input name="q" key={q} defaultValue={q} aria-label="جستجوی محصول" placeholder="جستجوی محصول، برند یا کد…" className="input min-w-0 flex-1 text-base" autoComplete="off" />
         <button type="submit" className="btn btn-primary">
           جستجو
         </button>
       </form>
 
-      {sheet ? (
-        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="فیلتر محصولات">
-          <button type="button" className="absolute inset-0 bg-ink/50" aria-label="بستن" onClick={() => setSheet(false)} />
-          <div className="absolute inset-x-0 bottom-0 max-h-[85vh] overflow-y-auto rounded-t-[24px] border border-line bg-surface p-5 shadow-3">
+      <Drawer open={sheet} onOpenChange={setSheet} title="فیلتر محصولات" className="p-5">
             <div className="mb-4 flex items-center justify-between">
               <b className="flex items-center gap-2 font-bold">
                 <SlidersHorizontal className="size-4" /> فیلتر و مرتب‌سازی
@@ -113,6 +110,7 @@ export function CatalogToolbar({ categories, total }: { categories: CategoryView
                 ))}
               </select>
             </label>
+            <div className="mb-4 grid gap-3"><label className="flex items-center gap-2"><input type="checkbox" checked={sp.get("stock")==="1"} onChange={e=>patch({stock:e.target.checked?"1":null})}/> فقط موجود</label><label className="flex items-center gap-2"><input type="checkbox" checked={sp.get("sale")==="1"} onChange={e=>patch({sale:e.target.checked?"1":null})}/> فقط تخفیف‌دار</label></div>
             <p className="mb-2 text-[0.85rem] font-bold">دسته‌بندی</p>
             <div className="flex flex-wrap gap-2">
               <button type="button" onClick={() => { patch({ category: null }); setSheet(false); }} className="chip" data-active={!category ? "true" : undefined}>
@@ -133,9 +131,7 @@ export function CatalogToolbar({ categories, total }: { categories: CategoryView
                 </button>
               ))}
             </div>
-          </div>
-        </div>
-      ) : null}
+      </Drawer>
     </>
   );
 }

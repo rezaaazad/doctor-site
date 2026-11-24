@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect,useState } from "react";
+import { Drawer } from "@/components/ui/drawer";
 import {
   Bell,
   CreditCard,
@@ -10,12 +12,12 @@ import {
   LayoutDashboard,
   LogOut,
   MapPin,
-  MessageSquare,
   Package,
   Star,
   Ticket,
   User,
   Wallet,
+  Menu,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { logoutAccountAction } from "@/lib/actions/account";
@@ -44,6 +46,9 @@ export function AccountShell({
   mobile: string;
 }) {
   const pathname = usePathname();
+  const [open,setOpen]=useState(false);
+  useEffect(()=>setOpen(false),[pathname]);
+  const navigation = <ul className="grid gap-1">{NAV.map(item=>{const active="exact" in item&&item.exact?pathname===item.href:pathname.startsWith(item.href);const Icon=item.icon;return <li key={item.href}><Link href={item.href} aria-current={active?"page":undefined} onClick={()=>setOpen(false)} className={cn("flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold",active?"bg-primary-soft text-primary":"text-muted hover:bg-sunken hover:text-fg")}><Icon className="size-5 shrink-0" aria-hidden/>{item.label}</Link></li>})}</ul>;
   return (
     <div className="wrap pad pb-24">
       <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
@@ -62,28 +67,9 @@ export function AccountShell({
         </form>
       </div>
       <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
-        <nav className="card h-fit p-2 lg:sticky lg:top-24" aria-label="منوی حساب">
-          <ul className="grid gap-0.5 sm:grid-cols-2 lg:grid-cols-1">
-            {NAV.map((item) => {
-              const active = "exact" in item && item.exact ? pathname === item.href : pathname.startsWith(item.href);
-              const Icon = item.icon;
-              return (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-[0.85rem] font-semibold transition",
-                      active ? "bg-primary-soft text-primary" : "text-muted hover:bg-sunken hover:text-fg",
-                    )}
-                  >
-                    <Icon className="size-4 shrink-0" aria-hidden />
-                    {item.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+        <button type="button" className="btn btn-outline lg:hidden" onClick={()=>setOpen(true)} aria-expanded={open}><Menu className="size-5"/> منوی حساب</button>
+        <Drawer open={open} onOpenChange={setOpen} title="منوی حساب" className="p-4"><button type="button" className="btn btn-outline mb-4" onClick={()=>setOpen(false)}>بستن منو</button><nav aria-label="منوی حساب">{navigation}</nav></Drawer>
+        <nav className="card hidden h-fit p-2 lg:sticky lg:top-24 lg:block" aria-label="منوی حساب">{navigation}</nav>
         <div className="min-w-0">{children}</div>
       </div>
     </div>

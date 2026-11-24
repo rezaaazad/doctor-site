@@ -161,7 +161,7 @@ export function DealOfDay({ content, deal }: { content: C; deal: (Card & { stock
             ) : null}
             <div className="mt-6 flex flex-wrap gap-3">
               {deal.hasVariants ? (
-                <Link href={`/store/${deal.slug}`} className="btn btn-action btn-lg">
+                <Link href={`/store/${deal.slug}`} className="btn btn-primary btn-lg">
                   {str(content.ctaLabel, "خرید با تخفیف")}
                 </Link>
               ) : (
@@ -402,7 +402,7 @@ export function ProcessSteps({ content, steps }: { content: C; steps: Step[] }) 
         <ol className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {steps.map((s, i) => (
             <li key={s.id} data-reveal style={{ ["--d" as string]: i }} className="relative rounded-[var(--r)] bg-white/6 p-5 ring-1 ring-white/10">
-              <span className="num grid size-11 place-items-center rounded-2xl bg-action font-display text-[1.05rem] font-black text-white">{formatNumber(i + 1)}</span>
+              <span className="num grid size-11 place-items-center rounded-2xl bg-primary font-display text-[1.05rem] font-black text-white">{formatNumber(i + 1)}</span>
               <b className="mt-5 block font-display text-[1.08rem] text-white">{s.title}</b>
               <p className="mt-2 text-[0.88rem] leading-7 text-white/65">{s.body}</p>
             </li>
@@ -438,7 +438,7 @@ export function PricingPlans({ content, packages }: { content: C; packages: Pric
                 </li>
               ))}
             </ul>
-            <Link href={p.ctaHref || "/contact"} className={cn("btn mt-auto w-full", p.highlighted ? "btn-action" : "btn-outline", "mt-7")}>
+            <Link href={p.ctaHref || "/contact"} className={cn("btn mt-auto w-full", p.highlighted ? "btn-primary" : "btn-outline", "mt-7")}>
               {p.ctaLabel || "درخواست مشاوره"}
             </Link>
           </div>

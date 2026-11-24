@@ -42,6 +42,7 @@ export function ProductBuy({
     return initial;
   });
   const [quantity, setQuantity] = useState(1);
+  const [preview,setPreview]=useState<string|null>(null);
 
   const variant = useMemo(() => pickVariant(product.variants, selected), [product.variants, selected]);
   const price = variant?.price ?? product.price;
@@ -66,9 +67,10 @@ export function ProductBuy({
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-10">
       <div className="relative overflow-hidden rounded-[var(--r)] border border-line bg-sunken shadow-1">
-        <div className="aspect-square">
-          <ProductImage product={{ ...product, image, slug: product.slug, title: product.title, type: product.type }} priority sizes="(min-width: 1024px) 50vw, 100vw" />
+        <div className="relative aspect-square">
+          <ProductImage product={{ ...product, image:preview??image, slug: product.slug, title: product.title, type: product.type }} priority sizes="(min-width: 1024px) 50vw, 100vw" />
         </div>
+        {product.images.length>1&&<div className="flex gap-2 overflow-x-auto bg-surface p-3">{product.images.map((url,i)=><button type="button" key={url+i} onClick={()=>setPreview(url)} aria-label={`تصویر ${(i+1).toLocaleString("fa-IR")}`} aria-pressed={(preview??image)===url} className={cn("relative size-16 shrink-0 overflow-hidden rounded-lg border",(preview??image)===url?"border-primary ring-2 ring-primary/25":"border-line")}><ProductImage product={{...product,image:url}} sizes="64px"/></button>)}</div>}
         <WishlistButton productId={product.id} initial={wished} className="absolute top-3 left-3 z-[2]" />
       </div>
       <div className="flex flex-col gap-4" data-reveal>
@@ -107,7 +109,7 @@ export function ProductBuy({
                     type="button"
                     disabled={!available}
                     aria-pressed={active}
-                    onClick={() => available && setSelected((s) => ({ ...s, [opt.name]: val }))}
+                    onClick={() => {if(available){setPreview(null);setSelected((s) => ({ ...s, [opt.name]: val }));}}}
                     className={cn(
                       "min-h-[44px] rounded-full border px-3.5 py-2 text-[0.82rem] font-semibold transition",
                       active ? "border-primary bg-primary-soft text-primary ring-2 ring-primary/25" : "border-line bg-surface hover:border-primary/40",

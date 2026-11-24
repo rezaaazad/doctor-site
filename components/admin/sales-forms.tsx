@@ -15,7 +15,7 @@ export function PackageForm({
 }) {
   const [state, action] = useActionState(savePackage, null as State);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="نام پکیج"><Input name="name" defaultValue={item?.name} required /></Field>
@@ -35,7 +35,7 @@ export function PackageForm({
 export function StepForm({ item }: { item?: { id: string; number: string; title: string; body: string; visible: boolean; sortOrder: number } }) {
   const [state, action] = useActionState(saveStep, null as State);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <div className="grid gap-3 md:grid-cols-2">
         <Field label="شماره"><Input name="number" defaultValue={item?.number} /></Field>
@@ -53,7 +53,7 @@ export function StepForm({ item }: { item?: { id: string; number: string; title:
 export function StatForm({ item }: { item?: { id: string; value: string; label: string; visible: boolean; sortOrder: number } }) {
   const [state, action] = useActionState(saveStat, null as State);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <Field label="عدد"><Input name="value" defaultValue={item?.value} required /></Field>
       <Field label="برچسب"><Input name="label" defaultValue={item?.label} required /></Field>
@@ -68,7 +68,7 @@ export function StatForm({ item }: { item?: { id: string; value: string; label: 
 export function LogoForm({ item }: { item?: { id: string; name: string; imageUrl: string; visible: boolean; sortOrder: number } }) {
   const [state, action] = useActionState(saveLogo, null as State);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <Field label="نام"><Input name="name" defaultValue={item?.name} required /></Field>
       <Field label="تصویر (اختیاری)"><Input name="imageUrl" defaultValue={item?.imageUrl} dir="ltr" /></Field>
@@ -83,7 +83,7 @@ export function LogoForm({ item }: { item?: { id: string; name: string; imageUrl
 export function FaqForm({ item }: { item?: { id: string; question: string; answer: string; visible: boolean; sortOrder: number } }) {
   const [state, action] = useActionState(saveFaq, null as State);
   return (
-    <form action={action} className="grid gap-3 rounded-3xl border border-white/10 p-4">
+    <form action={action} className="grid gap-3 rounded-3xl border border-line p-4">
       {item ? <input type="hidden" name="id" value={item.id} /> : null}
       <Field label="پرسش"><Input name="question" defaultValue={item?.question} required /></Field>
       <Field label="پاسخ"><Textarea name="answer" defaultValue={item?.answer} /></Field>
