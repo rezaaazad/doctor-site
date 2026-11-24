@@ -9,21 +9,21 @@ function color(value: unknown, fallback: string) {
 }
 
 export function themeStyle(theme: OptionRecord): CSSProperties {
-  const radius = Math.min(40, Math.max(0, Number(theme.radius) || 18));
+  const radius = Math.min(40, Math.max(0, Number(theme.radius) || 16));
   const body = FONTS.has(String(theme.fontBody)) ? String(theme.fontBody) : "Vazirmatn";
-  const display = FONTS.has(String(theme.fontDisplay)) ? String(theme.fontDisplay) : "Estedad";
+  const display = FONTS.has(String(theme.fontDisplay)) ? String(theme.fontDisplay) : "Vazirmatn";
   return {
-    "--ink": color(theme.ink, "#0B1530"),
-    "--primary": color(theme.primary, "#3B5BDB"),
-    "--action": color(theme.action, "#D04A0D"),
+    "--ink": color(theme.ink, "#102E33"),
+    "--primary": color(theme.primary, "#075D60"),
+    "--action": color(theme.action, "#BE3823"),
     "--success": color(theme.success, "#047857"),
-    "--urgency": color(theme.urgency, "#E11D48"),
-    "--gold": color(theme.gold, "#F5B301"),
-    "--bg": color(theme.bg, "#F6F5F1"),
+    "--urgency": color(theme.urgency, "#923557"),
+    "--gold": color(theme.gold, "#ECB878"),
+    "--bg": color(theme.bg, "#F7F7F2"),
     "--surface": color(theme.surface, "#FFFFFF"),
-    "--text": color(theme.text, "#0B1530"),
-    "--muted": color(theme.muted, "#5B6478"),
-    "--border": color(theme.border, "#E4E6EE"),
+    "--text": color(theme.text, "#102E33"),
+    "--muted": color(theme.muted, "#506568"),
+    "--border": color(theme.border, "#D9E2DD"),
     "--r": `${radius}px`,
     "--ff-body": `"${body}"`,
     "--ff-display": `"${display}"`,
@@ -31,6 +31,6 @@ export function themeStyle(theme: OptionRecord): CSSProperties {
 }
 
 export function themeFonts(theme: OptionRecord) {
-  const set = new Set([String(theme.fontBody || "Vazirmatn"), String(theme.fontDisplay || "Estedad")].filter((f) => FONTS.has(f)));
+  const set = new Set([String(theme.fontBody || "Vazirmatn"), String(theme.fontDisplay || "Vazirmatn")].filter((f) => FONTS.has(f)));
   return [...set].map((font) => `/fonts/${font}-Variable.woff2`);
 }

@@ -9,57 +9,9 @@ import { formatNumber } from "@/lib/money";
 import { useCart } from "@/components/store/cart";
 import type { ContactLinks } from "@/lib/contact";
 
-function ContactSheet({ links, onClose }: { links: ContactLinks; onClose: () => void }) {
-  return (
-    <div className="fixed inset-0 z-[65]" role="dialog" aria-modal="true" aria-label="راه‌های تماس">
-      <button type="button" className="absolute inset-0 bg-ink/45" style={{ animation: "fade .2s both" }} onClick={onClose} aria-label="بستن" />
-      <div className="absolute inset-x-0 bottom-0 rounded-t-[26px] bg-surface p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-3" style={{ animation: "sheet-up .3s var(--ease-out) both" }}>
-        <div className="mx-auto mb-4 h-1.5 w-12 rounded-full bg-line" />
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <p className="font-display text-lg font-extrabold">سؤال دارید؟ همین الان بپرسید</p>
-            <p className="flex items-center gap-2 text-[0.82rem] text-muted">
-              <span className="live-dot" /> پشتیبانی آنلاین است
-            </p>
-          </div>
-          <button type="button" className="btn btn-ghost btn-icon" onClick={onClose} aria-label="بستن">
-            <X className="size-5" aria-hidden />
-          </button>
-        </div>
-        <div className="grid gap-2">
-          {links.phoneHref ? (
-            <a href={links.phoneHref} className="btn btn-ink btn-lg btn-block justify-between">
-              <span className="flex items-center gap-2">
-                <Phone className="size-5" aria-hidden /> تماس تلفنی
-              </span>
-              <span className="ltr num text-white/75">{links.phone}</span>
-            </a>
-          ) : null}
-          <div className="grid grid-cols-2 gap-2">
-            {links.whatsapp ? (
-              <a href={links.whatsapp} target="_blank" rel="noopener" className="btn btn-outline btn-lg">
-                <MessageCircle className="size-5 text-success" aria-hidden /> واتساپ
-              </a>
-            ) : null}
-            {links.telegram ? (
-              <a href={links.telegram} target="_blank" rel="noopener" className="btn btn-outline btn-lg">
-                <Send className="size-5 text-primary" aria-hidden /> تلگرام
-              </a>
-            ) : null}
-          </div>
-          <Link href="/contact" onClick={onClose} className="btn btn-ghost btn-block">
-            فرم درخواست مشاوره
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-export function MobileBar({ links, enabled }: { links: ContactLinks; enabled: boolean }) {
+export function MobileBar({ enabled }: { enabled: boolean }) {
   const pathname = usePathname();
   const { count, setOpen, ready } = useCart();
-  const [contact, setContact] = useState(false);
   if (!enabled || pathname.startsWith("/checkout")) return null;
   const item = "flex flex-1 flex-col items-center justify-center gap-1 text-[0.66rem] font-bold";
   const active = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
@@ -74,15 +26,7 @@ export function MobileBar({ links, enabled }: { links: ContactLinks; enabled: bo
           <Link href="/" className={cn(item, active("/") ? "text-primary" : "text-muted")}>
             <Home className="size-[21px]" aria-hidden /> خانه
           </Link>
-          <Link href="/store" className={cn(item, active("/store") ? "text-primary" : "text-muted")}>
-            <Store className="size-[21px]" aria-hidden /> فروشگاه
-          </Link>
-          <button type="button" onClick={() => setContact(true)} className={cn(item, "text-fg")}>
-            <span className="-mt-6 grid size-[52px] place-items-center rounded-full bg-primary text-white shadow-[0_10px_24px_-8px_var(--primary)] ring-4 ring-surface">
-              <Headset className="size-6" aria-hidden />
-            </span>
-            مشاوره
-          </button>
+          <button type="button" onClick={() => window.dispatchEvent(new Event("store:categories"))} className={cn(item, active("/store") ? "text-primary" : "text-muted")}><Store aria-hidden size={21}/>دسته‌ها</button>
           <button type="button" onClick={() => setOpen(true)} className={cn(item, "relative text-muted")}>
             <span className="relative">
               <ShoppingBag className="size-[21px]" aria-hidden />
@@ -97,7 +41,6 @@ export function MobileBar({ links, enabled }: { links: ContactLinks; enabled: bo
           </Link>
         </div>
       </nav>
-      {contact ? <ContactSheet links={links} onClose={() => setContact(false)} /> : null}
     </>
   );
 }

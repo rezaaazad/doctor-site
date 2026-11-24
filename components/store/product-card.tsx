@@ -30,13 +30,15 @@ export function ProductImage({ product, className, sizes = "(min-width: 1024px) 
 
 export function ProductCard({ product, className, priority = false, wished = false }: { product: Card; className?: string; priority?: boolean; wished?: boolean }) {
   const href = `/store/${product.slug}`;
+  const alternate = product.images.find(src => src && src !== product.image);
   const pct = product.compareAt > product.price ? Math.round(((product.compareAt - product.price) / product.compareAt) * 100) : 0;
   return (
-    <article className={cn("group card card-hover relative flex flex-col overflow-hidden", className)}>
-      <Link href={href} className="relative block aspect-square overflow-hidden bg-sunken" aria-label={product.title}>
+    <article className={cn("catalog-tile group card card-hover relative flex flex-col overflow-hidden", className)}>
+      <Link href={href} className="relative block aspect-[5/4] overflow-hidden bg-sunken" aria-label={product.title}>
         <ProductImage product={product} priority={priority} className="transition-transform duration-700 ease-[var(--ease-out)] group-hover:scale-[1.04]" />
+        {alternate && <span aria-hidden="true" className="catalog-alternate"><ProductImage product={{...product,image:alternate}}/></span>}
         <span className="absolute top-3 right-3 flex flex-col items-start gap-1.5">
-          {pct >= 5 ? <span className="badge badge-urgency num">٪{formatNumber(pct)} تخفیف</span> : null}
+          {pct > 0 ? <span className="badge badge-urgency num">٪{formatNumber(pct)} تخفیف</span> : null}
           {product.badge ? <span className="badge badge-gold">{product.badge}</span> : null}
           {!product.inStock ? <span className="badge badge-ink">ناموجود</span> : null}
         </span>

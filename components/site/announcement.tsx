@@ -16,7 +16,7 @@ export function Announcement({ text, href, endsAt }: { text: string; href: strin
     </span>
   );
   return (
-    <div className="relative z-50 bg-ink text-[0.78rem] font-semibold text-white md:text-[0.82rem]">
+    <div className="announcement-strip relative z-50 bg-ink text-[0.78rem] font-semibold text-white md:text-[0.82rem]">
       <div className="container-x flex h-9 items-center justify-center">
         {href ? (
           <Link href={href} className="min-w-0 hover:text-white/85">
