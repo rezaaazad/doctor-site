@@ -1,3 +1,4 @@
+import { normalizeMobile } from "@/lib/money";
 import { getGroup } from "@/lib/options";
 import { fetchWithTimeout, readJson } from "@/lib/http";
 
@@ -5,6 +6,9 @@ export type SmsResult = { ok: boolean; provider: string; message?: string };
 
 type SmsConfig = {
   provider: string;
+  farazsmsApiKey: string;
+  farazsmsLineNumber: string;
+  farazsmsOtpPattern: string;
   kavenegarKey: string;
   kavenegarSender: string;
   kavenegarOtpTemplate: string;
@@ -19,6 +23,35 @@ export const sentInConsole: { to: string; text: string; at: number }[] = [];
 
 async function config() {
   return (await getGroup("sms")) as unknown as SmsConfig;
+}
+
+async function farazsmsSend(cfg: SmsConfig, to: string, payload: { code: string } | { text: string }): Promise<SmsResult> {
+  const provider = "farazsms";
+  const key = cfg.farazsmsApiKey?.trim() || process.env.FARAZSMS_API_TOKEN?.trim();
+  if (!key) return { ok: false, provider, message: "کلید API فرازاس‌ام‌اس تنظیم نشده است." };
+  const recipient = normalizeMobile(to);
+  if (!recipient) return { ok: false, provider, message: "شماره موبایل معتبر نیست." };
+  const isOtp = "code" in payload;
+  const pattern = cfg.farazsmsOtpPattern?.trim();
+  if (isOtp && !pattern) return { ok: false, provider, message: "کد الگوی OTP فرازاس‌ام‌اس تنظیم نشده است." };
+  if (isOtp && !/^\d{1,6}$/.test(payload.code)) return { ok: false, provider, message: "رمز یک‌بارمصرف نامعتبر است." };
+  const body = {
+    ...(isOtp ? { code: pattern, recipient, attributes: { code: payload.code } } : { recipients: [recipient], text: payload.text }),
+    line_number: cfg.farazsmsLineNumber?.trim() || "90008361",
+    number_format: "english",
+  };
+  try {
+    const res = await fetchWithTimeout(`https://api.iranpayamak.com/ws/v1/sms/${isOtp ? "pattern" : "simple"}`, {
+      method: "POST",
+      headers: { "Api-Key": key, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    }, 10_000);
+    const json = await readJson(res) as { status?: string } | null;
+    if ((res.status === 200 || res.status === 201) && json?.status === "success") return { ok: true, provider };
+    return { ok: false, provider, message: `فرازاس‌ام‌اس درخواست را نپذیرفت (HTTP ${res.status}).` };
+  } catch {
+    return { ok: false, provider, message: "ارتباط با فرازاس‌ام‌اس برقرار نشد." };
+  }
 }
 
 async function kavenegarSend(cfg: SmsConfig, to: string, text: string): Promise<SmsResult> {
@@ -67,6 +100,7 @@ function consoleSend(to: string, text: string): SmsResult {
 
 export async function sendSms(to: string, text: string): Promise<SmsResult> {
   const cfg = await config();
+  if (cfg.provider === "farazsms") return farazsmsSend(cfg, to, { text });
   try {
     if (cfg.provider === "kavenegar" && cfg.kavenegarKey) return await kavenegarSend(cfg, to, text);
     if (cfg.provider === "melipayamak" && cfg.melipayamakUser) return await melipayamakSend(cfg, to, text);
@@ -81,6 +115,7 @@ export async function sendSms(to: string, text: string): Promise<SmsResult> {
 /** Uses the provider's OTP pattern when configured (faster delivery, not filtered), else plain text. */
 export async function sendOtpSms(to: string, code: string, fallbackText: string): Promise<SmsResult> {
   const cfg = await config();
+  if (cfg.provider === "farazsms") return farazsmsSend(cfg, to, { code });
   try {
     if (cfg.provider === "kavenegar" && cfg.kavenegarKey && cfg.kavenegarOtpTemplate) return await kavenegarLookup(cfg, to, code);
     if (cfg.provider === "melipayamak" && cfg.melipayamakUser && cfg.melipayamakOtpBodyId) return await melipayamakPattern(cfg, to, [code]);
