@@ -45,11 +45,11 @@ export const statSeed: Prisma.StatCreateManyInput[] = [
 ];
 
 export const logoSeed: Prisma.ClientLogoCreateManyInput[] = [
-  { name: "خانه نوآر", sortOrder: 10, visible: true, imageUrl: "" },
-  { name: "آزمایشگاه مدار", sortOrder: 20, visible: true, imageUrl: "" },
-  { name: "کارگاه لومن", sortOrder: 30, visible: true, imageUrl: "" },
-  { name: "دفتر آتریوم", sortOrder: 40, visible: true, imageUrl: "" },
-  { name: "گلیف", sortOrder: 50, visible: true, imageUrl: "" },
+  { name: "خانه نوآر", sortOrder: 10, visible: true, imageUrl: "/images/logos/noir.webp" },
+  { name: "آزمایشگاه مدار", sortOrder: 20, visible: true, imageUrl: "/images/logos/orbit.webp" },
+  { name: "کارگاه لومن", sortOrder: 30, visible: true, imageUrl: "/images/logos/lumen.webp" },
+  { name: "دفتر آتریوم", sortOrder: 40, visible: true, imageUrl: "/images/logos/atrium.webp" },
+  { name: "گلیف", sortOrder: 50, visible: true, imageUrl: "/images/logos/glyph.webp" },
 ];
 
 export const faqSeed: Prisma.FaqCreateManyInput[] = [
@@ -64,6 +64,7 @@ export const faqSeed: Prisma.FaqCreateManyInput[] = [
 export const blogSeed: Prisma.BlogPostCreateManyInput[] = [
   {
     slug: "ghimat-tarahi-site",
+    coverUrl: "/images/blog/ghimat-tarahi-site.webp",
     title: "قیمت طراحی سایت در سال ۱۴۰۴ چطور حساب می‌شود؟",
     excerpt: "عدد نهایی به تعداد صفحه، فروشگاه بودن و تولید محتوا بستگی دارد. این راهنما کمک می‌کند قبل از تماس، حدود بودجه را بدانید.",
     body: "بیشتر اختلاف قیمت‌ها از محدوده کار می‌آید، نه از «کیفیت مبهم». یک سایت معرفی پنج‌صفحه‌ای با یک فروشگاه دویست محصولی یکی نیست.\n\nدر دکتر سایت شروع قیمت را روی سایت می‌نویسیم تا تماس اول با عدد خیالی شروع نشود. قیمت نهایی بعد از دیدن نمونه محتوا و لیست قابلیت‌ها بسته می‌شود.\n\nاگر بودجه محدود است، بهتر است اول مسیر تماس و معرفی خدمات را درست کنیم و فروشگاه را به مرحله بعد بسپاریم.",
@@ -74,6 +75,7 @@ export const blogSeed: Prisma.BlogPostCreateManyInput[] = [
   },
   {
     slug: "foroushgah-ya-site-moarefi",
+    coverUrl: "/images/blog/foroushgah-ya-site-moarefi.webp",
     title: "فروشگاه اینترنتی لازم دارید یا سایت معرفی؟",
     excerpt: "اگر هنوز سفارش تلفنی می‌گیرید، گاهی سایت معرفی زودتر فروش را بالا می‌برد تا یک فروشگاه نیمه‌کاره.",
     body: "فروشگاه وقتی معنا دارد که محصول، موجودی و ارسال روشن باشد. اگر مشتری اول باید مشاوره بگیرد، فرم و دکمه تماس مهم‌تر از سبد خرید است.\n\nدر جلسه اول همین را جدا می‌کنیم. هدف، فروختن گران‌ترین پکیج نیست؛ هدف این است که مشتری بعدی بتواند با شما تماس بگیرد یا بخرد.",
@@ -84,6 +86,7 @@ export const blogSeed: Prisma.BlogPostCreateManyInput[] = [
   },
   {
     slug: "seo-bad-az-tarahi",
+    coverUrl: "/images/blog/seo-bad-az-tarahi.webp",
     title: "سئو را از روز اول سایت شروع کنید، نه شش ماه بعد",
     excerpt: "ساختار عنوان، سرعت و مسیر صفحه از همان طراحی روی دیده شدن در گوگل اثر دارد.",
     body: "سایتی که عنوان صفحه، توضیح و آدرس تمیز نداشته باشد، بعداً گران‌تر اصلاح می‌شود. در پروژه‌های دکتر سایت این‌ها جزو تحویل است.\n\nکمپین ماهانه سئو برای کسب‌وکارهایی است که می‌خواهند روی کلمه‌های مشخص دیده شوند. بدون سایت سالم، آن بودجه هدر می‌رود.",

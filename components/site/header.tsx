@@ -25,10 +25,13 @@ export type HeaderProps = {
   signedIn: boolean;
 };
 
+import { PhotoSlot } from "@/components/ui/photo-slot";
+
 export function Logo({ siteName, logoUrl, light = false }: { siteName: string; logoUrl: string; light?: boolean }) {
   if (logoUrl) {
-    // eslint-disable-next-line @next/next/no-img-element
-    return <img src={logoUrl} alt={siteName} className="h-9 w-auto md:h-10" />;
+    return <span className="relative block h-9 w-32 md:h-10 md:w-36"><PhotoSlot
+      src={light && logoUrl === "/images/brand/logo.webp" ? "/images/brand/logo-on-dark.webp" : logoUrl}
+      alt={siteName} sizes="144px" className="object-contain" fallback={<b>{siteName}</b>} /></span>;
   }
   return (
     <span className="flex items-center gap-2.5">

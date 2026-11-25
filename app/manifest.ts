@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "استودیوی طراحی و مهندسی وب",
     start_url: "/",
     display: "standalone",
-    background_color: "#070708",
-    theme_color: "#070708",
+    background_color: "#F7F7F2",
+    theme_color: "#075D60",
     lang: "fa",
     dir: "rtl",
   };

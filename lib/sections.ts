@@ -71,10 +71,10 @@ export const SECTIONS: SectionDef[] = [
       primaryHref: "/store",
       secondaryLabel: "مشاوره رایگان خرید",
       secondaryHref: "/contact",
-      slides: [{ eyebrow: "مجموعه فروشگاهی", title: "ویترین بعدی شما", highlight: "از اینجا شروع می‌شود", body: "محصولات و ابزارهای ساخت فروشگاه را کنار هم ببینید.", href: "/store", label: "ورود به فروشگاه", image: "/covers/lumen.svg" }],
+      slides: [{ eyebrow: "مجموعه فروشگاهی", title: "ویترین بعدی شما", highlight: "از اینجا شروع می‌شود", body: "محصولات و ابزارهای ساخت فروشگاه را کنار هم ببینید.", href: "/store", label: "ورود به فروشگاه", image: "/images/home/hero-2.webp" }],
       spotlight: "",
       spotlightNote: "پیشنهاد این هفته",
-      spotlightImage: "",
+      spotlightImage: "/images/home/hero-1.webp",
       rating: "۴٫۹",
       ratingLabel: "رضایت از ۱٬۲۰۰+ خرید",
       stats: [
@@ -124,7 +124,7 @@ export const SECTIONS: SectionDef[] = [
     description: "دسته‌های فروشگاه که «ویژه» علامت خورده‌اند (یا همه، اگر هیچ‌کدام ویژه نیست).",
     order: 30,
     source: { label: "مدیریت دسته‌ها", href: "/admin/store/categories" },
-    defaults: { promos: [{title:"پرفروش‌های فروشگاه",image:"/covers/orbit.svg",href:"/store?sort=bestseller"},{title:"محصولات تخفیف‌دار",image:"/covers/noir.svg",href:"/store?sale=1"}],  eyebrow: "خرید بر اساس نیاز", title: "از کجا شروع کنیم؟", body: "", limit: 6 },
+    defaults: { promos: [{title:"پرفروش‌های فروشگاه",image:"/images/home/promo-shop.webp",href:"/store?sort=bestseller"},{title:"محصولات تخفیف‌دار",image:"/images/home/promo-sale.webp",href:"/store?sale=1"}],  eyebrow: "خرید بر اساس نیاز", title: "از کجا شروع کنیم؟", body: "", limit: 6 },
     fields: [list("promos","بنرها", [text("title","عنوان"),image("image","تصویر"),url("href","پیوند")], 3), text("eyebrow", "روتیتر"), text("title", "عنوان"), area("body", "توضیح"), num("limit", "حداکثر تعداد", 12)],
   },
   {
@@ -273,7 +273,7 @@ export const SECTIONS: SectionDef[] = [
     description: "سه مقاله آخر وبلاگ.",
     order: 170,
     source: { label: "نوشته‌ها", href: "/admin/posts" },
-    defaults: { seoTitle: "خرید ابزارهای دیجیتال از دکتر سایت", seoBody: "در دکتر سایت می‌توانید ابزارهای ساخت و مدیریت فروشگاه را بررسی کنید. در صفحه هر محصول، ویژگی‌ها، قیمت و روش تحویل را بخوانید و گزینه مناسب کسب‌وکارتان را انتخاب کنید.",  promos: [{title:"ابزارهای فروشگاهی",href:"/store",image:"/covers/atrium.svg"},{title:"راهنمای خرید",href:"/blog",image:"/covers/glyph.svg"},{title:"مشاوره پروژه",href:"/contact",image:"/covers/lumen.svg"}],  eyebrow: "مجله", title: "راهنمای خرید و رشد فروش آنلاین", body: "", limit: 3, ctaLabel: "همه مقاله‌ها", ctaHref: "/blog" },
+    defaults: { seoTitle: "خرید ابزارهای دیجیتال از دکتر سایت", seoBody: "در دکتر سایت می‌توانید ابزارهای ساخت و مدیریت فروشگاه را بررسی کنید. در صفحه هر محصول، ویژگی‌ها، قیمت و روش تحویل را بخوانید و گزینه مناسب کسب‌وکارتان را انتخاب کنید.",  promos: [{title:"ابزارهای فروشگاهی",href:"/store",image:"/images/home/promo-shop.webp"},{title:"راهنمای خرید",href:"/blog",image:"/images/about/studio.webp"},{title:"مشاوره پروژه",href:"/contact",image:"/images/home/hero-2.webp"}],  eyebrow: "مجله", title: "راهنمای خرید و رشد فروش آنلاین", body: "", limit: 3, ctaLabel: "همه مقاله‌ها", ctaHref: "/blog" },
     fields: [text("seoTitle","عنوان معرفی فروشگاه"),area("seoBody","متن معرفی فروشگاه"), list("promos","بنرها", [text("title","عنوان"),image("image","تصویر"),url("href","پیوند")], 3), text("eyebrow", "روتیتر"), text("title", "عنوان"), area("body", "توضیح"), num("limit", "تعداد", 6), text("ctaLabel", "متن دکمه"), url("ctaHref", "پیوند دکمه")],
   },
   {
@@ -305,7 +305,7 @@ export const SECTIONS: SectionDef[] = [
 export const SECTION_BY_PAGE_KEY = new Map(SECTIONS.map((s) => [`${s.page}:${s.key}`, s]));
 
 export function sectionDef(page: string, key: string) {
-  return SECTION_BY_PAGE_KEY.get(`${page}:${key}`);
+  return SECTION_BY_PAGE_KEY.get(`${page}:${page === "home" && key === "pricing" ? "pricingPlans" : key}`);
 }
 
 export function sectionPages() {

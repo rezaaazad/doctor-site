@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
+import { PhotoSlot } from "@/components/ui/photo-slot";
+
 import { useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight } from "lucide-react";
 import { listOf, str } from "@/lib/sections";
@@ -16,7 +17,7 @@ export function StoreHero({ content, spotlight, dark }: {
     {
       eyebrow: str(content.eyebrow), title: str(content.title), highlight: str(content.highlight),
       body: str(content.body), label: str(content.primaryLabel), href: str(content.primaryHref, "/store"),
-      image: str(content.spotlightImage) || spotlight?.image || "/covers/atrium.svg",
+      image: str(content.spotlightImage) || spotlight?.image || "/images/home/hero-1.webp",
     },
     ...listOf(content.slides).filter(slide => slide.title && slide.href),
   ];
@@ -38,7 +39,7 @@ export function StoreHero({ content, spotlight, dark }: {
         <div className="campaign-stage">
           <div className="campaign-orbit" aria-hidden="true"/>
           <Link className="campaign-cover" href={index === 0 && spotlight ? `/store/${spotlight.slug}` : slide.href || "/store"} aria-label={index === 0 && spotlight ? spotlight.title : slide.title}>
-            <Image unoptimized src={slide.image || "/covers/lumen.svg"} alt="" fill priority={index===0} sizes="(min-width: 900px) 42vw, 84vw"/>
+            <PhotoSlot src={slide.image?.startsWith("/covers/") ? "/images/home/hero-2.webp" : slide.image} alt={slide.title} priority={index===0} sizes="(min-width: 900px) 42vw, 84vw"/>
           </Link>
           {index===0 && spotlight && <Link className="campaign-caption" href={`/store/${spotlight.slug}`}>{spotlight.title}<ArrowLeft size={16}/></Link>}
         </div>

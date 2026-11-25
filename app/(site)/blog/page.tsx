@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { BlogLatest } from "@/components/home/sections";
 import { PageHero } from "@/components/site/home-view";
 import { getSiteSafe, sectionOn } from "@/lib/site";
 import { pageMetadata } from "@/lib/seo";
@@ -15,20 +15,13 @@ export default async function BlogPage() {
   const head = sectionOn(site, "home", "blogTeaser");
   const content = head?.content ?? {};
   return (
-    <div className="page">
+    <div className="pb-16">
       <PageHero
         crumb={tx(content, "kicker", "fa", "وبلاگ")}
         headline={tx(content, "title", "fa", "یادداشت‌ها")}
-        title={tx(content, "linkLabel", "fa", "برای تصمیم دقیق‌تر")}
+        title={tx(content, "title", "fa", "مجله دکتر سایت")}
       />
-      <div className="cards">
-        {site.posts.map((post) => (
-          <Link key={post.id} href={`/blog/${post.slug}`} className="card">
-            <h2 style={{ margin: 0, fontSize: 22 }}>{post.title}</h2>
-            <p className="muted">{post.excerpt}</p>
-          </Link>
-        ))}
-      </div>
+      <BlogLatest content={{ title: "آخرین نوشته‌ها", limit: site.posts.length }} posts={site.posts} />
     </div>
   );
 }

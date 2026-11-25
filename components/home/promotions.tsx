@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { PhotoSlot } from "@/components/ui/photo-slot";
+
 import Link from "next/link";
 import { ArrowUpLeft } from "lucide-react";
 import { listOf, str } from "@/lib/sections";
@@ -8,7 +9,7 @@ export function PromoStrip({content}: {content: Record<string, unknown>}) {
   if (!banners.length) return null;
   return <div className="container-x promo-strip" data-count={banners.length}>
     {banners.map((item,i)=><Link key={i} href={item.href}>
-      {item.image && <Image unoptimized fill src={item.image} alt="" sizes="(min-width: 800px) 33vw, 90vw"/>}
+      {item.image && <PhotoSlot src={item.image.startsWith("/covers/") ? (i % 2 ? "/images/home/promo-sale.webp" : "/images/home/promo-shop.webp") : item.image} alt={item.title} sizes="(min-width: 800px) 33vw, 90vw"/>}
       <strong>{item.title}</strong><ArrowUpLeft aria-hidden/>
     </Link>)}
   </div>;

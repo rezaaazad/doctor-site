@@ -1,31 +1,19 @@
 import Link from "next/link";
-import Image from "next/image";
+import { PhotoSlot } from "@/components/ui/photo-slot";
+
 import { Download, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/money";
 import type { ProductCard as Card } from "@/lib/store/catalog";
 import { Price } from "@/components/ui/price";
 import { Stars } from "@/components/ui/stars";
-import { ProductArt } from "@/components/ui/product-art";
+
 import { AddToCartButton } from "@/components/store/add-to-cart";
 import { WishlistButton } from "@/components/store/wishlist-button";
 
 export function ProductImage({ product, className, sizes = "(min-width: 1024px) 25vw, 50vw", priority = false }: { product: Pick<Card, "image" | "slug" | "title" | "type">; className?: string; sizes?: string; priority?: boolean }) {
-  if (product.image) {
-    if(/^\/media\/[a-zA-Z0-9._-]+\.(?:jpg|jpeg|png|webp|avif)$/i.test(product.image))return <span className="relative block size-full"><Image src={product.image} alt={product.title} fill sizes={sizes} priority={priority} className={cn("object-cover",className)} /></span>;
-    return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img
-        src={product.image}
-        alt={product.title}
-        sizes={sizes}
-        loading={priority ? "eager" : "lazy"}
-        decoding="async"
-        className={cn("size-full object-cover", className)}
-      />
-    );
-  }
-  return <ProductArt seed={product.slug} title={product.title} type={product.type} className={cn("size-full", className)} />;
+  return <span className="relative block size-full"><PhotoSlot src={product.image} alt={product.title}
+    sizes={sizes} priority={priority} className={cn("object-cover", className)} /></span>;
 }
 
 export function ProductCard({ product, className, priority = false, wished = false }: { product: Card; className?: string; priority?: boolean; wished?: boolean }) {

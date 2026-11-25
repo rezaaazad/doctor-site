@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { SearchX } from "lucide-react";
+import { PhotoSlot } from "@/components/ui/photo-slot";
+
 import { prisma } from "@/lib/db";
 import { getCustomer } from "@/lib/customer-auth";
 import { queryCatalog, storeCategories } from "@/lib/store/catalog";
@@ -68,7 +69,7 @@ export async function CatalogListing({
           />
         ) : (
           <div className="catalog-empty">
-            <SearchX size={36} />
+            <div className="relative mx-auto aspect-[3/2] w-40"><PhotoSlot src="/images/empty/store.webp" alt="نتیجه‌ای پیدا نشد" sizes="160px" /></div>
             <h2>محصولی پیدا نشد</h2>
             <p>محدوده قیمت یا عبارت جست‌وجو را تغییر دهید.</p>
             <Link href="/store" className="btn btn-outline">

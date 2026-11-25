@@ -53,12 +53,12 @@ export async function loadHome() {
   const { promoteDueLandingPages } = await import("@/lib/editorial-public");
   await promoteDueLandingPages();
   const [site, options] = await Promise.all([getSiteSafe(), getOptions()]);
-  const rows = site.sections.filter((s) => s.page === "home" && s.visible && sectionDef("home", s.key)).sort((a, b) => a.sortOrder - b.sortOrder);
+  const rows = site.sections.filter((s) => s.page === "home" && s.visible && !(s.key === "pricing" && site.sections.some(other => other.page === "home" && other.key === "pricingPlans")) && sectionDef("home", s.key)).sort((a, b) => a.sortOrder - b.sortOrder);
   const sections: HomeSection[] = await Promise.all(
     rows.map(async (row) => {
       const def = sectionDef("home", row.key);
       const content = mergeContent(def, row.content);
-      const section: HomeSection = { id: row.id, key: row.key, content };
+      const section: HomeSection = { id: row.id, key: def?.key ?? row.key, content };
       if (["featuredProducts", "bestsellers", "newArrivals"].includes(row.key)) {
         section.products = await productsFor(content, Number(def?.defaults.limit) || 8).catch(() => []);
       }
@@ -69,6 +69,9 @@ export async function loadHome() {
       return section;
     }),
   );
+  if (site.packages.length && !site.sections.some(s => s.page === "home" && ["pricing", "pricingPlans"].includes(s.key))) {
+    sections.push({ id: "default-pricing", key: "pricingPlans", content: mergeContent(sectionDef("home", "pricingPlans"), {}) });
+  }
   const needs = new Set(sections.map((s) => s.key));
   const [categories, spotlight, deal, reviewStats, reviews] = await Promise.all([
     needs.has("categoryGrid") || needs.has("storeHero") ? storeCategories().catch(() => []) : Promise.resolve([]),

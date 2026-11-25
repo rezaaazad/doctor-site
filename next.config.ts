@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   htmlLimitedBots: /.*/,
   poweredByHeader: false,
   productionBrowserSourceMaps: false,
-  images: { localPatterns: [{ pathname: "/media/**", search: "" }] },
+  images: { localPatterns: ["/media/**", "/images/**", "/covers/**"].map(pathname => ({ pathname, search: "" })) },
   serverExternalPackages: ["@prisma/client", "prisma"],
   outputFileTracingIncludes: {
     "/*": ["./assets/**/*", "./node_modules/.prisma/**/*", "./node_modules/@prisma/client/**/*"],
