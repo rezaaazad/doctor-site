@@ -611,7 +611,7 @@ html[data-motion="on"] .anim-slide-in { animation: slide-in-right 0.28s var(--ea
 .admin-notice [data-ok=false] {background:var(--urgency)}
 .staff-inbox .catalog-controls {justify-content:flex-start}
 @media(min-width:1024px){.account-mobile-tabs{display:none}}
-@media print {.account-identity,.account-mobile-tabs,.account-workspace nav,body:has(.account-workspace)>header,body:has(.account-workspace)>footer{display:none!important}.account-workspace,.account-workspace>div {padding:0;display:block}}
+@media print {body:has(.account-workspace){background:white!important}.account-identity,.account-mobile-tabs,.account-workspace nav,body:has(.account-workspace)>*:not(main){display:none!important}.account-workspace,.account-workspace>div {padding:0;display:block}}
 .account-timeline [aria-current=step] {background:var(--primary);color:white}
 .admin main form>div:has(>.admin-save-bar:only-child) {position:sticky;bottom:8px;z-index:2;justify-self:start}
 @media(max-width:640px){.admin>div>header {gap:6px;padding-inline:8px}.staff-profile summary{max-width:4rem}.admin>div>header>a{min-width:36px;padding-inline:8px}}

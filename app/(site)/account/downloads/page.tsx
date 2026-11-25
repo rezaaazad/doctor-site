@@ -39,9 +39,9 @@ export default async function DownloadsPage() {
                   </p>
                 </div>
                 {ok ? (
-                  <Link href={`/api/download/${g.token}`} className="btn btn-primary btn-sm">
+                  <a href={`/api/download/${g.token}`} className="btn btn-primary btn-sm">
                     دانلود
-                  </Link>
+                  </a>
                 ) : (
                   <span className="text-urgency">{expired ? "مهلت دانلود پایان یافته" : "دفعات دانلود تمام شده"}</span>
                 )}
