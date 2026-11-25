@@ -251,7 +251,10 @@ export const OPTION_GROUPS: OptionGroup[] = [
     description: "ارسال کد ورود (OTP) و اطلاع‌رسانی سفارش. در حالت «کنسول» پیامک فقط در لاگ سرور نوشته می‌شود.",
     cap: "manage_integrations",
     fields: [
-      sel("provider", "سرویس‌دهنده", "console", [["none", "خاموش"], ["console", "کنسول (توسعه)"], ["kavenegar", "کاوه‌نگار"], ["melipayamak", "ملی‌پیامک"]]),
+      sel("provider", "سرویس‌دهنده", "console", [["none", "خاموش"], ["console", "کنسول (توسعه)"], ["kavenegar", "کاوه‌نگار"], ["melipayamak", "ملی‌پیامک"], ["farazsms", "فرازاس‌ام‌اس"]]),
+      s("farazsmsApiKey", "کلید API فرازاس‌ام‌اس", { section: "فرازاس‌ام‌اس" }),
+      t("farazsmsLineNumber", "خط ارسال", "90008361", { section: "فرازاس‌ام‌اس", dir: "ltr" }),
+      t("farazsmsOtpPattern", "کد الگوی OTP", "", { section: "فرازاس‌ام‌اس", dir: "ltr", hint: "نام متغیر الگو باید code باشد." }),
       s("kavenegarKey", "کلید API کاوه‌نگار", { section: "کاوه‌نگار" }),
       t("kavenegarSender", "خط ارسال کاوه‌نگار", "", { section: "کاوه‌نگار", dir: "ltr" }),
       t("kavenegarOtpTemplate", "نام الگوی OTP (verify/lookup)", "", { section: "کاوه‌نگار", dir: "ltr", hint: "اگر خالی باشد پیام متنی معمولی ارسال می‌شود." }),
