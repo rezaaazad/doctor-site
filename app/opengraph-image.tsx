@@ -21,23 +21,23 @@ export default async function OpenGraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          background: "#070708",
-          color: "#f4f4f0",
+          background: "#F7F7F2",
+          color: "#102E33",
           padding: 72,
           fontFamily: "Vazirmatn",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 16, color: "#D6FF3F", fontSize: 28 }}>
-          <div style={{ width: 18, height: 18, borderRadius: 99, background: "#D6FF3F" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 16, color: "#075D60", fontSize: 28 }}>
+          <div style={{ width: 18, height: 18, borderRadius: 99, background: "#075D60" }} />
           دکتر سایت
         </div>
         <div style={{ display: "flex", flexDirection: "column", fontSize: 84, fontWeight: 700, lineHeight: 1.15 }}>
           <span>ما کد می‌نویسیم،</span>
           <span>
-            <span style={{ color: "#D6FF3F" }}>نه</span> قالب
+            <span style={{ color: "#075D60" }}>نه</span> قالب
           </span>
         </div>
-        <div style={{ fontSize: 28, color: "#a3a39a" }}>doctor-site.ir</div>
+        <div style={{ fontSize: 28, color: "#075D60" }}>doctor-site.ir</div>
       </div>
     ),
     {

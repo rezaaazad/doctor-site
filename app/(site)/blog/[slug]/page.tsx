@@ -1,3 +1,4 @@
+import { PhotoSlot } from "@/components/ui/photo-slot";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -42,8 +43,7 @@ export default async function BlogPostPage({ params }: Params) {
         <p className="mt-2 text-[0.78rem] text-muted">{post.publishedAt.toLocaleDateString("fa-IR")}</p>
       </header>
       {post.coverUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={post.coverUrl} alt="" className="mt-8 w-full max-w-3xl rounded-[var(--r)] border border-line object-cover shadow-1" />
+        <div className="relative mt-8 aspect-video max-w-4xl overflow-hidden rounded-[var(--r)]"><PhotoSlot src={post.coverUrl} alt={post.title} sizes="(min-width:900px) 900px,100vw" priority /></div>
       ) : null}
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_220px] lg:gap-12">
         <div className="min-w-0 max-w-3xl">

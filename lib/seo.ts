@@ -31,7 +31,7 @@ export async function buildMetadata(input: MetaInput): Promise<Metadata> {
   const raw = override?.title || input.title || site.settings.tagline || name;
   const title = raw.includes(name) ? raw : `${raw} ${sep} ${name}`;
   const description = (override?.description || input.description || site.settings.description || "").slice(0, 300);
-  const image = absolute(override?.ogImage || input.image || String(seo.defaultOgImage || ""));
+  const image = absolute(override?.ogImage || input.image || String(seo.defaultOgImage || "/images/og/default.webp"));
   const url = `${siteUrl()}${input.path === "/" ? "" : input.path}`;
   const noindex = Boolean(input.noindex || override?.noindex);
   return {
@@ -56,7 +56,10 @@ export async function buildMetadata(input: MetaInput): Promise<Metadata> {
 }
 
 /** Backwards-compatible helper used by older pages. */
-export function pageMetadata(seo: SeoEntry | undefined, settings: Settings, path: string): Metadata {
+export async function pageMetadata(seo: SeoEntry | undefined, settings: Settings, path: string): Promise<Metadata> {
+  const [options, site] = await Promise.all([getGroup("seo"), getSiteSafe()]);
+  const override = site.seo.find(entry => entry.path === path);
+  const image = absolute(override?.ogImage || seo?.ogImage || String(options.defaultOgImage || "/images/og/default.webp"));
   const rawTitle = seo?.title || settings.siteName;
   const title = rawTitle.includes(settings.siteName) ? rawTitle : `${rawTitle} | ${settings.siteName}`;
   const description = seo?.description || settings.description;
@@ -64,6 +67,7 @@ export function pageMetadata(seo: SeoEntry | undefined, settings: Settings, path
     title: { absolute: title },
     description,
     alternates: { canonical: path },
-    openGraph: { type: "website", locale: "fa_IR", url: `${siteUrl()}${path === "/" ? "" : path}`, siteName: settings.siteName, title, description, images: seo?.ogImage ? [{ url: seo.ogImage }] : undefined },
+    twitter: { card: "summary_large_image", title, description, images: [image] },
+    openGraph: { type: "website", locale: "fa_IR", url: `${siteUrl()}${path === "/" ? "" : path}`, siteName: settings.siteName, title, description, images: [{ url: image }] },
   };
 }

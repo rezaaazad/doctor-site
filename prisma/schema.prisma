@@ -162,6 +162,7 @@ model Project {
 }
 
 model Service {
+  imageUrl String @default("")
   id         String  @id @default(cuid())
   number     String
   title      String

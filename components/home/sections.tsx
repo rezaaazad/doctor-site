@@ -1,4 +1,5 @@
-import Image from "next/image";
+import { PhotoSlot } from "@/components/ui/photo-slot";
+
 import Link from "next/link";
 import { LayoutGrid, ArrowLeft, Award, BadgeCheck, Check, Clock, CreditCard, Headset, Quote as QuoteIcon, RotateCcw, ShieldCheck, Truck, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -10,7 +11,7 @@ import type { FaqItem, LogoItem, PostCard, PricePackage, ProjectCard, Quote, Ser
 import { SectionHead } from "@/components/ui/bits";
 import { Stars } from "@/components/ui/stars";
 import { Countdown } from "@/components/ui/countdown";
-import { ProductArt } from "@/components/ui/product-art";
+
 import { ProductCard, ProductGrid } from "@/components/store/product-card";
 import { LeadForm } from "@/components/site/forms";
 import { JsonLd } from "@/components/site/json-ld";
@@ -59,7 +60,7 @@ export function CategoryGrid({ content, categories }: { content: C; categories: 
     <SectionHead title={str(content.title)} body={str(content.body)} action={{label:"همه دسته‌ها",href:"/store"}}/>
     <div className="category-track">{list.map(cat=><Link key={cat.id} href={`/store/category/${cat.slug}`}>
       <span className="category-disc">
-        {cat.imageUrl ? <Image unoptimized src={cat.imageUrl} fill sizes="96px" alt=""/> : cat.icon || <LayoutGrid/>}
+        {cat.imageUrl ? <PhotoSlot src={cat.imageUrl} sizes="96px" alt={cat.name}/> : cat.icon || <LayoutGrid/>}
       </span>
       <strong>{cat.name}</strong><small>{formatNumber(cat.count)} محصول</small>
     </Link>)}</div>
@@ -191,8 +192,8 @@ export function SocialProof({
   stats: { avg: number; count: number };
 }) {
   const cards = [
-    ...reviews.map((r) => ({ id: r.id, name: r.name, role: r.product ? `خریدار «${r.product.title}»` : "خریدار", quote: r.body, rating: r.rating, verified: r.verified })),
-    ...testimonials.map((t) => ({ id: t.id, name: t.name, role: t.role, quote: t.quote, rating: t.rating || 5, verified: false })),
+    ...reviews.map((r) => ({ avatarUrl:"", id: r.id, name: r.name, role: r.product ? `خریدار «${r.product.title}»` : "خریدار", quote: r.body, rating: r.rating, verified: r.verified })),
+    ...testimonials.map((t) => ({ avatarUrl:t.avatarUrl, id: t.id, name: t.name, role: t.role, quote: t.quote, rating: t.rating || 5, verified: false })),
   ].slice(0, 6);
   if (!cards.length) return null;
   const avg = stats.count ? stats.avg : cards.reduce((s, c) => s + c.rating, 0) / cards.length;
@@ -227,7 +228,7 @@ export function SocialProof({
               </div>
               <blockquote className="mt-3 text-[0.95rem] leading-8">{card.quote}</blockquote>
               <figcaption className="mt-4 flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-full bg-ink font-display text-[0.85rem] font-black text-white">{card.name.slice(0, 1)}</span>
+                <span className="relative grid size-10 overflow-hidden place-items-center rounded-full bg-ink font-display text-[0.85rem] font-black text-white"><PhotoSlot src={card.avatarUrl} alt={card.name} sizes="40px" fallback={card.name.slice(0,1)} /></span>
                 <span className="min-w-0 leading-5">
                   <b className="flex items-center gap-1.5 text-[0.88rem]">
                     {card.name}
@@ -275,13 +276,8 @@ export function PortfolioStrip({ content, projects }: { content: C; projects: Pr
       <div className="grid gap-4 md:grid-cols-3">
         {list.map((p, i) => (
           <Link key={p.id} href={`/portfolio/${p.slug}`} data-reveal style={{ ["--d" as string]: i }} className="group card card-hover overflow-hidden">
-            <span className="block aspect-[4/3] overflow-hidden bg-sunken">
-              {p.coverUrl && !p.coverUrl.endsWith(".svg") ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={p.coverUrl} alt={p.title} loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
-              ) : (
-                <ProductArt seed={p.slug} title={p.title} type="digital" kind="article" label="نمونه‌کار" className="size-full" />
-              )}
+            <span className="relative block aspect-[4/3] overflow-hidden bg-sunken">
+              <PhotoSlot src={p.coverUrl} alt={p.title} sizes="(min-width:768px) 33vw, 100vw" />
             </span>
             <span className="block p-5">
               <small className="text-[0.75rem] text-muted">{[p.client, p.year].filter(Boolean).join(" · ")}</small>
@@ -361,8 +357,7 @@ export function ClientLogos({ content, logos }: { content: C; logos: LogoItem[] 
           {row.map((logo, i) => (
             <span key={`${logo.id}-${i}`} className="flex h-12 shrink-0 items-center opacity-60 grayscale transition hover:opacity-100 hover:grayscale-0" aria-hidden={i >= logos.length}>
               {logo.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logo.imageUrl} alt={logo.name} className="h-9 w-auto" loading="lazy" />
+                <span className="relative block h-10 w-32"><PhotoSlot src={logo.imageUrl} alt={logo.name} sizes="128px" className="object-contain" fallback={logo.name} /></span>
               ) : (
                 <b className="font-display text-[1.25rem] font-black whitespace-nowrap text-ink/70">{logo.name}</b>
               )}
@@ -444,13 +439,8 @@ export function BlogLatest({ content, posts }: { content: C; posts: PostCard[] }
       <div className="journal-grid grid gap-4 md:grid-cols-3">
         {list.map((post, i) => (
           <Link key={post.id} href={`/blog/${post.slug}`} data-reveal style={{ ["--d" as string]: i }} className="group card card-hover flex flex-col overflow-hidden">
-            <span className="block aspect-[16/9] overflow-hidden bg-sunken">
-              {post.coverUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={post.coverUrl} alt="" loading="lazy" className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.04]" />
-              ) : (
-                <ProductArt seed={post.slug} title={post.title} type="digital" kind="article" label="مقاله" className="size-full" />
-              )}
+            <span className="relative block aspect-[16/9] overflow-hidden bg-sunken">
+              <PhotoSlot src={post.coverUrl} alt={post.title} sizes="(min-width:768px) 33vw, 100vw" />
             </span>
             <span className="flex flex-1 flex-col p-5">
               <small className="text-[0.75rem] text-muted">{faShortDate(post.publishedAt)}</small>

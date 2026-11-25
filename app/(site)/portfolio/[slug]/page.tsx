@@ -1,3 +1,4 @@
+import { PhotoSlot } from "@/components/ui/photo-slot";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -64,12 +65,10 @@ export default async function ProjectPage({ params }: Params) {
         <p className="muted mt-3">{tr(locale, project.excerpt, project.excerptEn)}</p>
       </header>
       {project.coverUrl ? (
-        <div className="mt-6">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={project.coverUrl} alt={tr(locale, project.title, project.titleEn)} className="max-h-[78vh] w-full object-cover" />
+        <div className="relative mt-6 aspect-[4/3]"><PhotoSlot src={project.coverUrl} alt={project.title} sizes="100vw" priority />
         </div>
       ) : null}
-      <div className="split mt-10">
+      <div className="mt-10 grid gap-8 md:grid-cols-2">
         <dl className="grid content-start gap-5">
           {facts.map(([label, value]) => (
             <div key={label}>
@@ -85,9 +84,8 @@ export default async function ProjectPage({ params }: Params) {
       </div>
       {gallery.length > 1 ? (
         <div className="mt-8 grid gap-4">
-          {gallery.slice(1).map((url) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img key={url} src={url} alt="" className="max-h-[80vh] w-full object-cover" />
+          {gallery.slice(1).map((url, index) => (
+            <div key={url} className="relative aspect-[4/3]"><PhotoSlot src={url} alt={`نمای ${index + 2} پروژه ${project.title}`} sizes="100vw" /></div>
           ))}
         </div>
       ) : null}

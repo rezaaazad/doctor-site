@@ -1,3 +1,5 @@
+import { serviceSeed, testimonialSeed } from "@/lib/seed-data";
+import { blogSeed, logoSeed } from "@/lib/commercial-seed";
 import { cache } from "react";
 import { prisma } from "@/lib/db";
 import { asObject, asStringArray } from "@/lib/utils";
@@ -93,6 +95,7 @@ export type ProjectCard = {
 };
 
 export type ServiceItem = {
+  imageUrl: string;
   id: string;
   number: string;
   title: string;
@@ -235,14 +238,14 @@ export const getSite = cache(async (): Promise<SiteData> => {
       images: asStringArray(project.images),
       tags: asStringArray(project.tags),
     })),
-    services: services.map((service) => ({ ...service, includes: asStringArray(service.includes) })),
-    testimonials,
+    services: services.map((service) => ({ ...service, imageUrl: service.imageUrl || serviceSeed.find(row => row.title === service.title)?.imageUrl || "", includes: asStringArray(service.includes) })),
+    testimonials: testimonials.map(t => ({ ...t, avatarUrl: t.avatarUrl || testimonialSeed.find(row => row.name === t.name)?.avatarUrl || "" })),
     packages: packages.map((item) => ({ ...item, features: asStringArray(item.features) })),
     steps,
     stats,
-    logos,
+    logos: logos.map(l => ({ ...l, imageUrl: l.imageUrl || logoSeed.find(row => row.name === l.name)?.imageUrl || "" })),
     faqs,
-    posts: posts.map((post) => ({ ...post, publishedAt: post.publishedAt.toISOString() })),
+    posts: posts.map((post) => ({ ...post, coverUrl: post.coverUrl || blogSeed.find(row => row.slug === post.slug)?.coverUrl || "", publishedAt: post.publishedAt.toISOString() })),
     seo,
   };
 });

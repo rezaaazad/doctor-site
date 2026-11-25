@@ -63,6 +63,7 @@ export function ServiceForm({
     body: string;
     bodyEn: string;
     priceLabel?: string;
+    imageUrl?: string;
     includes?: string[];
     href?: string;
     visible: boolean;
@@ -81,6 +82,7 @@ export function ServiceForm({
       </div>
       <Field label="خلاصه"><Textarea name="summary" defaultValue={item?.summary} /></Field>
       <Field label="Summary"><Textarea name="summaryEn" defaultValue={item?.summaryEn} dir="ltr" /></Field>
+      <Field label="تصویر خدمت"><Input name="imageUrl" defaultValue={item?.imageUrl} dir="ltr" /></Field>
       <Field label="شروع قیمت"><Input name="priceLabel" defaultValue={item?.priceLabel} placeholder="از ۱۸ میلیون تومان" /></Field>
       <Field label="پیوند"><Input name="href" defaultValue={item?.href ?? "/services"} dir="ltr" /></Field>
       <Field label="شرح"><Textarea name="body" defaultValue={item?.body} /></Field>
@@ -96,7 +98,7 @@ export function ServiceForm({
 export function TestimonialForm({
   item,
 }: {
-  item?: { id: string; name: string; role: string; roleEn: string; quote: string; quoteEn: string; visible: boolean; sortOrder: number };
+  item?: { id: string; name: string; role: string; roleEn: string; avatarUrl?: string; quote: string; quoteEn: string; visible: boolean; sortOrder: number };
 }) {
   const [state, action] = useActionState(saveTestimonial, null as ActionState);
   return (
@@ -108,6 +110,7 @@ export function TestimonialForm({
         <Field label="سمت"><Input name="role" defaultValue={item?.role} /></Field>
         <Field label="Role"><Input name="roleEn" defaultValue={item?.roleEn} dir="ltr" /></Field>
       </div>
+      <Field label="تصویر مشتری"><Input name="avatarUrl" defaultValue={item?.avatarUrl} dir="ltr" /></Field>
       <Field label="نقل‌قول"><Textarea name="quote" defaultValue={item?.quote} /></Field>
       <Field label="Quote"><Textarea name="quoteEn" defaultValue={item?.quoteEn} dir="ltr" /></Field>
       <SwitchField name="visible" label="نمایان" defaultOn={item?.visible ?? true} />

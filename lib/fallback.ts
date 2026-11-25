@@ -51,6 +51,7 @@ export function fallbackSite(): SiteData {
     services: serviceSeed.map((service, index) => ({
       id: `fallback-service-${index}`,
       number: service.number,
+      imageUrl: service.imageUrl ?? "",
       title: service.title,
       titleEn: service.titleEn ?? "",
       summary: service.summary,
@@ -77,7 +78,7 @@ export function fallbackSite(): SiteData {
       roleEn: quote.roleEn ?? "",
       quote: quote.quote,
       quoteEn: quote.quoteEn ?? "",
-      avatarUrl: "",
+      avatarUrl: quote.avatarUrl ?? "",
       rating: 5,
       visible: true,
       sortOrder: quote.sortOrder ?? index,

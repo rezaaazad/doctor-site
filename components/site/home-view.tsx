@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 export function PageHero({
   crumb,
-  headline,
+
   title,
   body,
   className,
@@ -14,10 +14,9 @@ export function PageHero({
   className?: string;
 }) {
   return (
-    <header className={cn("wrap pad pb-8 pt-6 md:pb-10", className)} data-reveal>
+    <header className={cn("container-x pb-6 pt-10 md:pt-16", className)} data-reveal>
       {crumb ? <p className="kicker">{crumb}</p> : null}
-      {headline ? <p className="mt-2 font-display text-[2.4rem] leading-none font-extrabold text-muted md:text-[3rem]">{headline}</p> : null}
-      <h1 className="mt-3 max-w-3xl font-display text-[1.65rem] font-extrabold md:text-[2.2rem]">{title}</h1>
+      <h1 className="mt-3 max-w-3xl font-display text-4xl leading-snug font-black md:text-5xl">{title}</h1>
       {body ? <p className="mt-4 max-w-2xl text-[0.95rem] leading-8 text-muted">{body}</p> : null}
     </header>
   );

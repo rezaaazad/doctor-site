@@ -21,18 +21,18 @@ export default async function ContactPage() {
   const wa = whatsappHref(site.settings.socials.whatsapp);
   const tg = telegramHref(site.settings.socials.telegram);
   return (
-    <div className="page">
+    <div className="pb-16">
       <PageHero
         crumb={tx(content, "kicker", locale, "تماس")}
         headline={tx(content, "display", locale, "گفتگو")}
         title={tx(content, "title", locale, "درخواست مشاوره رایگان")}
         body={tx(content, "body", locale)}
       />
-      <div className="split">
-        <div style={{ display: "grid", gap: 12, alignContent: "start" }}>
-          {tel ? <a className="pill solid" href={tel}>تماس {site.settings.phone}</a> : null}
-          {wa ? <a className="pill" href={wa}>واتساپ</a> : null}
-          {tg ? <a className="pill" href={tg}>تلگرام</a> : null}
+      <div className="container-x grid items-start gap-6 md:grid-cols-[0.8fr_1.2fr]">
+        <div className="card grid gap-4 p-6">
+          {tel ? <a className="btn btn-primary" href={tel}>تماس {site.settings.phone}</a> : null}
+          {wa ? <a className="btn btn-outline" href={wa}>واتساپ</a> : null}
+          {tg ? <a className="btn btn-outline" href={tg}>تلگرام</a> : null}
           {site.settings.email ? <a href={`mailto:${site.settings.email}`}>{site.settings.email}</a> : null}
           {site.settings.address ? <p>{site.settings.address}</p> : null}
           {site.settings.hours ? <p className="muted">{site.settings.hours}</p> : null}

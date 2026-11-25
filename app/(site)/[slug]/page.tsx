@@ -1,3 +1,4 @@
+import { PhotoSlot } from "@/components/ui/photo-slot";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -90,8 +91,7 @@ export default async function LandingRoute({ params }: Params) {
         <p className="mt-3 text-[0.95rem] leading-7 text-muted">{page.excerpt}</p>
       </header>
       {page.heroImage ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={page.heroImage} alt="" className="mt-8 w-full max-w-4xl rounded-[var(--r)] border border-line object-cover shadow-1" />
+        <div className="relative mt-8 aspect-video max-w-4xl overflow-hidden rounded-[var(--r)]"><PhotoSlot src={page.heroImage} alt={page.title} sizes="(min-width:900px) 900px,100vw" priority /></div>
       ) : null}
       <div className="mt-10 max-w-3xl">
         {blocks.length ? (
