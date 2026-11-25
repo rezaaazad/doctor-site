@@ -1,7 +1,7 @@
 import { ListControls, ListFooter, listParams, type ListQuery } from "@/components/admin/list-controls";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import {BriefSummary} from "@/components/store/project-brief";
+import {BriefSummary} from "@/components/store/brief-summary";
 import {milestone} from "@/lib/actions/project";
 import {stages} from "@/lib/store/project";
 import { requireStaff } from "@/lib/auth";
@@ -20,14 +20,14 @@ const input = "w-full rounded-xl border border-line bg-surface px-3 py-2.5 text-
 const button = "rounded-xl bg-primary text-white px-4 py-2 font-bold";
 const yes: [string,string][] = [["1","بله"],["0","خیر"]];
 const fields: Record<string, Field[]> = {
-  products:[["title","نام محصول"],["slug","نامک"],["categoryId","دسته","select"],["type","نوع","select",[["digital","دیجیتال"],["physical","فیزیکی"],["service","خدمت"]]],["price","قیمت (تومان)","number"],["sku","شناسه"],["stock","موجودی","number"],["lowStockAt","حد هشدار","number"],["manageStock","کنترل موجودی","bool",yes],["published","انتشار","bool",yes],["featured","ویژه","bool",yes],["summary","خلاصه","textarea"],["description","توضیحات","textarea"],["images","تصاویر، هر خط یک نشانی","lines"],["seoTitle","عنوان سئو"],["seoDescription","توضیح سئو","textarea"],["torobEnabled","ترب","bool",yes],["snappEnabled","اسنپ","bool",yes],["installments","اقساط","bool",yes]],
+  products:[["title","نام محصول"],["slug","نامک"],["categoryId","دسته","select"],["type","نوع","select",[["digital","دیجیتال"],["service","خدمت"]]],["price","قیمت (تومان)","number"],["sku","شناسه"],["stock","موجودی","number"],["lowStockAt","حد هشدار","number"],["manageStock","کنترل موجودی","bool",yes],["published","انتشار","bool",yes],["featured","ویژه","bool",yes],["summary","خلاصه","textarea"],["description","توضیحات","textarea"],["images","تصاویر، هر خط یک نشانی","lines"],["seoTitle","عنوان سئو"],["seoDescription","توضیح سئو","textarea"],["torobEnabled","ترب","bool",yes],["snappEnabled","اسنپ","bool",yes],["installments","اقساط","bool",yes]],
   categories:[["name","نام"],["slug","نامک"],["description","توضیح","textarea"],["imageUrl","تصویر"],["torobName","نام ترب"],["visible","نمایش","bool",yes]],
   attributes:[["name","نام ویژگی"],["slug","نامک"],["values","مقادیر، هر خط یکی","lines"]],
   variants:[["productId","محصول","select"],["title","نام تنوع"],["sku","شناسه"],["price","قیمت تومان","number"],["stock","موجودی","number"],["values","مقادیر ویژگی (JSON)","json"],["active","فعال","bool",yes]],
   coupons:[["code","کد"],["type","نوع","select",[["percent","درصد"],["fixed","مبلغ ثابت"]]],["amount","مقدار (درصد یا تومان)","number"],["minSubtotal","حداقل خرید تومان","number"],["expiresAt","انقضا (UTC)","datetime-local"],["active","فعال","bool",yes]],
   zones:[["name","نام منطقه"],["provinces","استان‌ها، هر خط یکی","lines"]],
   methods:[["zoneId","منطقه","select"],["title","عنوان"],["kind","نوع","select",[["flat","ثابت"],["per_kg","وزنی"],["courier","پیک"]]],["cost","هزینه تومان","number"],["perKg","هزینه هر کیلو تومان","number"],["active","فعال","bool",yes]],
-  taxes:[["name","نام"],["rateBp","نرخ (۹۰۰ = ۹٪)","number"],["provinces","استان‌ها","lines"],["appliesTo","نوع محصول","select",[["all","همه"],["physical","فیزیکی"],["digital","دیجیتال"],["service","خدمت"]]],["active","فعال","bool",yes]]
+  taxes:[["name","نام"],["rateBp","نرخ (۹۰۰ = ۹٪)","number"],["provinces","استان‌ها","lines"],["appliesTo","نوع محصول","select",[["all","همه"],["digital","دیجیتال"],["service","خدمت"]]],["active","فعال","bool",yes]]
 };
 const labels: Record<string,string> = {products:"محصولات",categories:"دسته‌ها",attributes:"ویژگی‌ها",variants:"تنوع محصولات",coupons:"تخفیف‌ها",zones:"مناطق ارسال",methods:"روش‌های ارسال",taxes:"مالیات"};
 function value(row:Row,key:string,type:string){

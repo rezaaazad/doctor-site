@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { FaqList, PricingPlans } from "@/components/home/sections";
+import { homePricingContent } from "@/lib/home-sections";
 import { sectionOn, type SiteData } from "@/lib/site";
 
 export function PricingGuide({ site }: { site: SiteData }) {
   const plans = site.packages;
-  const pricing = sectionOn(site, "home", "pricingPlans") ?? sectionOn(site, "home", "pricing");
+  const pricing = { content: homePricingContent(site.sections) ?? (sectionOn(site, "home", "pricingPlans") ?? sectionOn(site, "home", "pricing"))?.content };
   const features = [...new Set(plans.flatMap(plan => plan.features))];
   return <>
     <PricingPlans packages={plans} content={{ title: "بسته‌های همکاری", ...pricing?.content }} />

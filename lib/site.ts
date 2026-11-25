@@ -6,6 +6,30 @@ import { asObject, asStringArray } from "@/lib/utils";
 import type { Locale } from "@/lib/text";
 import { cookies } from "next/headers";
 
+const LEGACY_COVER = /^\/covers\/(noir|orbit|lumen|atrium|glyph)\.svg$/;
+const LEGACY_SHOP_IMAGE = "/images/services/branding.webp";
+
+export function portfolioImage(url: string) {
+  const match = LEGACY_COVER.exec(url);
+  return match ? `/images/portfolio/${match[1]}-cover.webp` : url;
+}
+
+function latinDigits(value: string) {
+  return value.replace(/[۰-۹]/g, (digit) => String("۰۱۲۳۴۵۶۷۸۹".indexOf(digit)));
+}
+
+export function defaultServiceImage(service: { imageUrl: string; number: string; sortOrder: number }) {
+  const current = service.imageUrl.trim();
+  const number = latinDigits(service.number).replace(/\D/g, "");
+  const byNumber = number
+    ? serviceSeed.find((row) => latinDigits(String(row.number ?? "")).replace(/\D/g, "") === number)
+    : undefined;
+  const byOrder = serviceSeed.find((row) => row.sortOrder === service.sortOrder);
+  const fallback = byNumber?.imageUrl || byOrder?.imageUrl || "";
+  if (current && !(current === LEGACY_SHOP_IMAGE && fallback === "/images/services/shop.webp")) return current;
+  return fallback || current;
+}
+
 export type Socials = {
   instagram: string;
   telegram: string;
@@ -235,10 +259,11 @@ export const getSite = cache(async (): Promise<SiteData> => {
     sections: sections.map((section) => ({ ...section, content: asObject(section.content) })),
     projects: projects.map((project) => ({
       ...project,
-      images: asStringArray(project.images),
+      coverUrl: portfolioImage(project.coverUrl),
+      images: asStringArray(project.images).map(portfolioImage),
       tags: asStringArray(project.tags),
     })),
-    services: services.map((service) => ({ ...service, imageUrl: service.imageUrl || serviceSeed.find(row => row.title === service.title)?.imageUrl || "", includes: asStringArray(service.includes) })),
+    services: services.map((service) => ({ ...service, imageUrl: defaultServiceImage(service), includes: asStringArray(service.includes) })),
     testimonials: testimonials.map(t => ({ ...t, avatarUrl: t.avatarUrl || testimonialSeed.find(row => row.name === t.name)?.avatarUrl || "" })),
     packages: packages.map((item) => ({ ...item, features: asStringArray(item.features) })),
     steps,

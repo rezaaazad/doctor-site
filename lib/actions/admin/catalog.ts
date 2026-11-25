@@ -32,7 +32,7 @@ export async function saveCatalog(kind: string, id: string, _prev: AdminState, f
       const data={zoneId:name("zoneId"),title:name("title"),kind:z.enum(["flat","per_kg","courier"]).parse(field.raw(fd,"kind")),costRial:money("cost"),perKgRial:money("perKg"),active:field.flag(fd,"active")};
       if(id) await prisma.shippingMethod.update({where:{id},data}); else await prisma.shippingMethod.create({data});
     } else if(kind==="taxes"){
-      const data={name:name("name"),rateBp:z.coerce.number().int().min(0).max(10000).parse(field.raw(fd,"rateBp")),provinces:field.lines(fd,"provinces"),appliesTo:z.enum(["all","digital","physical","service"]).parse(field.raw(fd,"appliesTo")),active:field.flag(fd,"active")};
+      const data={name:name("name"),rateBp:z.coerce.number().int().min(0).max(10000).parse(field.raw(fd,"rateBp")),provinces:field.lines(fd,"provinces"),appliesTo:z.enum(["all","digital","service"]).parse(field.raw(fd,"appliesTo")),active:field.flag(fd,"active")};
       if(id) await prisma.taxRate.update({where:{id},data}); else await prisma.taxRate.create({data});
     } else throw new FieldError("kind","نوع نامعتبر");
   },{log:{action:"save",entity:kind,entityId:id}});

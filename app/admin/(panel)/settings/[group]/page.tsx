@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ group: st
 export default async function SettingsGroupPage({ params }: { params: Promise<{ group: string }> }) {
   const { group: id } = await params;
   const group = GROUP_BY_ID[id];
-  if (!group) notFound();
+  if (!group || id === "pay_cod") notFound();
   await requireStaff(group.cap as Capability);
   const values = maskSecrets(id, await getGroup(id));
   return (

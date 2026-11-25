@@ -71,7 +71,6 @@ export default async function AccountOrderPage({ params }: Props) {
         <dl className="mt-4 space-y-1 border-t border-line pt-4 text-[0.88rem]">
           <Row label="جمع" value={formatToman(order.subtotalRial)} />
           {Number(order.discountRial) > 0 ? <Row label="تخفیف" value={`- ${formatToman(order.discountRial)}`} /> : null}
-          {Number(order.shippingRial) > 0 ? <Row label="هزینه ثبت‌شده در سفارش پیشین" value={formatToman(order.shippingRial)} /> : null}
           <Row label="مبلغ نهایی" value={formatToman(order.totalRial)} bold />
         </dl>
       </section>

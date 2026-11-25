@@ -31,8 +31,6 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
   const [name, setName] = useState(customer?.name ?? "");
   const [mobile, setMobile] = useState(customer?.mobile ?? "");
   const [email, setEmail] = useState(customer?.email ?? "");
-  const [company,setCompany]=useState("");
-  const [nationalId,setNationalId]=useState("");
   const [coupon, setCoupon] = useState("");
   const [gateway, setGateway] = useState("");
   const [useWallet, setUseWallet] = useState(false);
@@ -90,7 +88,6 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
         name,
         mobile,
         email,
-        company,nationalId,
         acceptTerms,
       });
       if (!result.ok) {
@@ -151,7 +148,6 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
               <input value={coupon} onChange={(e) => setCoupon(e.target.value)} className="field flex-1 text-base uppercase" dir="ltr" placeholder="WELCOME10" />
             </div>
           </label>
-          <details className="mt-4"><summary>اطلاعات اختیاری فاکتور</summary><label>نام شرکت<input className="field" maxLength={160} value={company} onChange={e=>setCompany(e.target.value)}/></label><label>کد ملی / شناسه ملی<input dir="ltr" className="field" maxLength={11} value={nationalId} onChange={e=>setNationalId(e.target.value)}/></label></details>
         </section>
       </div>
 

@@ -1,8 +1,28 @@
+import { createElement } from "react";
 import { expect, it, vi } from "vitest";
+import { renderToStaticMarkup } from "react-dom/server";
+import { BriefSummary } from "@/components/store/brief-summary";
 import { briefOwner, briefAnswers, questions } from "@/lib/store/project";
 import { CreditClient } from "@/lib/payments/credit";
 import { cartKey } from "@/lib/store/addons";
 
+it("renders a guest brief summary from the stored answers", () => {
+  const html = renderToStaticMarkup(
+    createElement(BriefSummary, {
+      brief: {
+        answers: [
+          { id: "brand", title: "نام برند", value: "دکتر سایت" },
+          { id: "notes", title: "توضیح", value: "خط اول\nخط دوم" },
+          { title: "", value: "" },
+        ],
+      },
+    }),
+  );
+  expect(html).toContain("دکتر سایت");
+  expect(html).toContain("نام برند");
+  expect(html).toContain("خط اول\nخط دوم");
+  expect(html.match(/<dt/g)).toHaveLength(2);
+});
 it("requires a matching customer or order key, including for guests", () => {
   const o = { customerId: "c", accessKey: "secret" };
   expect(briefOwner(o, "c")).toBe(true);

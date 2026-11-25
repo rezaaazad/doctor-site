@@ -27,7 +27,6 @@ export default async function InvoicePage({ params }: Props) {
       </header>
       <section className="mb-6 grid gap-1 text-sm">
         <p><b>خریدار:</b> {order.name} {order.invoiceCompany} {order.invoiceNationalId} — {order.mobile}</p>
-        {order.addressLine ? <p><b>آدرس:</b> {order.province}، {order.city}، {order.addressLine}</p> : null}
       </section>
       <table className="w-full border-collapse text-sm">
         <thead>
