@@ -43,7 +43,7 @@ export function CatalogToolbar({
     const form = new FormData(event.currentTarget);
     const params = new URLSearchParams(sp);
     params.delete("page");
-    for (const key of ["category", "q", "min", "max", "sale", "stock"]) {
+    for (const key of ["type", "category", "q", "min", "max", "sale", "stock"]) {
       const value = String(form.get(key) || "").trim();
       if (value) params.set(key, value);
       else params.delete(key);
@@ -70,6 +70,7 @@ export function CatalogToolbar({
           ))}
         </select>
       </label>
+      <label>نوع محصول<select className="input" name="type" defaultValue={sp.get("type") || ""}><option value="">همه</option><option value="service">خدمات و پکیج‌ها</option><option value="digital">افزونه‌ها و قالب‌های آماده</option></select></label>
       <fieldset>
         <legend>محدوده قیمت (تومان)</legend>
         <div className="grid grid-cols-2 gap-2">
@@ -107,6 +108,7 @@ export function CatalogToolbar({
   );
   const chips = [
     ["category", categories.find((c) => c.slug === activeCategory)?.name],
+    ["type", sp.get("type")==="service"?"خدمات و پکیج‌ها":sp.get("type")==="digital"?"افزونه‌ها و قالب‌های آماده":""],
     ["q", sp.get("q")],
     ...[
       ["min", "از"],

@@ -1,8 +1,11 @@
 "use client";
 
+import { cartKey } from "@/lib/store/addons";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 export type CartLine = {
+  addonIds?: string[];
+  addonTitles?: string[];
   productId: string;
   variantId: string | null;
   quantity: number;
@@ -25,8 +28,8 @@ type CartContextValue = {
   open: boolean;
   setOpen: (open: boolean) => void;
   add: (line: Omit<CartLine, "quantity"> & { quantity?: number }, opts?: { silent?: boolean }) => void;
-  setQuantity: (productId: string, variantId: string | null, quantity: number) => void;
-  remove: (productId: string, variantId: string | null) => void;
+  setQuantity: (productId: string, variantId: string | null, quantity: number, addonIds?: string[]) => void;
+  remove: (productId: string, variantId: string | null, addonIds?: string[]) => void;
   clear: () => void;
   replace: (lines: CartLine[]) => void;
   lastAdded: CartLine | null;
@@ -45,8 +48,8 @@ function read(): CartLine[] {
   }
 }
 
-const same = (a: { productId: string; variantId: string | null }, productId: string, variantId: string | null) =>
-  a.productId === productId && (a.variantId ?? null) === (variantId ?? null);
+const same = (a: { addonIds?: string[]; productId: string; variantId: string | null }, productId: string, variantId: string | null, addonIds?: string[]) =>
+  cartKey(a.productId, a.variantId, a.addonIds) === cartKey(productId, variantId, addonIds);
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
   const [lines, setLines] = useState<CartLine[]>([]);
@@ -75,10 +78,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     (line, opts) => {
       const quantity = Math.max(1, line.quantity ?? 1);
       const current = read();
-      const existing = current.find((l) => same(l, line.productId, line.variantId));
+      const existing = current.find((l) => same(l, line.productId, line.variantId, line.addonIds));
       const max = Math.max(1, line.max || 99);
       const next = existing
-        ? current.map((l) => (same(l, line.productId, line.variantId) ? { ...l, ...line, quantity: Math.min(max, l.quantity + quantity) } : l))
+        ? current.map((l) => (same(l, line.productId, line.variantId, line.addonIds) ? { ...l, ...line, quantity: Math.min(max, l.quantity + quantity) } : l))
         : [...current, { ...line, quantity: Math.min(max, quantity) }];
       commit(next);
       setLastAdded({ ...line, quantity });
@@ -88,18 +91,18 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const setQuantity = useCallback(
-    (productId: string, variantId: string | null, quantity: number) => {
+    (productId: string, variantId: string | null, quantity: number, addonIds?: string[]) => {
       const current = read();
       commit(
         quantity <= 0
-          ? current.filter((l) => !same(l, productId, variantId))
-          : current.map((l) => (same(l, productId, variantId) ? { ...l, quantity: Math.min(Math.max(1, l.max || 99), quantity) } : l)),
+          ? current.filter((l) => !same(l, productId, variantId, addonIds))
+          : current.map((l) => (same(l, productId, variantId, addonIds) ? { ...l, quantity: Math.min(Math.max(1, l.max || 99), quantity) } : l)),
       );
     },
     [commit],
   );
 
-  const remove = useCallback((productId: string, variantId: string | null) => commit(read().filter((l) => !same(l, productId, variantId))), [commit]);
+  const remove = useCallback((productId: string, variantId: string | null, addonIds?: string[]) => commit(read().filter((l) => !same(l, productId, variantId, addonIds))), [commit]);
   const clear = useCallback(() => commit([]), [commit]);
   const replace = useCallback((next: CartLine[]) => commit(next), [commit]);
 

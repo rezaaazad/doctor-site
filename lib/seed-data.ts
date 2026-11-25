@@ -295,7 +295,7 @@ export const serviceSeed: Prisma.ServiceCreateManyInput[] = [
   },
   {
     number: "۰۲",
-    imageUrl: "/images/services/branding.webp",
+    imageUrl: "/images/services/shop.webp",
     title: "فروشگاه اینترنتی",
     titleEn: "فروشگاه",
     summary: "مسیر محصول تا پرداخت، بدون پیچیدگی اضافه.",

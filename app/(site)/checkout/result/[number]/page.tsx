@@ -1,3 +1,4 @@
+import {ProjectBrief} from "@/components/store/project-brief";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -11,7 +12,7 @@ export const dynamic = "force-dynamic";
 type Props = { params: Promise<{ number: string }>; searchParams: Promise<Record<string, string | string[] | undefined>> };
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({ path: "/checkout/result", title: "نتیجه پرداخت" });
+  return buildMetadata({ path: "/checkout/result", title: "نتیجه پرداخت",noindex:true });
 }
 
 export default async function CheckoutResultPage({ params, searchParams }: Props) {
@@ -19,12 +20,12 @@ export default async function CheckoutResultPage({ params, searchParams }: Props
   const sp = await searchParams;
   const number = Number(numStr);
   const accessKey = typeof sp.k === "string" ? sp.k : "";
-  const paid = sp.paid === "1";
-  const msg = typeof sp.msg === "string" ? decodeURIComponent(sp.msg) : "";
-  if (!number || !accessKey) notFound();
-  const order = await prisma.order.findUnique({ where: { number, accessKey }, include: { items: true } });
+
+  const msg = typeof sp.msg === "string" ? sp.msg : "";
+  if (!Number.isSafeInteger(number) || number<=0 || !accessKey) notFound();
+  const order = await prisma.order.findUnique({ where: { number, accessKey }, include: { items: {include:{product:{select:{briefSchema:true}}}} } });
   if (!order) notFound();
-  const success = paid || order.paymentStatus === "paid";
+  const success = order.paymentStatus === "paid";
 
   return (
     <div className="wrap pad pb-20">
@@ -37,6 +38,7 @@ export default async function CheckoutResultPage({ params, searchParams }: Props
           <Row label="وضعیت" value={order.status} />
           <Row label="موبایل" value={order.mobile} />
         </dl>
+        <ProjectBrief order={order} accessKey={accessKey}/>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href={`/account/orders/${order.id}`} className="btn btn-primary">
             پیگیری سفارش

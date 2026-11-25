@@ -133,6 +133,7 @@ export function MediaField({
   label,
   hint,
   accept = "image/*",
+  privateFile=false,
   className,
   aspect = "aspect-video",
 }: {
@@ -141,6 +142,7 @@ export function MediaField({
   label?: string;
   hint?: string;
   accept?: string;
+  privateFile?:boolean;
   className?: string;
   aspect?: string;
 }) {
@@ -157,10 +159,12 @@ export function MediaField({
     try {
       const fd = new FormData();
       fd.set("file", file);
+      if(privateFile) fd.set("private","1");
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = (await res.json()) as { ok: boolean; url?: string; message?: string };
-      if (!data.ok || !data.url) throw new Error(data.message || "بارگذاری نشد.");
-      setValue(data.url);
+      const data = (await res.json()) as { ok: boolean; id?:string; url?: string; message?: string };
+      const selected = privateFile && data.id ? "media:"+data.id : data.url;
+      if (!data.ok || !selected) throw new Error(data.message || "بارگذاری نشد.");
+      setValue(selected);
     } catch (e) {
       setError(e instanceof Error ? e.message : "بارگذاری نشد.");
     } finally {
@@ -217,7 +221,7 @@ export function MediaField({
         </div>
       </div>
       {picker ? (
-        <MediaPicker
+        <MediaPicker files={privateFile}
           onClose={() => setPicker(false)}
           onPick={(m) => {
             setValue(m.url);
@@ -229,17 +233,17 @@ export function MediaField({
   );
 }
 
-export function MediaPicker({ onClose, onPick }: { onClose: () => void; onPick: (m: MediaItem) => void }) {
+export function MediaPicker({ onClose, onPick, files=false }: { files?:boolean; onClose: () => void; onPick: (m: MediaItem) => void }) {
   const [q, setQ] = useState("");
   const [items, setItems] = useState<MediaItem[] | null>(null);
   useEffect(() => {
     const t = setTimeout(async () => {
-      const res = await fetch(`/api/admin/media?q=${encodeURIComponent(q)}`);
+      const res = await fetch(`/api/admin/media?files=${files?"1":"0"}&q=${encodeURIComponent(q)}`);
       const data = (await res.json()) as { items: MediaItem[] };
       setItems(data.items ?? []);
     }, 200);
     return () => clearTimeout(t);
-  }, [q]);
+  }, [q,files]);
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -265,7 +269,7 @@ export function MediaPicker({ onClose, onPick }: { onClose: () => void; onPick: 
             items.map((m) => (
               <button key={m.id} type="button" onClick={() => onPick(m)} className="group relative aspect-square overflow-hidden rounded-xl border border-line bg-sunken hover:ring-2 hover:ring-primary" title={m.filename}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={m.url} alt={m.alt} className="size-full object-cover" loading="lazy" />
+                {files ? <span className="p-2 text-sm">{m.filename}</span> : <img src={m.url} alt={m.alt} className="size-full object-cover" loading="lazy" />}
               </button>
             ))
           )}
@@ -299,7 +303,7 @@ export function RowsField<T extends Record<string, string>>({
       <input type="hidden" name={name} value={JSON.stringify(rows)} />
       <div className="space-y-2">
         {rows.map((row, i) => (
-          <div key={i} className="flex items-start gap-2">
+          <div key={i} className="grid grid-cols-2 items-start gap-2 rounded-xl border border-line p-2 sm:flex sm:flex-wrap">
             {columns.map((c) =>
               c.type === "select" ? (
                 <select
@@ -324,7 +328,7 @@ export function RowsField<T extends Record<string, string>>({
                   dir={c.dir}
                   aria-label={c.label}
                   onChange={(e) => setRows(rows.map((r, j) => (j === i ? { ...r, [c.key]: e.target.value } : r)))}
-                  className="input !min-h-10 min-w-0 flex-1"
+                  className="input !min-h-11 min-w-0 flex-1 sm:min-w-24"
                   style={c.width ? { width: c.width, flex: "none" } : undefined}
                 />
               ),

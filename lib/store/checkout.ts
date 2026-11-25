@@ -1,3 +1,4 @@
+import { cartKey } from "./addons";
 import type { Customer } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { getGroup } from "@/lib/options";
@@ -8,9 +9,10 @@ import { availableGateways, type GatewayId, type GatewayOption } from "@/lib/pay
 import { newAccessKey } from "@/lib/store/orders";
 import { priceOrder, shippingMethodsForProvince, type PricingCoupon, type PricingLineInput, type PricingResult, type PricingShippingMethod } from "@/lib/store/pricing";
 
-export type CartLineInput = { productId: string; variantId?: string | null; quantity: number };
+export type CartLineInput = { addonIds?: string[]; productId: string; variantId?: string | null; quantity: number };
 
 export type CartLineView = {
+  addonTitles?: string[];
   key: string;
   productId: string;
   variantId: string | null;
@@ -62,9 +64,10 @@ export function sanitizeLines(raw: unknown): CartLineInput[] {
     const variantId = typeof row.variantId === "string" && row.variantId ? row.variantId.slice(0, 40) : null;
     const quantity = Math.min(99, Math.max(1, Math.floor(Number(row.quantity) || 1)));
     if (!productId) continue;
-    const key = `${productId}:${variantId ?? ""}`;
+    const addonIds = Array.isArray(row.addonIds) ? [...new Set(row.addonIds.filter((id): id is string => typeof id === "string"))].sort() : [];
+    const key = cartKey(productId, variantId, addonIds);
     const prev = map.get(key);
-    map.set(key, { productId, variantId, quantity: Math.min(99, (prev?.quantity ?? 0) + quantity) });
+    map.set(key, { addonIds, productId, variantId, quantity: Math.min(99, (prev?.quantity ?? 0) + quantity) });
   }
   return [...map.values()];
 }
@@ -79,13 +82,13 @@ async function loadLines(inputs: CartLineInput[]) {
   const missing: string[] = [];
   for (const input of inputs) {
     const product = byId.get(input.productId);
-    if (!product || !product.published) {
+    if (!product || !product.published || !["digital","service"].includes(product.type)) {
       missing.push(input.productId);
       continue;
     }
     const activeVariants = product.variants.filter((v) => v.active);
     const variant = input.variantId ? product.variants.find((v) => v.id === input.variantId) ?? null : null;
-    if (input.variantId && !variant) {
+    if (input.variantId && !variant?.active) {
       missing.push(input.productId);
       continue;
     }
@@ -97,7 +100,9 @@ async function loadLines(inputs: CartLineInput[]) {
     const stock = variant ? variant.stock : product.stock;
     const cap = product.manageStock && !product.allowBackorder ? Math.max(0, stock) : 99;
     lines.push({
+      addonIds: input.addonIds,
       product: {
+        addons: product.addons,
         id: product.id,
         title: product.title,
         type: product.type,
@@ -115,7 +120,7 @@ async function loadLines(inputs: CartLineInput[]) {
       variant: variant ? { id: variant.id, title: variant.title, priceRial: variant.priceRial, stock: variant.stock, active: variant.active, sku: variant.sku } : null,
       quantity: input.quantity,
       view: {
-        key: `${product.id}:${variant?.id ?? ""}`,
+        key: cartKey(product.id, variant?.id, input.addonIds),
         productId: product.id,
         variantId: variant?.id ?? null,
         slug: product.slug,
@@ -225,7 +230,7 @@ export async function computeQuote(input: QuoteInput): Promise<{ quote: Quote; p
   const quote: Quote = {
     lines: lines.map((line, index) => {
       const priced = pricing.lines[index];
-      return { ...line.view, unit: Number(priced?.unitRial ?? 0), quantity: priced?.quantity ?? line.quantity, total: Number(priced?.totalRial ?? 0) };
+      return { ...line.view, addonTitles: priced?.addons.map(a => a.title), unit: Number(priced?.unitRial ?? 0), quantity: priced?.quantity ?? line.quantity, total: Number(priced?.totalRial ?? 0) };
     }),
     missing,
     subtotal: Number(pricing.subtotalRial),
@@ -267,6 +272,7 @@ export type PlaceOrderInput = QuoteInput & {
   city?: string;
   addressLine?: string;
   postalCode?: string;
+  company?:string; nationalId?:string;
   note?: string;
   ip: string;
 };
@@ -292,6 +298,7 @@ export async function createOrder(input: PlaceOrderInput) {
 
   const order = await prisma.order.create({
     data: {
+      invoiceCompany:input.company||"", invoiceNationalId:input.nationalId||"",
       accessKey: newAccessKey(),
       customerId: input.customer?.id ?? null,
       status: "pending",
@@ -323,6 +330,7 @@ export async function createOrder(input: PlaceOrderInput) {
           variantId: line.variantId,
           title: line.title,
           variantTitle: line.variantTitle,
+          addons: line.addons,
           sku: line.sku,
           type: line.type,
           category: line.category,

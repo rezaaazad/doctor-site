@@ -1,3 +1,4 @@
+import {readAddons} from "@/lib/store/addons";
 import { PrintInvoice } from "@/components/account/print-invoice";
 import { notFound } from "next/navigation";
 import { requireCustomer } from "@/lib/customer-auth";
@@ -25,8 +26,7 @@ export default async function InvoicePage({ params }: Props) {
         <p className="mt-2 text-sm">{new Date(order.createdAt).toLocaleString("fa-IR")}</p>
       </header>
       <section className="mb-6 grid gap-1 text-sm">
-        <p><b>خریدار:</b> {order.name} — {order.mobile}</p>
-        {order.addressLine ? <p><b>آدرس:</b> {order.province}، {order.city}، {order.addressLine}</p> : null}
+        <p><b>خریدار:</b> {order.name} {order.invoiceCompany} {order.invoiceNationalId} — {order.mobile}</p>
       </section>
       <table className="w-full border-collapse text-sm">
         <thead>
@@ -39,7 +39,7 @@ export default async function InvoicePage({ params }: Props) {
         <tbody>
           {order.items.map((item) => (
             <tr key={item.id} className="border-b border-line">
-              <td className="py-2">{item.title}{item.variantTitle ? ` (${item.variantTitle})` : ""}</td>
+              <td className="py-2">{item.title} {readAddons(item.addons).map(a=>a.title).join("، ")}{item.variantTitle ? ` (${item.variantTitle})` : ""}</td>
               <td className="py-2 num">{item.quantity.toLocaleString("fa-IR")}</td>
               <td className="py-2 num">{formatToman(item.totalRial)}</td>
             </tr>

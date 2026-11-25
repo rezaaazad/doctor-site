@@ -38,8 +38,9 @@ const KINDS: [RegExp, Kind, string][] = [
 const GENERIC = /^(قالب|افزونه|دوره|پکیج|سرویس|کارت|ست|پک|چک‌لیست|فروشگاهی|شرکتی|اتصال|راه‌اندازی|به|و|در|برای|ویزیت|هوشمند|اوراق|اداری)$/;
 
 function kindOf(title: string, type: string): [Kind, string] {
+  if (type === "service") return ["package", "اجرای تخصصی پروژه"];
   for (const [re, kind, label] of KINDS) if (re.test(title)) return [kind, label];
-  return type === "physical" ? ["print", "چاپی"] : ["doc", "دیجیتال"];
+  return ["doc", "دیجیتال"];
 }
 
 function wordmark(title: string) {

@@ -10,7 +10,7 @@ export async function saveCatalog(kind: string, id: string, _prev: AdminState, f
     const int = (key: string) => z.coerce.number().int().min(0).max(2147483647).parse(field.raw(fd, key));
     const money = (key: string) => { const v = field.toman(fd,key); if(v === null || v > BigInt("9223372036854775807")) throw new FieldError(key,"مبلغ نامعتبر"); return v; };
     if (kind === "products") {
-      const data = { title:name("title"), slug:field.slug(fd,"slug"), summary:field.text(fd,"summary"), description:field.text(fd,"description",50000), categoryId:name("categoryId"), type:z.enum(["digital","physical","service"]).parse(field.raw(fd,"type")), priceRial:money("price"), sku:field.text(fd,"sku"), stock:int("stock"), lowStockAt:int("lowStockAt"), manageStock:field.flag(fd,"manageStock"), published:field.flag(fd,"published"), featured:field.flag(fd,"featured"), images:field.lines(fd,"images"), seoTitle:field.text(fd,"seoTitle"), seoDescription:field.text(fd,"seoDescription"), torobEnabled:field.flag(fd,"torobEnabled"), snappEnabled:field.flag(fd,"snappEnabled"), installments:field.flag(fd,"installments") };
+      const data = { title:name("title"), slug:field.slug(fd,"slug"), summary:field.text(fd,"summary"), description:field.text(fd,"description",50000), categoryId:name("categoryId"), type:z.enum(["digital","service"]).parse(field.raw(fd,"type")), priceRial:money("price"), sku:field.text(fd,"sku"), stock:int("stock"), lowStockAt:int("lowStockAt"), manageStock:field.flag(fd,"manageStock"), published:field.flag(fd,"published"), featured:field.flag(fd,"featured"), images:field.lines(fd,"images"), seoTitle:field.text(fd,"seoTitle"), seoDescription:field.text(fd,"seoDescription"), torobEnabled:field.flag(fd,"torobEnabled"), snappEnabled:field.flag(fd,"snappEnabled"), installments:field.flag(fd,"installments") };
       if(id) await prisma.storeProduct.update({where:{id},data}); else await prisma.storeProduct.create({data});
     } else if(kind === "categories"){
       const data={name:name("name"),slug:field.slug(fd,"slug"),description:field.text(fd,"description"),imageUrl:field.text(fd,"imageUrl"),torobName:field.text(fd,"torobName"),visible:field.flag(fd,"visible")};
@@ -32,7 +32,7 @@ export async function saveCatalog(kind: string, id: string, _prev: AdminState, f
       const data={zoneId:name("zoneId"),title:name("title"),kind:z.enum(["flat","per_kg","courier"]).parse(field.raw(fd,"kind")),costRial:money("cost"),perKgRial:money("perKg"),active:field.flag(fd,"active")};
       if(id) await prisma.shippingMethod.update({where:{id},data}); else await prisma.shippingMethod.create({data});
     } else if(kind==="taxes"){
-      const data={name:name("name"),rateBp:z.coerce.number().int().min(0).max(10000).parse(field.raw(fd,"rateBp")),provinces:field.lines(fd,"provinces"),appliesTo:z.enum(["all","digital","physical","service"]).parse(field.raw(fd,"appliesTo")),active:field.flag(fd,"active")};
+      const data={name:name("name"),rateBp:z.coerce.number().int().min(0).max(10000).parse(field.raw(fd,"rateBp")),provinces:field.lines(fd,"provinces"),appliesTo:z.enum(["all","digital","service"]).parse(field.raw(fd,"appliesTo")),active:field.flag(fd,"active")};
       if(id) await prisma.taxRate.update({where:{id},data}); else await prisma.taxRate.create({data});
     } else throw new FieldError("kind","نوع نامعتبر");
   },{log:{action:"save",entity:kind,entityId:id}});

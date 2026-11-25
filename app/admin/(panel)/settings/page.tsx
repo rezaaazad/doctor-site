@@ -22,7 +22,7 @@ const SECTIONS: { title: string; items: { href: string; label: string; descripti
   },
   {
     title: "پرداخت و اتصال‌ها",
-    items: ["pay_zarinpal","pay_snapppay","pay_torobpay","pay_bank","pay_cod","pay_mock","torob","snappshop"].map(id=>OPTION_GROUPS.find(g=>g.id===id)!).map(g=>({href:`/admin/settings/${g.id}`,label:g.label,description:g.description,cap:g.cap as Capability})),
+    items: ["pay_zarinpal","pay_snapppay","pay_torobpay","pay_bank","pay_mock","torob","snappshop"].map(id=>OPTION_GROUPS.find(g=>g.id===id)!).map(g=>({href:`/admin/settings/${g.id}`,label:g.label,description:g.description,cap:g.cap as Capability})),
   },
   {
     title: "اطلاع‌رسانی",

@@ -125,3 +125,12 @@ describe("pricing engine", () => {
     expect(shippingMethodsForProvince(zones, "فارس")).toEqual(["post"]);
   });
 });
+
+it("quotes service variants and required and optional add-ons per unit from catalog Rial",()=>{
+  const service=product({type:"service",addons:[{id:"r",title:"required",priceRial:"11",required:true},{id:"a",title:"extra",priceRial:"27"}]});
+  const input={product:service,variant:{id:"v",priceRial:BigInt(100),sku:"",stock:0,title:"پایه",active:true},quantity:3,addonIds:["a","a"],priceRial:0};
+  const quote=priceOrder({lines:[input]});
+  expect(quote).toMatchObject({errors:[],needsShipping:false,subtotalRial:BigInt(414),shippingRial:BigInt(0)});
+  expect(quote.lines[0].addons.map(a=>a.id)).toEqual(["r","a"]);
+  expect(priceOrder({lines:[{...input,addonIds:["removed"]}]}).errors).toHaveLength(1);
+});

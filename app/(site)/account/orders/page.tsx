@@ -1,3 +1,4 @@
+import {readAddons} from "@/lib/store/addons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { requireCustomer } from "@/lib/customer-auth";
@@ -18,7 +19,7 @@ export default async function AccountOrdersPage() {
   const orders = await prisma.order.findMany({
     where: { customerId: customer.id },
     orderBy: { createdAt: "desc" },
-    include: { items: { select: { title: true, quantity: true } } },
+    include: { items: { select: { title: true, quantity: true,variantTitle:true,addons:true } } },
   });
   return (
     <section className="card p-5">
@@ -37,16 +38,11 @@ export default async function AccountOrdersPage() {
                   <p className="mt-1 text-[0.82rem] text-muted">
                     {new Date(o.createdAt).toLocaleDateString("fa-IR")} · {PAYMENT_STATUSES[o.paymentStatus as keyof typeof PAYMENT_STATUSES] ?? o.paymentStatus}
                   </p>
-                  <p className="mt-1 text-[0.8rem] text-muted">{o.items.map((i) => `${i.title} ×${i.quantity}`).join("، ")}</p>
+                  <p className="mt-1 text-[0.8rem] text-muted">{o.items.map((i) => [i.title,i.variantTitle,...readAddons(i.addons).map(a=>a.title)].filter(Boolean).join(" · ")+ " ×"+i.quantity).join("، ")}</p>
                 </div>
                 <div className="grid justify-items-end gap-2"><StatusBadge status={o.status}/><span className="num font-bold">{formatToman(o.totalRial)}</span></div>
               </div>
-              {o.trackingCode ? (
-                <p className="mt-2 text-[0.82rem]">
-                  رهگیری: <span className="num font-semibold" dir="ltr">{o.trackingCode}</span>
-                  {o.carrier ? ` (${o.carrier})` : null}
-                </p>
-              ) : null}
+
             </li>
           ))}
         </ul>

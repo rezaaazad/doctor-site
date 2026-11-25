@@ -19,6 +19,17 @@ function absolute(url: string) {
   return /^https?:\/\//.test(url) ? url : `${siteUrl()}${url.startsWith("/") ? "" : "/"}${url}`;
 }
 
+const GENERATED_OG = "/opengraph-image";
+const RETIRED_OG = "/images/og/default.webp";
+
+function socialImage(specific: string | undefined, configured: unknown) {
+  const chosen = (specific || "").trim();
+  if (chosen) return chosen;
+  const fallback = String(configured || "").trim();
+  if (fallback && fallback !== RETIRED_OG) return fallback;
+  return GENERATED_OG;
+}
+
 /**
  * Metadata for any public page. Per-path overrides from "SEO pages" in admin (PageSeo) win over the
  * page's own defaults, which win over global settings.
@@ -31,7 +42,7 @@ export async function buildMetadata(input: MetaInput): Promise<Metadata> {
   const raw = override?.title || input.title || site.settings.tagline || name;
   const title = raw.includes(name) ? raw : `${raw} ${sep} ${name}`;
   const description = (override?.description || input.description || site.settings.description || "").slice(0, 300);
-  const image = absolute(override?.ogImage || input.image || String(seo.defaultOgImage || "/images/og/default.webp"));
+  const image = absolute(socialImage(override?.ogImage || input.image, seo.defaultOgImage));
   const url = `${siteUrl()}${input.path === "/" ? "" : input.path}`;
   const noindex = Boolean(input.noindex || override?.noindex);
   return {
@@ -59,7 +70,7 @@ export async function buildMetadata(input: MetaInput): Promise<Metadata> {
 export async function pageMetadata(seo: SeoEntry | undefined, settings: Settings, path: string): Promise<Metadata> {
   const [options, site] = await Promise.all([getGroup("seo"), getSiteSafe()]);
   const override = site.seo.find(entry => entry.path === path);
-  const image = absolute(override?.ogImage || seo?.ogImage || String(options.defaultOgImage || "/images/og/default.webp"));
+  const image = absolute(socialImage(override?.ogImage || seo?.ogImage, options.defaultOgImage));
   const rawTitle = seo?.title || settings.siteName;
   const title = rawTitle.includes(settings.siteName) ? rawTitle : `${rawTitle} | ${settings.siteName}`;
   const description = seo?.description || settings.description;

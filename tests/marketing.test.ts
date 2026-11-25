@@ -5,7 +5,8 @@ import { sectionDef } from "@/lib/sections";
 import { buildMetadata, pageMetadata } from "@/lib/seo";
 import PricingPage from "@/app/(site)/pricing/page";
 import ServicesPage from "@/app/(site)/services/page";
-import { getSiteSafe } from "@/lib/site";
+import { selectHomeSections } from "@/lib/home-sections";
+import { defaultServiceImage, getSiteSafe, portfolioImage } from "@/lib/site";
 import { getGroup } from "@/lib/options";
 
 vi.mock("@/lib/site", async importOriginal => ({
@@ -38,10 +39,27 @@ describe("marketing routes", () => {
   it("keeps the legacy pricing section editable", () => {
     expect(sectionDef("home", "pricing")).toBe(sectionDef("home", "pricingPlans"));
   });
-  it("uses the shipped social image in both metadata helpers", async () => {
+  it("uses the typographic social image in both metadata helpers", async () => {
     for (const meta of [await buildMetadata({path:"/pricing"}), await pageMetadata(undefined,site.settings,"/pricing")]) {
-      expect(meta.openGraph?.images).toEqual([{url:"https://doctor-site.ir/images/og/default.webp"}]);
+      expect(meta.openGraph?.images).toEqual([{url:"https://doctor-site.ir/opengraph-image"}]);
       expect(meta.twitter).toMatchObject({card:"summary_large_image"});
     }
+  });
+  it("shows a visible legacy pricing section when pricingPlans is hidden", () => {
+    const rows = selectHomeSections([
+      { id: "hero", page: "home", key: "storeHero", sortOrder: 10, visible: true, content: {} },
+      { id: "legacy", page: "home", key: "pricing", sortOrder: 45, visible: true, content: { title: "شروع قیمت، شفاف", kicker: "تعرفه" } },
+      { id: "plans", page: "home", key: "pricingPlans", sortOrder: 130, visible: false, content: { title: "پیش‌فرض پنهان" } },
+    ]);
+    expect(rows.map((row) => row.key)).toEqual(["storeHero", "pricingPlans"]);
+    expect(rows.find((row) => row.key === "pricingPlans")?.content).toMatchObject({ title: "شروع قیمت، شفاف", eyebrow: "تعرفه" });
+  });
+  it("fills service images by number or sort order and remaps old portfolio covers", () => {
+    expect(defaultServiceImage({ imageUrl: "/images/services/branding.webp", number: "۰۲", sortOrder: 99 })).toBe("/images/services/shop.webp");
+    expect(defaultServiceImage({ imageUrl: "", number: "نام‌تغییرکرده", sortOrder: 20 })).toBe("/images/services/shop.webp");
+    expect(defaultServiceImage({ imageUrl: "/images/custom.webp", number: "۰۲", sortOrder: 20 })).toBe("/images/custom.webp");
+    expect(portfolioImage("/covers/noir.svg")).toBe("/images/portfolio/noir-cover.webp");
+    expect(portfolioImage("/covers/orbit.svg")).toBe("/images/portfolio/orbit-cover.webp");
+    expect(portfolioImage("/images/portfolio/lumen-cover.webp")).toBe("/images/portfolio/lumen-cover.webp");
   });
 });

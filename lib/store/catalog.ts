@@ -1,3 +1,4 @@
+import { readAddons, type Addon } from "./addons";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { asObject, asStringArray } from "@/lib/utils";
@@ -25,6 +26,7 @@ export type ProductCard = {
   ratingCount: number;
   salesCount: number;
   installments: boolean;
+  hasAddons?: boolean;
   hasVariants: boolean;
   featured: boolean;
   brand: string;
@@ -56,6 +58,8 @@ export type ProductDetail = ProductCard & {
   manageStock: boolean;
   allowBackorder: boolean;
   weightGrams: number;
+  turnaroundLabel: string;
+  addons: Addon[];
   licenseNote: string;
   seoTitle: string;
   seoDescription: string;
@@ -135,6 +139,7 @@ export function toCard(row: ProductRow, lowStockThreshold = 3): ProductCard {
     ratingCount: row.ratingCount,
     salesCount: row.salesCount,
     installments: row.installments,
+    hasAddons: readAddons(row.addons).length>0,
     hasVariants,
     featured: row.featured,
     brand: row.brand,
@@ -157,6 +162,8 @@ export function toDetail(row: ProductRow, lowStockThreshold = 3): ProductDetail 
     manageStock: row.manageStock,
     allowBackorder: row.allowBackorder,
     weightGrams: row.weightGrams,
+    turnaroundLabel: row.turnaroundLabel,
+    addons: readAddons(row.addons),
     licenseNote: row.licenseNote,
     seoTitle: row.seoTitle,
     seoDescription: row.seoDescription,
@@ -207,9 +214,9 @@ export async function categoryTreeIds(slug: string) {
 export async function queryCatalog(query: CatalogQuery) {
   const perPage = Math.min(60, Math.max(1, query.perPage ?? 24));
   const page = Math.max(1, query.page ?? 1);
-  const where: Prisma.StoreProductWhereInput = { published: true };
+  const where: Prisma.StoreProductWhereInput = { published: true, type: { in: ["service","digital"] } };
   if (query.category) where.categoryId = { in: await categoryTreeIds(query.category) };
-  if (query.type === "digital" || query.type === "physical") where.type = query.type;
+  if (query.type === "digital" || query.type === "service") where.type = query.type;
   if (query.q) {
     where.OR = [
       { title: { contains: query.q, mode: "insensitive" } },
@@ -254,13 +261,13 @@ export async function queryCatalog(query: CatalogQuery) {
 }
 
 export async function productCards(where: Prisma.StoreProductWhereInput, orderBy: Prisma.StoreProductOrderByWithRelationInput[], take: number) {
-  const rows = await prisma.storeProduct.findMany({ where: { published: true, ...where }, include: productInclude, orderBy, take });
+  const rows = await prisma.storeProduct.findMany({ where: { published: true, type: { in: ["digital","service"] }, ...where }, include: productInclude, orderBy, take });
   return rows.map((row) => toCard(row));
 }
 
 export async function getProduct(slug: string) {
   const row = await prisma.storeProduct.findUnique({ where: { slug }, include: productInclude });
-  if (!row || !row.published) return null;
+  if (!row || !row.published || !["digital","service"].includes(row.type)) return null;
   return toDetail(row);
 }
 
@@ -268,7 +275,7 @@ export async function storeCategories() {
   const rows = await prisma.storeCategory.findMany({
     where: { visible: true },
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    include: { _count: { select: { products: { where: { published: true } } } } },
+    include: { _count: { select: { products: { where: { published: true,type:{in:["service","digital"]} } } } } },
   });
   return rows.map((row) => ({
     id: row.id,

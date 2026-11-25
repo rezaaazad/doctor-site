@@ -1,0 +1,9 @@
+ALTER TABLE "StoreProduct" ADD COLUMN "turnaroundLabel" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN "addons" JSONB NOT NULL DEFAULT '[]',
+  ADD COLUMN "briefSchema" JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE "OrderItem" ADD COLUMN "addons" JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE "Order" ADD COLUMN "invoiceCompany" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN "invoiceNationalId" TEXT NOT NULL DEFAULT '',
+  ADD COLUMN "projectBrief" JSONB NOT NULL DEFAULT '{}',
+  ADD COLUMN "briefSubmittedAt" TIMESTAMP(3),
+  ADD COLUMN "projectStage" TEXT NOT NULL DEFAULT '';

@@ -1,3 +1,5 @@
+import {ProjectBrief} from "@/components/store/project-brief";
+import {readAddons} from "@/lib/store/addons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -22,10 +24,10 @@ export default async function AccountOrderPage({ params }: Props) {
   const { id } = await params;
   const order = await prisma.order.findFirst({
     where: { id, customerId: customer.id },
-    include: { items: true, payments: true, notes: { where: { toCustomer: true }, orderBy: { createdAt: "desc" } } },
+    include: { items: {include:{product:{select:{briefSchema:true}}}}, payments: true, notes: { where: { toCustomer: true }, orderBy: { createdAt: "desc" } } },
   });
   if (!order) notFound();
-  const steps=order.items.some(item=>item.type==="physical") ? TRACKING_STEPS : TRACKING_STEPS.filter(step=>step.status!=="shipped").map(step=>step.status==="delivered"?{...step,label:"تحویل فایل"}:step);
+  const steps=TRACKING_STEPS.filter(step=>step.status!=="shipped").map(step=>step.status==="delivered"?{...step,label:"تحویل فایل"}:step);
   const stepIndex=steps.findIndex(step=>step.status===(order.status==="completed"?"delivered":order.status==="on_hold"?"pending":order.status));
 
 
@@ -42,27 +44,24 @@ export default async function AccountOrderPage({ params }: Props) {
             مشاهده و چاپ فاکتور
           </Link>
         </div>
-        <ol aria-label="مراحل سفارش" className="account-timeline mt-6 grid gap-2 sm:grid-cols-4">
+        {!order.items.some(i=>i.type==="service") && <ol aria-label="مراحل سفارش" className="account-timeline mt-6 grid gap-2 sm:grid-cols-4">
           {steps.map((step, i) => (
             <li key={step.status} aria-current={i===stepIndex?"step":undefined} className={cn("rounded-xl border px-3 py-2 text-center text-[0.78rem] font-semibold", i <= stepIndex ? "border-primary bg-primary-soft text-primary" : "border-line text-muted")}>
               {step.label}
             </li>
           ))}
-        </ol>
-        {order.trackingCode ? (
-          <p className="mt-4 text-[0.88rem]">
-            کد رهگیری مرسوله: <b className="num" dir="ltr">{order.trackingCode}</b> {order.carrier ? ` — ${order.carrier}` : ""}
-          </p>
-        ) : null}
+        </ol>}
+
       </section>
 
+      <ProjectBrief order={order}/>
       <section className="card p-5">
         <h2 className="mb-3 font-bold">اقلام</h2>
         <ul className="divide-y divide-line text-[0.88rem]">
           {order.items.map((item) => (
             <li key={item.id} className="flex justify-between gap-4 py-3">
               <span>
-                {item.title}
+                {item.title} {readAddons(item.addons).map(a=>a.title).join("، ")}
                 {item.variantTitle ? ` — ${item.variantTitle}` : ""} × {item.quantity.toLocaleString("fa-IR")}
               </span>
               <span className="num font-semibold">{formatToman(item.totalRial)}</span>
@@ -72,7 +71,6 @@ export default async function AccountOrderPage({ params }: Props) {
         <dl className="mt-4 space-y-1 border-t border-line pt-4 text-[0.88rem]">
           <Row label="جمع" value={formatToman(order.subtotalRial)} />
           {Number(order.discountRial) > 0 ? <Row label="تخفیف" value={`- ${formatToman(order.discountRial)}`} /> : null}
-          {Number(order.shippingRial) > 0 ? <Row label="ارسال" value={formatToman(order.shippingRial)} /> : null}
           <Row label="مبلغ نهایی" value={formatToman(order.totalRial)} bold />
         </dl>
       </section>

@@ -1,3 +1,4 @@
+import type {PaymentAdapter} from "./adapter";
 // Zarinpal payment gateway v4 (https://www.zarinpal.com/docs/paymentGateway/). Amounts in Rial.
 
 import { UpstreamError, fetchWithTimeout, readJson } from "@/lib/http";
@@ -33,7 +34,9 @@ export const ZARINPAL_MESSAGES: Record<number, string> = {
   [-55]: "تراکنش پیدا نشد.",
 };
 
-export class ZarinpalClient {
+type StartInput = { amountRial: number; callbackUrl: string; description: string; mobile?: string; email?: string; orderId?: string };
+export class ZarinpalClient implements PaymentAdapter<StartInput,{ amountRial:number;authority:string },unknown> {
+  start(input:StartInput) {return this.request(input);}
   constructor(
     private config: ZarinpalConfig,
     private http: FetchLike = fetchWithTimeout,

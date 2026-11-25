@@ -95,15 +95,16 @@ const clip = (value: string, max: number) => (value.length > max ? value.slice(0
 async function buildEntries(): Promise<Entry[]> {
   const cfg = await getGroup("torob");
   const rows = await prisma.storeProduct.findMany({
-    where: { published: true, torobEnabled: true },
+    where: { published: true, type:{in:["digital","service"]}, torobEnabled: true },
     include: { category: true, variants: { where: { active: true }, orderBy: { sortOrder: "asc" } } },
   });
   const entries: Entry[] = [];
   for (const row of rows) {
     const images = asStringArray(row.images).map(absolute).filter(Boolean);
     const imageLinks = images.length ? images : [`${siteUrl()}/media/cover/${encodeURIComponent(row.slug)}`];
-    const spec = Object.fromEntries(readSpecs(row.specs).map((item) => [clip(item.name, 100), clip(item.value, 300)]));
+    const spec: Record<string,string> = Object.fromEntries(readSpecs(row.specs).map((item) => [clip(item.name, 100), clip(item.value, 300)]));
     const saleActive = !row.saleEndsAt || row.saleEndsAt.getTime() > Date.now();
+    if (row.turnaroundLabel) spec["زمان تحویل"] = row.turnaroundLabel;
     const base = {
       title: clip(row.title, 500),
       subtitle: row.subtitle ? clip(row.subtitle, 500) : undefined,
@@ -223,7 +224,7 @@ export async function pingTorob(productIds: string[]) {
   const cfg = await getGroup("torob");
   if (!cfg.enabled || !cfg.webhookEnabled || !cfg.webhookToken || !productIds.length) return { ok: false, skipped: true };
   const rows = await prisma.storeProduct.findMany({
-    where: { id: { in: productIds }, published: true, torobEnabled: true },
+    where: { id: { in: productIds }, published: true, type:{in:["digital","service"]}, torobEnabled: true },
     include: { variants: { where: { active: true } } },
   });
   const items = rows.flatMap((row) =>

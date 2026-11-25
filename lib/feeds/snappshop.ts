@@ -57,7 +57,7 @@ export function detail(row: Row) {
   const images = asStringArray(row.images);
   const medias = (images.length ? images : [`/media/cover/${row.slug}`]).map((url, index) => ({ code: `m${index + 1}`, type: "image", url: absolute(url) }));
   const specs = readSpecs(row.specs).map((s) => ({ name: s.name, value: [s.value] }));
-  specs.push({ name: "نوع محصول", value: [row.type === "digital" ? "دیجیتال" : "فیزیکی"] });
+  specs.push({ name: "نوع محصول", value: [row.type === "digital" ? "دیجیتال" : "اجرای تخصصی پروژه"] });
   if (row.weightGrams > 0) specs.push({ name: "وزن", value: [`${row.weightGrams} گرم`] });
   const options = readOptions(row.options);
   const stock = stockOf(row);
@@ -98,7 +98,7 @@ export async function listProducts(params: URLSearchParams) {
   const page = Math.max(1, Number(params.get("page") || params.get("current_page") || 1) || 1);
   const perRaw = Number(params.get("per_page") || 0);
   const perPage = perRaw > 0 ? Math.min(100, perRaw) : 24;
-  const where: Prisma.StoreProductWhereInput = { published: true, snappEnabled: true };
+  const where: Prisma.StoreProductWhereInput = { published: true, type:{in:["digital","service"]}, snappEnabled: true };
   const category = params.get("category");
   if (category) where.category = { slug: { in: category.split(",").map((c) => c.trim()).filter(Boolean) } };
   const search = params.get("search");
@@ -121,7 +121,7 @@ export async function listProducts(params: URLSearchParams) {
 export async function productByCode(code: number) {
   if (!Number.isInteger(code) || code <= 0) return null;
   const row = await prisma.storeProduct.findUnique({ where: { code }, include });
-  if (!row || !row.published || !row.snappEnabled) return null;
+  if (!row || !row.published || !row.snappEnabled || !["service","digital"].includes(row.type)) return null;
   return detail(row);
 }
 
@@ -136,8 +136,8 @@ export async function resolveUrl(raw: string) {
   const path = decodeURIComponent(url.pathname).replace(/\/+$/, "");
   const productMatch = /^\/store\/([^/]+)$/.exec(path);
   if (productMatch) {
-    const row = await prisma.storeProduct.findUnique({ where: { slug: productMatch[1] }, select: { code: true, published: true } });
-    if (row?.published) return { type: "product", api_url: apiUrl(row.code) };
+    const row = await prisma.storeProduct.findUnique({ where: { slug: productMatch[1] }, select: { code: true, published: true,type:true,snappEnabled:true } });
+    if (row?.published && row.snappEnabled && ["digital","service"].includes(row.type)) return { type: "product", api_url: apiUrl(row.code) };
     const category = await prisma.storeCategory.findUnique({ where: { slug: productMatch[1] }, select: { slug: true } });
     if (category) return { type: "category", api_url: `${siteUrl()}${SNAPPSHOP_BASE}/products?category=${encodeURIComponent(category.slug)}` };
     return null;
@@ -150,7 +150,7 @@ export async function resolveUrl(raw: string) {
 
 export async function categories() {
   const rows = await prisma.storeCategory.findMany({
-    where: { products: { some: { published: true, snappEnabled: true } } },
+    where: { products: { some: { published: true, type:{in:["digital","service"]}, snappEnabled: true } } },
     orderBy: { sortOrder: "asc" },
     select: { slug: true, name: true, sortOrder: true },
   });

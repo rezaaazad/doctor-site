@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({
     path: "/store",
     title: "فروشگاه",
-    description: "محصولات دیجیتال و فیزیکی دکتر سایت — قالب، افزونه، دوره و پکیج",
+    description: "طراحی سایت، برنامه‌نویسی اختصاصی و خرید قالب و افزونه آماده دکتر سایت",
   });
 }
 

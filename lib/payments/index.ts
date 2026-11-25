@@ -79,7 +79,7 @@ export async function availableGateways(ctx: AvailabilityContext): Promise<Gatew
   }
   for (const id of CREDIT_GATEWAYS) {
     const cfg = await creditConfig(id);
-    if (!cfg.enabled || ctx.payableRial <= BigInt(0)) continue;
+    if (!cfg.enabled || !cfg.clientId || !cfg.clientSecret || !cfg.username || !cfg.password || ctx.payableRial <= BigInt(0)) continue;
     const result = await creditEligibility(id, ctx.payableRial);
     if (!result.eligible) continue;
     options.push({ id, title: result.title || DEFAULT_TITLES[id][0], description: result.description || DEFAULT_TITLES[id][1], kind: "installment", feeRial: 0, sandbox: cfg.mode !== "live", sort: cfg.sortOrder });
@@ -115,6 +115,7 @@ function creditRequest(order: OrderWithItems, transactionId: string, gateway: Cr
     discountAmount: Number(order.discountRial),
     externalSourceAmount: Number(order.walletRial),
     mobile: order.mobile,
+    name: order.name,
     returnURL: callbackUrl(gateway),
     transactionId,
     postalCode: order.postalCode || undefined,
@@ -172,7 +173,7 @@ export async function startPayment(orderId: string, gateway: GatewayId): Promise
       const cfg = await getGroup("pay_zarinpal");
       if (!cfg.enabled) throw new RequestError("این درگاه فعال نیست.");
       const client = new ZarinpalClient({ merchantId: String(cfg.merchantId || ""), sandbox: Boolean(cfg.sandbox) });
-      const res = await client.request({
+      const res = await client.start({
         amountRial: Number(amountRial),
         callbackUrl: `${callbackUrl("zarinpal")}?tx=${transactionId}`,
         description: `سفارش ${order.number}`,
@@ -192,9 +193,9 @@ export async function startPayment(orderId: string, gateway: GatewayId): Promise
         return { redirect: `/pay/mock/${transactionId}` };
       }
       const client = new CreditClient(cfg);
-      const res = await client.createToken(creditRequest(order, transactionId, gateway, cfg.commissionType ?? ""));
-      await prisma.payment.update({ where: { id: payment.id }, data: { authority: res.paymentToken, status: "redirected", sandbox: cfg.mode !== "live", raw: { token: res.raw } as object } });
-      return { redirect: res.paymentPageUrl };
+      const res = await client.start(creditRequest(order, transactionId, gateway, cfg.commissionType ?? ""));
+      await prisma.payment.update({ where: { id: payment.id }, data: { authority: res.authority, status: "redirected", sandbox: cfg.mode !== "live", raw: { token: res.raw } as object } });
+      return { redirect: res.url };
     }
 
     if (gateway === "mock") {

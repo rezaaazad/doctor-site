@@ -2,16 +2,15 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { Loader2, MapPin, Wallet } from "lucide-react";
+import { Loader2, Wallet } from "lucide-react";
+import {cartKey} from "@/lib/store/addons";
 import { useCart, type CartLine } from "@/components/store/cart";
 import { ProductImage } from "@/components/store/product-card";
 import { Price } from "@/components/ui/price";
 import { formatToman, formatNumber } from "@/lib/money";
-import { PROVINCES } from "@/lib/iran";
 import { placeOrderAction, quoteAction, type Quote } from "@/lib/actions/shop";
 import type { GatewayOption } from "@/lib/payments";
 import type { CartLineView } from "@/lib/store/checkout";
-import type { ShippingOption } from "@/lib/store/checkout";
 import { cn } from "@/lib/utils";
 import { CheckoutTrustStrip } from "@/components/store/checkout-trust";
 
@@ -32,20 +31,14 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
   const [name, setName] = useState(customer?.name ?? "");
   const [mobile, setMobile] = useState(customer?.mobile ?? "");
   const [email, setEmail] = useState(customer?.email ?? "");
-  const [province, setProvince] = useState("");
-  const [city, setCity] = useState("");
-  const [addressLine, setAddressLine] = useState("");
-  const [postalCode, setPostalCode] = useState("");
-  const [note, setNote] = useState("");
   const [coupon, setCoupon] = useState("");
-  const [shippingId, setShippingId] = useState("");
   const [gateway, setGateway] = useState("");
   const [useWallet, setUseWallet] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
 
   const payload = useMemo(
-    () => ({ lines, couponCode: coupon, province, shippingId, gateway, useWallet, mobile, withGateways: true }),
-    [lines, coupon, province, shippingId, gateway, useWallet, mobile],
+    () => ({ lines, couponCode: coupon, gateway, useWallet, mobile, withGateways: true }),
+    [lines, coupon, gateway, useWallet, mobile],
   );
 
   useEffect(() => {
@@ -55,12 +48,11 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
     quoteAction(payload).then((q) => {
       if (cancelled) return;
       setQuote(q);
-      if (!shippingId && q.shippingId) setShippingId(q.shippingId);
       if (!gateway && q.gateways[0]) setGateway(q.gateways[0].id);
       setLoading(false);
     }).catch(() => setLoading(false));
     return () => { cancelled = true; };
-  }, [payload, ready, lines.length, shippingId, gateway]);
+  }, [payload, ready, lines.length, gateway]);
 
   if (!ready) {
     return <p className="text-muted">در حال آماده‌سازی سبد…</p>;
@@ -96,12 +88,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
         name,
         mobile,
         email,
-        city,
-        addressLine,
-        postalCode,
-        note,
         acceptTerms,
-        saveAddress: signedIn,
       });
       if (!result.ok) {
         setError(result.message);
@@ -135,53 +122,8 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
           </div>
         </section>
 
-        {quote?.needsShipping ? (
-          <section className="card p-4 md:p-5">
-            <h2 className="mb-4 flex items-center gap-2 font-display text-[1.1rem] font-extrabold">
-              <MapPin className="size-4 text-primary" aria-hidden /> آدرس ارسال
-            </h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="grid gap-1.5 text-[0.82rem] font-semibold">
-                استان *
-                <select value={province} onChange={(e) => setProvince(e.target.value)} required className="field">
-                  <option value="">انتخاب استان</option>
-                  {PROVINCES.map((p) => (
-                    <option key={p} value={p}>{p}</option>
-                  ))}
-                </select>
-              </label>
-              <label className="grid gap-1.5 text-[0.82rem] font-semibold">
-                شهر *
-                <input value={city} onChange={(e) => setCity(e.target.value)} required className="field text-base" />
-              </label>
-              <label className="grid gap-1.5 text-[0.82rem] font-semibold md:col-span-2">
-                آدرس کامل *
-                <textarea value={addressLine} onChange={(e) => setAddressLine(e.target.value)} required rows={3} className="field text-base" />
-              </label>
-              <label className="grid gap-1.5 text-[0.82rem] font-semibold">
-                کد پستی
-                <input value={postalCode} onChange={(e) => setPostalCode(e.target.value)} className="field text-base" dir="ltr" inputMode="numeric" />
-              </label>
-            </div>
-          </section>
-        ) : null}
-
         <section className="card p-4 md:p-5">
-          <h2 className="mb-4 font-display text-[1.1rem] font-extrabold">روش ارسال و پرداخت</h2>
-          {quote?.shippingOptions.length ? (
-            <div className="mb-4 grid gap-2">
-              {quote.shippingOptions.map((s: ShippingOption) => (
-                <label key={s.id} className={cn("flex cursor-pointer items-center justify-between gap-3 rounded-xl border px-3 py-3", shippingId === s.id ? "border-primary bg-primary-soft" : "border-line")}>
-                  <span className="flex items-center gap-2 text-[0.88rem]">
-                    <input type="radio" name="shipping" checked={shippingId === s.id} onChange={() => setShippingId(s.id)} />
-                    {s.title}
-                    <span className="text-[0.78rem] text-muted">({formatNumber(s.minDays)}–{formatNumber(s.maxDays)} روز کاری)</span>
-                  </span>
-                  <span className="num text-[0.85rem] font-bold">{s.cost <= 0 ? "رایگان" : formatToman(s.cost)}</span>
-                </label>
-              ))}
-            </div>
-          ) : null}
+          <h2 className="mb-4 font-display text-[1.1rem] font-extrabold">روش پرداخت</h2>
           <div className="grid gap-2">
             {quote?.gateways.map((g: GatewayOption) => (
               <label key={g.id} className={cn("flex cursor-pointer items-start gap-3 rounded-xl border px-3 py-3", gateway === g.id ? "border-primary bg-primary-soft" : "border-line")}>
@@ -206,10 +148,6 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
               <input value={coupon} onChange={(e) => setCoupon(e.target.value)} className="field flex-1 text-base uppercase" dir="ltr" placeholder="WELCOME10" />
             </div>
           </label>
-          <label className="mt-3 grid gap-1.5 text-[0.82rem] font-semibold">
-            یادداشت سفارش
-            <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} className="field" />
-          </label>
         </section>
       </div>
 
@@ -224,7 +162,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-[0.82rem] font-bold">{line.title}</p>
-                  {line.variantTitle ? <p className="text-[0.75rem] text-muted">{line.variantTitle}</p> : null}
+                  {line.addonTitles?.join("، ")} {line.variantTitle ? <p className="text-[0.75rem] text-muted">{line.variantTitle}</p> : null}
                   <p className="mt-1 text-[0.78rem] text-muted">× {formatNumber(line.quantity)}</p>
                 </div>
                 <Price value={lineTotal(line)} showPercent={false} size="sm" />
@@ -239,7 +177,6 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
             <dl className="space-y-2 text-[0.85rem]">
               <Row label="جمع کالا" value={formatToman(quote.subtotal)} />
               {quote.discount > 0 ? <Row label="تخفیف" value={`- ${formatToman(quote.discount)}`} accent /> : null}
-              {quote.needsShipping ? <Row label="ارسال" value={quote.shipping <= 0 ? "رایگان" : formatToman(quote.shipping)} /> : null}
               {quote.tax > 0 ? <Row label="مالیات" value={formatToman(quote.tax)} /> : null}
               {quote.wallet > 0 ? <Row label="کیف پول" value={`- ${formatToman(quote.wallet)}`} /> : null}
               <Row label="مبلغ قابل پرداخت" value={formatToman(quote.payable)} bold />
@@ -281,11 +218,12 @@ function Row({ label, value, bold, accent }: { label: string; value: string; bol
 
 function lineItem(line: CartLine) {
   return {
-    key: `${line.productId}:${line.variantId ?? ""}`,
+    key: cartKey(line.productId,line.variantId,line.addonIds),
     productId: line.productId,
     variantId: line.variantId,
     slug: line.slug,
     title: line.title,
+    addonTitles: line.addonTitles,
     variantTitle: line.variantTitle,
     image: line.image,
     quantity: line.quantity,

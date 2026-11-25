@@ -86,7 +86,7 @@ export const OPTION_GROUPS: OptionGroup[] = [
     fields: [
       t("samandehiUrl", "پیوند نشان ساماندهی", "", { section: "فوتر", dir: "ltr" }),
       b("announceOn", "نمایش نوار اعلان", true, { section: "نوار اعلان" }),
-      t("announceText", "متن اعلان", "ارسال رایگان سفارش‌های بالای ۲ میلیون تومان · پرداخت اقساطی با اسنپ‌پی و ترب‌پی", { section: "نوار اعلان" }),
+      t("announceText", "متن اعلان", "طراحی سایت و افزونه‌های آماده · پرداخت اقساطی با اسنپ‌پی و ترب‌پی", { section: "نوار اعلان" }),
       t("announceHref", "پیوند اعلان", "/store", { section: "نوار اعلان", dir: "ltr" }),
       t("announceEndsAt", "پایان پیشنهاد (اختیاری، ISO)", "", { section: "نوار اعلان", dir: "ltr", hint: "اگر پر شود شمارش معکوس واقعی نمایش داده می‌شود. مثل 2026-12-01T00:00:00+03:30" }),
       b("stickyBar", "نوار چسبان پایین موبایل", true, { section: "تماس" }),
@@ -241,6 +241,7 @@ export const OPTION_GROUPS: OptionGroup[] = [
       b("enabled", "اتصال فعال", false),
       b("requireToken", "توکن Bearer لازم است", true),
       s("token", "توکن دسترسی (حداقل ۳۲ نویسه)"),
+      b("snapppayFeed", "انتشار فید محصولات اسنپ‌پی", false),
       t("sellerUrl", "آدرس فروشگاه در اسنپ‌شاپ", "", { dir: "ltr", hint: "https://snappshop.ir/seller/STORE_CODE" }),
     ],
   },
