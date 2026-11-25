@@ -18,7 +18,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { href: "/admin/store/attributes", label: "ویژگی‌ها", icon: "attributes", cap: "manage_store" },
       { href: "/admin/customers", label: "مشتری‌ها", icon: "customers", cap: "manage_customers" },
       { href: "/admin/coupons", label: "کدهای تخفیف", icon: "coupons", cap: "manage_coupons" },
-      { href: "/admin/store/shipping", label: "حمل‌ونقل و مالیات", icon: "shipping", cap: "manage_store" },
+      { href: "/admin/store/taxes", label: "مالیات", icon:"settings",cap:"manage_store" },
       { href: "/admin/reports", label: "گزارش‌ها", icon: "reports", cap: "view_reports" },
     ],
   },

@@ -88,7 +88,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         support={String(store.supportText || "")}
         payments={payments}
       />
-      <CartDrawer freeShippingAbove={(Number(store.freeShippingAboveToman) || 0) * 10} />
+      <CartDrawer />
       <MobileBar enabled={Boolean(header.stickyBar)} />
       <FloatingContact links={contact} enabled={Boolean(header.floatingContact)} />
     </CartProvider>

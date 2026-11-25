@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Drawer } from "@/components/ui/drawer";
-import { Minus, Plus, ShoppingBag, Trash2, Truck, X } from "lucide-react";
+import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/money";
 import { Price } from "@/components/ui/price";
@@ -39,12 +39,8 @@ export function QuantityStepper({ value, max, onChange, size = "md" }: { value: 
   );
 }
 
-export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number }) {
+export function CartDrawer() {
   const { open, setOpen, lines, subtotal, savings, setQuantity, count } = useCart();
-
-  const hasPhysical = lines.some((l) => l.type === "physical");
-  const remaining = hasPhysical && freeShippingAbove > 0 ? Math.max(0, freeShippingAbove - subtotal) : 0;
-  const progress = hasPhysical && freeShippingAbove > 0 ? Math.min(100, Math.round((subtotal / freeShippingAbove) * 100)) : 0;
 
   return (
     <Drawer open={open} onOpenChange={setOpen} title="سبد خرید" className="!inset-y-auto !inset-x-0 bottom-0 flex !w-full max-h-[88dvh] flex-col rounded-t-card md:!inset-y-0 md:!right-auto md:!left-0 md:!w-[440px] md:max-h-none md:rounded-none">
@@ -57,23 +53,6 @@ export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number })
             <X className="size-5" aria-hidden />
           </button>
         </div>
-        {hasPhysical && freeShippingAbove > 0 ? (
-          <div className="mx-5 mb-3 rounded-2xl bg-sunken p-3.5">
-            <p className="flex items-center gap-2 text-[0.82rem] font-semibold">
-              <Truck className="size-4 text-success" aria-hidden />
-              {remaining > 0 ? (
-                <span>
-                  <b className="num">{formatNumber(Math.ceil(remaining / 10))}</b> تومان دیگر تا ارسال رایگان
-                </span>
-              ) : (
-                <span className="text-success">ارسال این سفارش رایگان است.</span>
-              )}
-            </p>
-            <span className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-line">
-              <span className="block h-full rounded-full bg-success transition-[width] duration-500" style={{ width: `${progress}%` }} />
-            </span>
-          </div>
-        ) : null}
         <div className="flex-1 overflow-y-auto px-5">
           {lines.length === 0 ? (
             <div className="flex flex-col items-center py-14 text-center">
@@ -89,7 +68,7 @@ export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number })
           ) : (
             <ul className="divide-y divide-line">
               {lines.map((line) => (
-                <li key={`${line.productId}:${line.variantId ?? ""}`} className="flex gap-3 py-4">
+                <li key={JSON.stringify([line.productId,line.variantId,line.addonIds])} className="flex gap-3 py-4">
                   <Link href={`/store/${line.slug}`} onClick={() => setOpen(false)}>
                     <LineThumb line={line} className="size-[76px]" />
                   </Link>
@@ -97,9 +76,9 @@ export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number })
                     <Link href={`/store/${line.slug}`} onClick={() => setOpen(false)} className="line-clamp-2 text-[0.9rem] leading-6 font-bold">
                       {line.title}
                     </Link>
-                    {line.variantTitle ? <span className="text-[0.75rem] text-muted">{line.variantTitle}</span> : null}
+                    {line.addonTitles?.join("، ")} {line.variantTitle ? <span className="text-[0.75rem] text-muted">{line.variantTitle}</span> : null}
                     <div className="mt-auto flex items-center justify-between gap-2">
-                      <QuantityStepper size="sm" value={line.quantity} max={line.max || 99} onChange={(q) => setQuantity(line.productId, line.variantId, q)} />
+                      <QuantityStepper size="sm" value={line.quantity} max={line.max || 99} onChange={(q) => setQuantity(line.productId, line.variantId, q, line.addonIds)} />
                       <Price value={line.price * line.quantity} size="sm" />
                     </div>
                   </div>
@@ -128,7 +107,7 @@ export function CartDrawer({ freeShippingAbove }: { freeShippingAbove: number })
                 ادامه و پرداخت
               </Link>
             </div>
-            <p className="text-center text-[0.72rem] text-muted">هزینه ارسال و کد تخفیف در مرحله بعد محاسبه می‌شود.</p>
+            <p className="text-center text-[0.72rem] text-muted">تخفیف سفارش در مرحله بعد محاسبه می‌شود.</p>
           </div>
         ) : null}
     </Drawer>

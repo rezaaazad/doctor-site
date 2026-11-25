@@ -15,7 +15,7 @@ export default async function DownloadsPage() {
   const grants = await prisma.downloadGrant.findMany({
     where: { order: { customerId: customer.id } },
     orderBy: { createdAt: "desc" },
-    include: { order: { select: { number: true } },orderItem:{select:{product:{select:{licenseNote:true}}}} },
+    include: { order: { select: { number: true } },orderItem:{select:{product:{select:{licenseNote:true,guarantee:true}}}} },
   });
   return (
     <section className="card p-5">
@@ -31,6 +31,7 @@ export default async function DownloadsPage() {
               <li key={g.id} className="flex flex-wrap items-center justify-between gap-3 py-4 text-[0.88rem]">
                 <div>
                   <p className="font-bold">{g.title}</p>
+                  {g.orderItem.product?.guarantee && <p>پشتیبانی: {g.orderItem.product.guarantee}</p>}
                   {g.orderItem.product?.licenseNote && <p className="text-sm">شرایط مجوز: {g.orderItem.product.licenseNote}</p>}
                   <p className="text-muted">سفارش #{g.order.number.toLocaleString("fa-IR")}</p>
                   <p className="text-[0.8rem] text-muted">

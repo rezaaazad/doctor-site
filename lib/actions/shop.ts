@@ -55,6 +55,7 @@ export type PlaceOrderRequest = QuoteRequest & {
   city?: string;
   addressLine?: string;
   postalCode?: string;
+  company?:string; nationalId?:string;
   note?: string;
   saveAddress?: boolean;
   acceptTerms?: boolean;
@@ -92,6 +93,7 @@ export async function placeOrderAction(input: PlaceOrderRequest): Promise<PlaceO
       city: str(input.city, 80),
       addressLine: str(input.addressLine, 500),
       postalCode,
+      company:str(input.company,160), nationalId:str(input.nationalId,11),
       note: str(input.note, 1000),
       ip,
     });

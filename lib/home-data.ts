@@ -42,7 +42,7 @@ export async function dealProduct(slug: string) {
   const where: Prisma.StoreProductWhereInput = slug
     ? { slug, published: true }
     : { published: true, compareAtRial: { not: null }, saleEndsAt: { gt: now } };
-  const row = await prisma.storeProduct.findFirst({ where, include: productInclude, orderBy: { saleEndsAt: "asc" } });
+  const row = await prisma.storeProduct.findFirst({ where:{...where,type:{in:["service","digital"]}}, include: productInclude, orderBy: { saleEndsAt: "asc" } });
   if (!row) return null;
   const card = toCard(row);
   if (!card.saleEndsAt || card.compareAt <= card.price) return null;

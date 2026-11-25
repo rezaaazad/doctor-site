@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { ShieldCheck, Truck } from "lucide-react";
+import { ShieldCheck, BriefcaseBusiness } from "lucide-react";
 import type { ProductDetail, VariantView } from "@/lib/store/catalog";
 import { cn } from "@/lib/utils";
 import { Price } from "@/components/ui/price";
@@ -47,7 +47,9 @@ export function ProductBuy({
   const [quantity, setQuantity] = useState(1);
 
   const variant = useMemo(() => pickVariant(product.variants, selected), [product.variants, selected]);
-  const price = variant?.price ?? product.price;
+  const [addonIds, setAddonIds] = useState<string[]>(product.addons.filter(a => a.required).map(a => a.id));
+  const addons = product.addons.filter(a => addonIds.includes(a.id));
+  const price = (variant?.price ?? product.price) + addons.reduce((sum,a) => sum + Number(a.priceRial), 0);
   const compareAt = variant ? variant.compareAt : product.compareAt;
   const inStock = variant ? variant.inStock : product.inStock;
   const image = variant?.imageUrl || product.image;
@@ -58,6 +60,7 @@ export function ProductBuy({
 
   const maxQty = Math.min(product.maxPerOrder || 99, stockLimit);
   const line = {
+    addonIds, addonTitles: addons.map(a => a.title),
     productId: product.id,
     variantId: variant?.id ?? null,
     title: product.title,
@@ -155,6 +158,8 @@ export function ProductBuy({
           </div>
         ))}
 
+        {product.turnaroundLabel && <p>زمان تحویل: {product.turnaroundLabel}</p>}
+        {product.addons.length > 0 && <fieldset className="grid gap-2"><legend>خدمات تکمیلی</legend>{product.addons.map(a => <label key={a.id} className="flex min-h-[44px] items-center gap-3 rounded-xl border border-line p-3"><input type="checkbox" checked={addonIds.includes(a.id)} disabled={a.required} onChange={e => setAddonIds(ids => e.target.checked ? [...ids,a.id] : ids.filter(id => id !== a.id))}/><span>{a.title} {a.required && " (الزامی)"}<small className="block">{a.description}</small></span><span className="ms-auto">+{(Number(a.priceRial)/10).toLocaleString("fa-IR")} تومان</span></label>)}<output aria-live="polite">جمع: {((price * quantity)/10).toLocaleString("fa-IR")} تومان</output></fieldset>}
         {!inStock ? (
           <p className="rounded-xl bg-urgency-soft px-4 py-3 text-[0.88rem] font-bold text-urgency">
             این ترکیب فعلاً موجود نیست.
@@ -195,9 +200,9 @@ export function ProductBuy({
             {product.type === "digital" ? (
               <ShieldCheck className="size-4 text-success" aria-hidden />
             ) : (
-              <Truck className="size-4 text-success" aria-hidden />
+              <BriefcaseBusiness className="size-4 text-success" aria-hidden />
             )}
-            {product.type === "digital" ? "تحویل فوری لینک دانلود پس از پرداخت" : "ارسال به سراسر ایران با رهگیری"}
+            {product.type === "digital" ? "تحویل فوری لینک دانلود پس از پرداخت" : "تحویل آنلاین + پشتیبانی"}
           </li>
           {guarantee ? <li>{guarantee}</li> : null}
           {product.guarantee ? <li>{product.guarantee}</li> : null}

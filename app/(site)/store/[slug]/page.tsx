@@ -25,6 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!product) notFound();
   return buildMetadata({
     path: `/store/${slug}`,
+    image: product.image,
     title: product.seoTitle || product.title,
     description: product.seoDescription || product.summary,
   });
@@ -70,14 +71,15 @@ export default async function ProductPage({ params }: Props) {
           "@type": "Product",
           name: product.title,
           description: product.summary,
+          brand: product.brand ? {"@type":"Brand",name:product.brand} : undefined,
+          category: product.category.name,
           sku: product.sku || undefined,
           image: [...new Set([product.image, ...product.images].filter(Boolean))].map(
             (src) => new URL(src, siteUrl()).href,
           ),
           offers: {
-            "@type": "Offer",
+            ...(product.variants.length > 1 ? {"@type":"AggregateOffer", offerCount:product.variants.length, lowPrice:Math.min(...product.variants.map(v=>v.price)), highPrice:Math.max(...product.variants.map(v=>v.price))} : {"@type":"Offer",price:product.variants[0]?.price ?? product.price}),
             url: siteUrl() + "/store/" + product.slug,
-            price: product.price,
             priceCurrency: "IRR",
             availability: "https://schema.org/" + (product.inStock ? "InStock" : "OutOfStock"),
           },

@@ -76,7 +76,7 @@ export async function markOrderPaid(orderId: string, info: { gateway: string; pa
     const allDigital = order.items.every((item) => item.type === "digital");
     await tx.order.update({
       where: { id: orderId },
-      data: allDigital ? { status: "completed", completedAt: new Date() } : { status: "processing" },
+      data: allDigital ? { status: "completed", completedAt: new Date() } : { status: "processing", projectStage: order.items.some(i => i.type === "service") ? "awaiting_brief" : "" },
     });
     for (const item of order.items) {
       if (item.productId) await tx.storeProduct.updateMany({ where: { id: item.productId }, data: { salesCount: { increment: item.quantity } } });

@@ -431,6 +431,9 @@ model StoreCategory {
 }
 
 model StoreProduct {
+  turnaroundLabel String @default("")
+  addons Json @default("[]")
+  briefSchema Json @default("[]")
   id             String           @id @default(cuid())
   code           Int              @unique @default(autoincrement())
   slug           String           @unique
@@ -700,6 +703,11 @@ model TicketMessage {
 // ─────────────────────────────── Orders & payments ───────────────────────────────
 
 model Order {
+  invoiceCompany String @default("")
+  invoiceNationalId String @default("")
+  projectBrief Json @default("{}")
+  briefSubmittedAt DateTime?
+  projectStage String @default("")
   id             String          @id @default(cuid())
   number         Int             @unique @default(autoincrement())
   accessKey      String          @unique
@@ -751,6 +759,7 @@ model Order {
 }
 
 model OrderItem {
+  addons Json @default("[]")
   id           String          @id @default(cuid())
   orderId      String
   order        Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)

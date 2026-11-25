@@ -18,6 +18,7 @@ type Props = {
 export function OptionGroupForm({ group, values, action, compact = false }: Props) {
   const sections: { name: string; fields: OptionGroup["fields"] }[] = [];
   for (const f of group.fields) {
+    if (["freeShippingAboveToman","showStockCount","lowStockThreshold","orderShipped"].includes(f.key)) continue;
     const name = f.section ?? "";
     const last = sections[sections.length - 1];
     if (last && last.name === name) last.fields.push(f);

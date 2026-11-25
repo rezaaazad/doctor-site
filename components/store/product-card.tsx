@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { PhotoSlot } from "@/components/ui/photo-slot";
 
-import { Download, Truck } from "lucide-react";
+import { Download, BriefcaseBusiness } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatNumber } from "@/lib/money";
 import type { ProductCard as Card } from "@/lib/store/catalog";
@@ -36,8 +36,8 @@ export function ProductCard({ product, className, priority = false, wished = fal
         <div className="flex items-center justify-between gap-2 text-[0.72rem] text-muted">
           <span className="truncate">{product.category.name}</span>
           <span className="flex shrink-0 items-center gap-1">
-            {product.type === "digital" ? <Download className="size-3.5" aria-hidden /> : <Truck className="size-3.5" aria-hidden />}
-            {product.type === "digital" ? "تحویل فوری" : "ارسال فیزیکی"}
+            {product.type === "digital" ? <Download className="size-3.5" aria-hidden /> : <BriefcaseBusiness className="size-3.5" aria-hidden />}
+            {product.type === "digital" ? "تحویل فوری" : "اجرای تخصصی پروژه"}
           </span>
         </div>
         <h3 className="line-clamp-2 min-h-[3.1em] text-[0.93rem] leading-[1.6] font-bold md:text-[0.98rem]">
@@ -48,7 +48,7 @@ export function ProductCard({ product, className, priority = false, wished = fal
         {product.ratingCount > 0 ? <Stars value={product.ratingAvg} count={product.ratingCount} size={12} /> : <span className="h-[18px]" />}
         <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-1">
           <Price value={product.price} compareAt={product.compareAt} showPercent={false} />
-          {product.hasVariants || !product.inStock ? (
+          {product.hasAddons || product.hasVariants || !product.inStock ? (
             <Link href={href} className="btn btn-outline btn-sm relative z-[1]">
               {product.inStock ? "انتخاب" : "مشاهده"}
             </Link>

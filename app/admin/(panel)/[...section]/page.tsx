@@ -1,6 +1,9 @@
 import { ListControls, ListFooter, listParams, type ListQuery } from "@/components/admin/list-controls";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import {BriefSummary} from "@/components/store/project-brief";
+import {milestone} from "@/lib/actions/project";
+import {stages} from "@/lib/store/project";
 import { requireStaff } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { PageHeader, Panel, Table, Td, Th } from "@/components/admin/kit";
@@ -68,7 +71,8 @@ export default async function SectionPage({params,searchParams}:{params:Promise<
   if(Object.hasOwn(aliases,path))redirect("/admin/"+aliases[path]);
   if(path==="settings/payments")redirect("/admin/settings");
   const kind=path.startsWith("store/")?path.slice(6):path;
-  if(kind==="shipping")return <><PageHeader title="حمل‌ونقل و مالیات"/><div className="grid gap-5">{["zones","methods","taxes"].map(k=><Catalog key={k} kind={k} query={query}/>)}</div></>;
+  if (["products","variants"].includes(kind)) redirect("/admin/products");
+  if (["shipping","zones","methods"].includes(kind)) redirect("/admin/store/taxes");
   if(Object.hasOwn(fields,kind))return <><PageHeader title={labels[kind]} actions={kind==="products"?<Link href="/admin/store/variants">مدیریت تنوع</Link>:undefined}/><Catalog kind={kind} query={query}/></>;
   if(path==="reports"){
     await requireStaff("view_reports");
@@ -82,7 +86,7 @@ export default async function SectionPage({params,searchParams}:{params:Promise<
   }
   if(path.startsWith("orders/")){
     const user=await requireStaff("manage_orders"); const o=await prisma.order.findUnique({where:{id:path.split("/")[1]},include:{items:true,notes:true,refunds:true}});if(!o)notFound();
-    return <><PageHeader title={"سفارش "+o.number} back={{href:"/admin/orders",label:"سفارش‌ها"}}/><Panel title={o.name}><p>{statusLabel(o.status)} · {formatToman(o.totalRial)}</p><ul>{o.items.map(i=><li key={i.id}>{i.title} × {i.quantity} · {formatToman(i.totalRial)}</li>)}</ul><ActionForm action={manageRecord.bind(null,"orderStatus",o.id)}><select aria-label="وضعیت" name="status" className={input} defaultValue={o.status}>{Object.entries(ORDER_STATUSES).filter(([k])=>canTransition(o.status,k)&&k!=="refunded").map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><button className={button}>تغییر وضعیت</button></ActionForm><ActionForm action={manageRecord.bind(null,"note",o.id)}><textarea name="body" className={input} required placeholder="یادداشت داخلی"/><button className={button}>ثبت یادداشت</button></ActionForm>{o.notes.map(n=><p key={n.id}>{n.body}</p>)}{["admin","shop_manager"].includes(user.role)&&<ActionForm action={manageRecord.bind(null,"refund",o.id)}><input name="amount" className={input} placeholder="مبلغ بازپرداخت انجام‌شده (تومان)" required/><input name="body" className={input} placeholder="دلیل" required/><label><input type="checkbox" name="confirmed" required/> بازپرداخت خارج از سامانه انجام شده است</label><button className={button}>ثبت بازپرداخت دستی</button></ActionForm>}</Panel></>;
+    return <><PageHeader title={"سفارش "+o.number} back={{href:"/admin/orders",label:"سفارش‌ها"}}/><Panel title={o.name}>{o.projectStage && <><BriefSummary brief={o.projectBrief}/><ActionForm action={milestone.bind(null,o.id)}><select name="stage" aria-label="مرحله پروژه" defaultValue={o.projectStage}>{Object.entries(stages).filter(([id])=>id!=="awaiting_brief").map(([id,label])=><option key={id} value={id}>{label}</option>)}</select><textarea name="body" placeholder="یادداشت قابل مشاهده برای مشتری"/><button disabled={!o.briefSubmittedAt} className={button}>ثبت پیشرفت پروژه</button></ActionForm></>}<p>{statusLabel(o.status)} · {formatToman(o.totalRial)}</p><ul>{o.items.map(i=><li key={i.id}>{i.title} × {i.quantity} · {formatToman(i.totalRial)}</li>)}</ul><ActionForm action={manageRecord.bind(null,"orderStatus",o.id)}><select aria-label="وضعیت" name="status" className={input} defaultValue={o.status}>{Object.entries(ORDER_STATUSES).filter(([k])=>canTransition(o.status,k)&&k!=="refunded").map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><button className={button}>تغییر وضعیت</button></ActionForm><ActionForm action={manageRecord.bind(null,"note",o.id)}><textarea name="body" className={input} required placeholder="یادداشت داخلی"/><button className={button}>ثبت یادداشت</button></ActionForm>{o.notes.map(n=><p key={n.id}>{n.body}</p>)}{["admin","shop_manager"].includes(user.role)&&<ActionForm action={manageRecord.bind(null,"refund",o.id)}><input name="amount" className={input} placeholder="مبلغ بازپرداخت انجام‌شده (تومان)" required/><input name="body" className={input} placeholder="دلیل" required/><label><input type="checkbox" name="confirmed" required/> بازپرداخت خارج از سامانه انجام شده است</label><button className={button}>ثبت بازپرداخت دستی</button></ActionForm>}</Panel></>;
   }
   if(path==="comments"){
     await requireStaff("moderate_comments");const rows=await prisma.comment.findMany({...paging,where:{status:query.status || undefined,OR:[{name:search},{body:search}]},orderBy:[{createdAt:"desc"},{id:"asc"}]});

@@ -1,4 +1,5 @@
 import { createReadStream, existsSync } from "fs";
+import {privateDir,uploadDir} from "@/lib/media";
 import path from "path";
 import { Readable } from "stream";
 import { prisma } from "@/lib/db";
@@ -27,7 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
 
   const media = mediaId ? await prisma.media.findUnique({ where: { id: mediaId } }) : null;
   if (!media) return Response.json({ message: "فایل پیدا نشد." }, { status: 404 });
-  const root = process.env.UPLOAD_DIR || path.join(process.cwd(), "data/uploads");
+  const root = media.isPrivate ? privateDir() : uploadDir();
   const filePath = path.join(root, media.storedName);
   if (!existsSync(filePath)) return Response.json({ message: "فایل روی سرور نیست." }, { status: 404 });
   const stream = createReadStream(filePath);

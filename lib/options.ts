@@ -8,12 +8,22 @@ export type Options = Record<string, OptionRecord>;
 let memo: { at: number; value: Options } | null = null;
 const TTL_MS = 5_000;
 
+function paymentDefaults(id:string,raw:unknown) {
+  if (!["pay_zarinpal","pay_torobpay","pay_snapppay"].includes(id)) return withDefaults(id,raw);
+  const values = {...(raw && typeof raw==="object" && !Array.isArray(raw) ? raw : {})} as Record<string,unknown>;
+  for (const key of ["enabled","merchantId","sandbox","mode","baseUrl","stageBaseUrl","clientId","clientSecret","username","password"]) {
+    const envKey=(id.slice(4)+"_"+key.replace(/[A-Z]/g,ch=>"_"+ch)).toUpperCase();
+    const value=process.env[envKey];
+    if (value && (values[key]===undefined || values[key]==="" || values[key]===null)) values[key]=["enabled","sandbox"].includes(key)?["true","1"].includes(value):value;
+  }
+  return withDefaults(id,values);
+}
 async function loadAll(): Promise<Options> {
   if (memo && Date.now() - memo.at < TTL_MS) return memo.value;
   const rows = await prisma.option.findMany();
   const byKey = new Map(rows.map((row) => [row.key, row.value]));
   const value: Options = {};
-  for (const group of OPTION_GROUPS) value[group.id] = withDefaults(group.id, byKey.get(group.id));
+  for (const group of OPTION_GROUPS) value[group.id] = paymentDefaults(group.id, byKey.get(group.id));
   memo = { at: Date.now(), value };
   return value;
 }

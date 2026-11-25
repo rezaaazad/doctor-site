@@ -1,10 +1,13 @@
 // Pure order math. All amounts are bigint Rial. No database access here so it can be unit-tested.
 
+import { readAddons, type Addon } from "./addons";
+
 export type PricingProduct = {
   id: string;
   title: string;
   type: string;
   priceRial: bigint;
+  addons?: unknown;
   categoryId: string;
   categoryName: string;
   weightGrams: number;
@@ -18,7 +21,7 @@ export type PricingProduct = {
 
 export type PricingVariant = { id: string; title: string; priceRial: bigint; stock: number; active: boolean; sku: string };
 
-export type PricingLineInput = { product: PricingProduct; variant?: PricingVariant | null; quantity: number };
+export type PricingLineInput = { addonIds?: string[]; product: PricingProduct; variant?: PricingVariant | null; quantity: number };
 
 export type PricingCoupon = {
   code: string;
@@ -69,6 +72,7 @@ export type PricedLine = {
   productId: string;
   variantId: string | null;
   title: string;
+  addons: Addon[];
   variantTitle: string;
   sku: string;
   type: string;
@@ -115,6 +119,8 @@ export function couponProblem(coupon: PricingCoupon, eligibleSubtotal: bigint, i
 export function priceOrder(input: PricingInput): PricingResult {
   const errors: string[] = [];
   const lines: PricedLine[] = [];
+  const quantities = new Map<string,number>();
+  const variantQuantities = new Map<string,number>();
   for (const line of input.lines) {
     const { product, variant } = line;
     const quantity = Math.max(1, Math.floor(line.quantity));
@@ -126,15 +132,25 @@ export function priceOrder(input: PricingInput): PricingResult {
       errors.push(`گزینه انتخابی «${product.title}» موجود نیست.`);
       continue;
     }
-    if (product.maxPerOrder > 0 && quantity > product.maxPerOrder) {
+    const ordered=(quantities.get(product.id) || 0)+quantity;
+    quantities.set(product.id,ordered);
+    const stockKey=variant?.id ?? product.id;
+    const stockQuantity=(variantQuantities.get(stockKey)||0)+quantity;
+    variantQuantities.set(stockKey,stockQuantity);
+    if (product.maxPerOrder > 0 && ordered > product.maxPerOrder) {
       errors.push(`حداکثر ${product.maxPerOrder} عدد از «${product.title}» در هر سفارش.`);
     }
     const available = variant ? variant.stock : product.stock;
-    if (product.manageStock && !product.allowBackorder && quantity > available) {
+    if (product.manageStock && !product.allowBackorder && stockQuantity > available) {
       errors.push(available > 0 ? `از «${product.title}» فقط ${available} عدد موجود است.` : `«${product.title}» ناموجود است.`);
     }
-    const unit = variant ? variant.priceRial : product.priceRial;
+    const availableAddons = readAddons(product.addons);
+    const selected = new Set(line.addonIds);
+    if ([...selected].some(id => !availableAddons.some(addon => addon.id === id))) errors.push("خدمت تکمیلی انتخاب‌شده در دسترس نیست.");
+    const addons = availableAddons.filter(addon => addon.required || selected.has(addon.id));
+    const unit = addons.reduce((sum, addon) => sum + BigInt(addon.priceRial), variant?.priceRial ?? product.priceRial);
     lines.push({
+      addons,
       productId: product.id,
       variantId: variant?.id ?? null,
       title: product.title,

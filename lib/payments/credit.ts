@@ -2,6 +2,7 @@
 // OAuth password grant -> eligible -> payment token -> redirect -> callback -> verify -> settle
 // (+ status, revert, cancel, update). Amounts are always Rial.
 
+import type {PaymentAdapter} from "./adapter";
 import { UpstreamError, fetchWithTimeout, joinUrl, readJson } from "@/lib/http";
 import { asObject } from "@/lib/utils";
 
@@ -28,6 +29,7 @@ export type CreditTokenRequest = {
   mobile: string;
   returnURL: string;
   transactionId: string;
+  name?: string;
   postalCode?: string;
   cart: { id: number; items: CreditCartItem[]; shippingAmount: number; taxAmount: number };
 };
@@ -65,7 +67,11 @@ export function buildCartList(request: CreditTokenRequest) {
   ];
 }
 
-export class CreditClient {
+export class CreditClient implements PaymentAdapter<CreditTokenRequest,string,unknown> {
+  async start(input:CreditTokenRequest) {
+    const token=await this.createToken(input);
+    return {authority:token.paymentToken,url:token.paymentPageUrl,raw:token.raw};
+  }
   constructor(
     private config: CreditConfig,
     private http: FetchLike = fetchWithTimeout,
@@ -91,15 +97,17 @@ export class CreditClient {
     if (!force && cached && cached.expiresAt > Date.now() + 30_000) return cached.token;
     const { clientId, clientSecret, username, password } = this.config;
     if (!clientId || !clientSecret || !username || !password) throw new UpstreamError("اطلاعات احراز هویت درگاه کامل نیست.");
+    const torob = this.config.gateway === "torobpay";
     const body = new URLSearchParams({ grant_type: "password", scope: "online-merchant", username, password });
     const response = await this.http(joinUrl(this.base(), "api/online/v1/oauth/token"), {
       method: "POST",
       headers: {
         Authorization: `Basic ${Buffer.from(`${clientId}:${clientSecret}`).toString("base64")}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Type": torob ? "application/json" : "application/x-www-form-urlencoded",
+        ...(!torob && {"User-Agent": "SnappPay, " + clientId}),
         Accept: "application/json",
       },
-      body: body.toString(),
+      body: torob ? JSON.stringify({username,password}) : body.toString(),
     });
     const json = asObject(await readJson(response));
     const token = typeof json.access_token === "string" ? json.access_token : "";
@@ -113,7 +121,7 @@ export class CreditClient {
     const token = await this.accessToken();
     const response = await this.http(joinUrl(this.base(), path), {
       method,
-      headers: { Authorization: `Bearer ${token}`, Accept: "application/json", ...(payload ? { "Content-Type": "application/json" } : {}) },
+      headers: { ...(this.config.gateway === "snapppay" && {"User-Agent": "SnappPay, " + this.config.clientId}), Authorization: `Bearer ${token}`, Accept: "application/json", ...(payload ? { "Content-Type": "application/json" } : {}) },
       body: payload ? JSON.stringify(payload) : undefined,
     });
     if (response.status === 401 && retry) {
@@ -146,7 +154,8 @@ export class CreditClient {
       discountAmount: request.discountAmount,
       externalSourceAmount: request.externalSourceAmount,
       mobile: creditMobile(request.mobile),
-      paymentMethodTypeDto: "INSTALLMENT",
+      paymentMethodTypeDto: this.config.gateway === "torobpay" ? "ONLINE_CREDIT" : "INSTALLMENT",
+      address: "تحویل آنلاین", city: "تهران", province: "تهران", postalCode: request.postalCode || "0000000000", name: request.name, phone: request.mobile,
       returnURL: request.returnURL,
       transactionId: request.transactionId,
       cartList: buildCartList(request),
@@ -196,7 +205,8 @@ export class CreditClient {
       amount: request.amount,
       discountAmount: request.discountAmount,
       externalSourceAmount: request.externalSourceAmount,
-      paymentMethodTypeDto: "INSTALLMENT",
+      paymentMethodTypeDto: this.config.gateway === "torobpay" ? "ONLINE_CREDIT" : "INSTALLMENT",
+      address: "تحویل آنلاین", city: "تهران", province: "تهران", postalCode: request.postalCode || "0000000000", name: request.name,
       cartList: buildCartList({ ...request, mobile: "", returnURL: "", transactionId: "" }),
     });
   }

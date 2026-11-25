@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Send, Instagram, MessageCircle, BadgeCheck, Clock, CreditCard, Headset, Mail, MapPin, Phone, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { Send, Instagram, MessageCircle, BadgeCheck, Clock, CreditCard, Headset, Mail, MapPin, Phone, RotateCcw, ShieldCheck, CloudDownload } from "lucide-react";
 import type { ContactLinks } from "@/lib/contact";
 import type { NavCategory, NavLink } from "@/components/site/header";
 import { Logo } from "@/components/site/header";
@@ -27,7 +27,7 @@ export type FooterProps = {
 export function SiteFooter(props: FooterProps) {
   const year = new Intl.DateTimeFormat("fa-IR-u-ca-persian", { year: "numeric" }).format(new Date());
   const promises = [
-    { icon: <Truck className="size-5" aria-hidden />, title: "ارسال سریع", body: "تحویل فایل فوری، ارسال کالا ۱ تا ۳ روز کاری" },
+    { icon: <CloudDownload className="size-5" aria-hidden />, title: "تحویل آنلاین", body: "دانلود فایل پس از پرداخت و پیگیری پروژه در حساب کاربری" },
     { icon: <RotateCcw className="size-5" aria-hidden />, title: props.guarantee || "ضمانت بازگشت وجه", body: "بدون پرسش اضافه، طبق قوانین خرید" },
     { icon: <CreditCard className="size-5" aria-hidden />, title: "پرداخت امن و اقساطی", body: props.payments.length ? props.payments.join("، ") : "درگاه بانکی معتبر" },
     { icon: <Headset className="size-5" aria-hidden />, title: "پشتیبانی واقعی", body: props.support || "پاسخ در همان روز کاری" },
