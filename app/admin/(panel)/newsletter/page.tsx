@@ -26,7 +26,7 @@ export default async function Newsletter({
       <form className="catalog-controls">
         <input
           name="q"
-          className="input"
+          className="input flex-1 min-w-[220px] max-w-sm"
           aria-label="جست‌وجوی ایمیل"
           placeholder="جست‌وجوی ایمیل"
           defaultValue={q}
@@ -43,15 +43,15 @@ export default async function Newsletter({
               <tr>
                 <th>ایمیل</th>
                 <th>منبع عضویت</th>
-                <th>تاریخ عضویت</th>
+                <th>تاریخ عضویت</th><th>عملیات</th>
               </tr>
             </thead>
             <tbody>
               {rows.slice(0, 50).map((r) => (
                 <tr key={r.id}>
-                  <td dir="ltr">{r.email}</td>
+                  <td><span dir="ltr">{r.email}</span></td>
                   <td>{r.source || "—"}</td>
-                  <td>{r.createdAt.toLocaleDateString("fa-IR")}</td>
+                  <td>{r.createdAt.toLocaleDateString("fa-IR")}</td><td><a href={"mailto:"+r.email} className="text-primary">نوشتن ایمیل</a></td>
                 </tr>
               ))}
             </tbody>

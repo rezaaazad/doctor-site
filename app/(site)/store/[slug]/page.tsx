@@ -108,7 +108,7 @@ export default async function ProductPage({ params }: Props) {
             <ul key="reviews">
               {reviews.map((r) => (
                 <li className="detail-review" key={r.id}>
-                  <b>{r.name}</b> {r.rating && <span>{r.rating.toLocaleString("fa-IR")} از ۵</span>}
+                  <b>{r.name}</b> {r.rating ? <span>{r.rating.toLocaleString("fa-IR")} از ۵</span> : null}
                   <p>{r.body}</p>
                 </li>
               ))}

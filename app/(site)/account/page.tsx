@@ -16,10 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AccountDashboardPage() {
-  await requireCustomer();
+  const customer = await requireCustomer();
   const stats = await accountDashboardData();
   if (!stats) redirect("/account/login");
-  const customer = await requireCustomer();
   const recent = await prisma.order.findMany({
     where: { customerId: customer.id },
     orderBy: { createdAt: "desc" },
@@ -27,6 +26,7 @@ export default async function AccountDashboardPage() {
     select: { id: true, number: true, status: true, paymentStatus: true, totalRial: true, gateway: true, createdAt: true },
   });
 
+  const tickets = await prisma.ticket.findMany({where:{customerId:customer.id,status:{not:"closed"}},orderBy:{updatedAt:"desc"},take:3,select:{id:true,subject:true,updatedAt:true}});
   const cards = [
     { label: "سفارش‌ها", value: stats.orders, href: "/account/orders", icon: Package },
     { label: "اعلان نخوانده", value: stats.unread, href: "/account/notifications", icon: Bell },
@@ -37,7 +37,8 @@ export default async function AccountDashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <section className="card p-5">
+      <header><h1 className="account-heading">سلام{customer.name ? "، "+customer.name : ""}</h1><p className="text-muted">سفارش‌ها، فایل‌ها و پیام‌های پشتیبانی شما</p></header>
+      <section className="account-wallet card p-5">
         <p className="text-[0.85rem] text-muted">موجودی کیف پول</p>
         <p className="mt-1 font-display text-[1.6rem] font-extrabold text-primary">{formatToman(stats.wallet)}</p>
         <Link href="/account/wallet" className="mt-3 inline-block text-[0.82rem] font-semibold text-primary hover:underline">
@@ -87,6 +88,7 @@ export default async function AccountDashboardPage() {
           </ul>
         )}
       </section>
+      <section className="card p-5"><h2 className="font-bold">گفت‌وگوهای باز</h2>{tickets.length ? <ul>{tickets.map(t=><li key={t.id}><Link className="account-line" href={"/account/tickets/"+t.id}>{t.subject}<small>{t.updatedAt.toLocaleDateString("fa-IR")}</small></Link></li>)}</ul> : <p className="my-3 text-muted">تیکت بازی ندارید.</p>}<Link className="btn btn-outline btn-sm" href="/account/tickets#new-ticket">ثبت تیکت</Link></section>
     </div>
   );
 }

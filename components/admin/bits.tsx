@@ -4,14 +4,14 @@ import { useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { moveRecord, type ActionState } from "@/lib/actions";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { useAdminFeedback } from "./feedback";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <label className="grid gap-2">
-      <Label>{label}</Label>
+      <span className="text-sm font-semibold">{label}</span>
       {children}
       {hint ? <span className="text-xs text-muted">{hint}</span> : null}
     </label>
@@ -19,6 +19,7 @@ export function Field({ label, children, hint }: { label: string; children: Reac
 }
 
 export function FormMessage({ state }: { state: ActionState }) {
+  useAdminFeedback(state);
   if (!state) return null;
   return (
     <p role="status" className={state.ok ? "text-sm text-primary" : "text-sm text-urgency"}>
@@ -30,9 +31,9 @@ export function FormMessage({ state }: { state: ActionState }) {
 export function SaveButton({ children = "ذخیره" }: { children?: React.ReactNode }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" disabled={pending}>
+    <span className="admin-save-bar"><Button type="submit" disabled={pending}>
       {pending ? "در حال ذخیره…" : children}
-    </Button>
+    </Button></span>
   );
 }
 

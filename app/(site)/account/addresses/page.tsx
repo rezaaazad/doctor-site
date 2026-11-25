@@ -34,7 +34,7 @@ export default async function AddressesPage() {
                     <button type="submit" className="btn btn-ghost btn-sm text-urgency">حذف</button>
                   </form>
                 </div>
-                <AddressForm address={a} />
+                <details className="mt-3"><summary className="cursor-pointer font-semibold text-primary">ویرایش آدرس</summary><AddressForm address={a} /></details>
               </li>
             ))}
           </ul>

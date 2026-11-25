@@ -1,21 +1,24 @@
+import { ListControls, ListFooter, listParams, type ListQuery } from "@/components/admin/list-controls";
 import { requireStaff } from "@/lib/auth";
 import Link from "next/link";
 import { ConfirmButton, OrderButtons } from "@/components/admin/bits";
 import { deleteProject } from "@/lib/actions";
 import { prisma } from "@/lib/db";
 
-export default async function ProjectsAdminPage() {
+export default async function ProjectsAdminPage({searchParams}:{searchParams:Promise<ListQuery>}) {
   await requireStaff("manage_content");
-  const projects = await prisma.project.findMany({ orderBy: { sortOrder: "asc" } });
+  const query=listParams(await searchParams);
+  const projects = await prisma.project.findMany({skip:(query.page-1)*20,take:21,where:{title:{contains:query.q,mode:"insensitive"},published:query.status==="yes"?true:query.status==="no"?false:undefined}, orderBy: { sortOrder: "asc" } });
   return (
     <div className="grid gap-6">
       <div className="flex items-center justify-between gap-4">
         <h1 className="text-3xl font-black">نمونه‌کارها</h1>
         <Link href="/admin/projects/new" className="inline-flex h-11 items-center rounded-full bg-[var(--accent)] px-5 text-sm font-semibold text-black">پروژه جدید</Link>
       </div>
+      <ListControls query={query} options={[["yes","منتشرشده"],["no","پیش‌نویس"]]}/>
       {projects.length === 0 ? <p className="text-sm text-muted">هنوز پروژه‌ای نیست.</p> : null}
       <ul className="grid gap-3">
-        {projects.map((project) => (
+        {projects.slice(0,20).map((project) => (
           <li key={project.id} className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-line px-4 py-3">
             <div>
               <Link href={`/admin/projects/${project.id}`} className="font-bold hover:text-primary">{project.title}</Link>
@@ -28,6 +31,7 @@ export default async function ProjectsAdminPage() {
           </li>
         ))}
       </ul>
-    </div>
+    <ListFooter query={query} count={projects.length}/>
+</div>
   );
 }

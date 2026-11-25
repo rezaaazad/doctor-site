@@ -25,7 +25,9 @@ export default async function AccountOrderPage({ params }: Props) {
     include: { items: true, payments: true, notes: { where: { toCustomer: true }, orderBy: { createdAt: "desc" } } },
   });
   if (!order) notFound();
-  const stepIndex = TRACKING_STEPS.findIndex((s) => s.status === order.status);
+  const steps=order.items.some(item=>item.type==="physical") ? TRACKING_STEPS : TRACKING_STEPS.filter(step=>step.status!=="shipped").map(step=>step.status==="delivered"?{...step,label:"تحویل فایل"}:step);
+  const stepIndex=steps.findIndex(step=>step.status===(order.status==="completed"?"delivered":order.status==="on_hold"?"pending":order.status));
+
 
   return (
     <div className="grid gap-6">
@@ -37,12 +39,12 @@ export default async function AccountOrderPage({ params }: Props) {
             <p className="mt-1 text-[0.85rem] text-muted">{new Date(order.createdAt).toLocaleString("fa-IR")}</p>
           </div>
           <Link href={`/account/orders/${order.id}/invoice`} className="btn btn-outline btn-sm" target="_blank">
-            فاکتور
+            مشاهده و چاپ فاکتور
           </Link>
         </div>
-        <ol className="mt-6 grid gap-2 sm:grid-cols-4">
-          {TRACKING_STEPS.map((step, i) => (
-            <li key={step.status} className={cn("rounded-xl border px-3 py-2 text-center text-[0.78rem] font-semibold", i <= stepIndex ? "border-primary bg-primary-soft text-primary" : "border-line text-muted")}>
+        <ol aria-label="مراحل سفارش" className="account-timeline mt-6 grid gap-2 sm:grid-cols-4">
+          {steps.map((step, i) => (
+            <li key={step.status} aria-current={i===stepIndex?"step":undefined} className={cn("rounded-xl border px-3 py-2 text-center text-[0.78rem] font-semibold", i <= stepIndex ? "border-primary bg-primary-soft text-primary" : "border-line text-muted")}>
               {step.label}
             </li>
           ))}

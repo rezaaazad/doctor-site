@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+
 import { notFound } from "next/navigation";
 import { requireCustomer } from "@/lib/customer-auth";
 import { prisma } from "@/lib/db";
@@ -27,13 +27,13 @@ export default async function TicketPage({ params }: Props) {
         {ticket.messages.map((m) => (
           <li key={m.id} className={m.fromStaff ? "rounded-xl bg-primary-soft p-3 text-[0.88rem]" : "rounded-xl border border-line p-3 text-[0.88rem]"}>
             <b className="text-[0.78rem] text-muted">{m.fromStaff ? "پشتیبانی" : m.authorName}</b>
-            <p className="mt-1 whitespace-pre-wrap">{m.body}</p>
+            <time className="ms-3 text-xs text-muted">{m.createdAt.toLocaleString("fa-IR")}</time><p className="mt-1 whitespace-pre-wrap">{m.body}</p>
           </li>
         ))}
       </ul>
       {ticket.status !== "closed" ? (
         <form action={replyTicketFormAction.bind(null, ticket.id)} className="mt-4 grid gap-2">
-          <textarea name="body" rows={3} required className="field" placeholder="پاسخ شما…" />
+          <textarea name="body" aria-label="پاسخ شما" minLength={2} maxLength={4000} rows={3} required className="field" placeholder="پاسخ شما…" />
           <button type="submit" className="btn btn-primary btn-sm w-fit">ارسال پاسخ</button>
         </form>
       ) : null}
