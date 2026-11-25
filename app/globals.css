@@ -576,3 +576,42 @@ html[data-motion="on"] .anim-slide-in { animation: slide-in-right 0.28s var(--ea
 .catalog-layout .catalog-tile {border-color:var(--border);box-shadow:0 3px 14px -9px var(--ink)}
 .catalog-layout .catalog-tile h3 {font-size:clamp(.94rem,1.25vw,1.12rem);line-height:1.65}
 .catalog-tile[data-unavailable=true]>a:first-child img {filter:grayscale(.8);opacity:.76}
+
+/* Account and staff workspaces share the storefront type, spacing and color tokens. */
+.account-workspace {padding-block:clamp(20px,4vw,48px) 96px}
+.account-identity {display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;border-radius:16px;padding:clamp(20px,4vw,40px);color:white;background:linear-gradient(110deg,var(--primary),var(--ink))}
+.account-identity :is(.text-muted,.kicker,.btn){color:inherit}
+.account-name,.account-heading {font-size:var(--type-h2);font-weight:850}
+.account-wallet {background:linear-gradient(110deg,var(--primary-soft),var(--surface));border-inline-start:4px solid var(--primary)}
+.account-mobile-tabs {display:flex;align-items:center;gap:4px;overflow:auto;padding:4px;border-block:1px solid var(--border)}
+.account-mobile-tabs>a,.account-mobile-tabs>button {display:grid;justify-items:center;align-content:center;flex:1;min-width:max-content;gap:4px;padding:8px 4px;font-size:.75rem}
+.account-mobile-tabs [aria-current=page] {color:var(--primary);background:var(--primary-soft);border-radius:12px}
+.account-line,.staff-crumb {display:flex;align-items:center;gap:10px}
+.account-line {justify-content:space-between;padding:12px 0;border-block-end:1px solid var(--border)}
+.account-empty {padding:24px;background:var(--primary-soft);border-radius:12px;color:var(--ink)}
+.account-empty>a {margin-top:12px}
+.account-workspace [aria-invalid=true] {border-color:var(--urgency)}
+.staff-crumb {margin-bottom:20px;color:var(--muted);font-size:.85rem}
+.staff-crumb a {color:var(--primary);font-weight:650}
+.staff-profile {position:relative}
+.staff-profile summary {cursor:pointer;white-space:nowrap;max-width:9rem;overflow:hidden;text-overflow:ellipsis;font-size:.85rem;font-weight:750}
+.staff-profile>div {display:grid;gap:12px;position:absolute;inset-inline-end:0;top:calc(100% + 12px);width:13rem;border:1px solid var(--border);border-radius:12px;background:var(--surface);padding:16px;box-shadow:var(--elev-store)}
+.staff-profile button {color:var(--urgency)}
+.admin-list-controls {display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-block:16px}
+.admin-list-controls .input {width:auto;max-width:100%}
+.admin-list-controls input {flex:1;min-width:min(12rem,100%);max-width:24rem}
+.admin thead th {position:sticky;top:0;z-index:1;background:var(--primary-soft);color:var(--ink)}
+.admin div:has(>table) {max-height:68dvh;overflow:auto}
+.admin main {min-width:0}
+.admin main :is(input,textarea,select):focus-visible,.account-workspace :focus-visible {outline:2px solid var(--primary);outline-offset:2px}
+.admin-save-bar,.admin-edit-form>button:last-of-type,.admin-edit-form>div:has(>button:only-child):last-of-type {position:sticky;bottom:8px;z-index:2;justify-self:start}
+.admin-save-bar {display:flex;align-items:center;padding:6px;border-radius:12px;background:var(--surface);box-shadow:var(--elev-store)}
+.admin-notice {position:fixed;z-index:80;inset-inline-end:16px;bottom:16px;max-width:calc(100vw - 32px)}
+.admin-notice>div {display:flex;align-items:center;gap:16px;background:var(--ink);color:white;border-radius:12px;padding:12px 16px;box-shadow:var(--elev-store)}
+.admin-notice [data-ok=false] {background:var(--urgency)}
+.staff-inbox .catalog-controls {justify-content:flex-start}
+@media(min-width:1024px){.account-mobile-tabs{display:none}}
+@media print {body:has(.account-workspace){background:white!important}.account-identity,.account-mobile-tabs,.account-workspace nav,body:has(.account-workspace)>*:not(main){display:none!important}.account-workspace,.account-workspace>div {padding:0;display:block}}
+.account-timeline [aria-current=step] {background:var(--primary);color:white}
+.admin main form>div:has(>.admin-save-bar:only-child) {position:sticky;bottom:8px;z-index:2;justify-self:start}
+@media(max-width:640px){.admin>div>header {gap:6px;padding-inline:8px}.staff-profile summary{max-width:4rem}.admin>div>header>a{min-width:36px;padding-inline:8px}}

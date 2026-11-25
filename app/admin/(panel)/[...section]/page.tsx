@@ -1,8 +1,9 @@
+import { ListControls, ListFooter, listParams, type ListQuery } from "@/components/admin/list-controls";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { requireStaff } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { PageHeader, Panel } from "@/components/admin/kit";
+import { PageHeader, Panel, Table, Td, Th } from "@/components/admin/kit";
 import { ActionForm } from "@/components/admin/forms";
 import { saveCatalog } from "@/lib/actions/admin/catalog";
 import { formatToman } from "@/lib/money";
@@ -35,34 +36,40 @@ function value(row:Row,key:string,type:string){
   if(typeof v==="bigint")return String(key==="amount"&&row.type==="percent"?v:v/BigInt(10));
   return String(v??(type==="number"?0:""));
 }
-async function catalog(kind:string){
+async function catalog(kind:string,query:ReturnType<typeof listParams>){
+  const paging={skip:(query.page-1)*20,take:21};
+  const search={contains:query.q,mode:"insensitive" as const};
+  const active=query.status==="yes"?true:query.status==="no"?false:undefined;
   switch(kind){
-    case "products":return prisma.storeProduct.findMany({orderBy:{createdAt:"desc"},take:100});
-    case "categories":return prisma.storeCategory.findMany({orderBy:{name:"asc"}});
-    case "attributes":return prisma.productAttribute.findMany();
-    case "variants":return prisma.productVariant.findMany({take:100});
-    case "coupons":return prisma.coupon.findMany({take:100});
-    case "zones":return prisma.shippingZone.findMany();
-    case "methods":return prisma.shippingMethod.findMany();
-    case "taxes":return prisma.taxRate.findMany();
+    case "products": return prisma.storeProduct.findMany({...paging, where:{title:search, published:active},orderBy:[{title:"asc"},{id:"asc"}]});
+    case "categories": return prisma.storeCategory.findMany({...paging, where:{name:search, visible:active},orderBy:[{name:"asc"},{id:"asc"}]});
+    case "attributes": return prisma.productAttribute.findMany({...paging, where:{name:search},orderBy:[{name:"asc"},{id:"asc"}]});
+    case "variants": return prisma.productVariant.findMany({...paging, where:{title:search, active:active},orderBy:[{title:"asc"},{id:"asc"}]});
+    case "coupons": return prisma.coupon.findMany({...paging, where:{code:search, active:active},orderBy:[{code:"asc"},{id:"asc"}]});
+    case "zones": return prisma.shippingZone.findMany({...paging, where:{name:search},orderBy:[{name:"asc"},{id:"asc"}]});
+    case "methods": return prisma.shippingMethod.findMany({...paging, where:{title:search, active:active},orderBy:[{title:"asc"},{id:"asc"}]});
+    case "taxes": return prisma.taxRate.findMany({...paging, where:{name:search, active:active},orderBy:[{name:"asc"},{id:"asc"}]});
     default:return [];
   }
 }
-async function Catalog({kind}:{kind:string}){
+async function Catalog({kind,query}:{kind:string;query:ReturnType<typeof listParams>}){
   await requireStaff(kind==="coupons"?"manage_coupons":"manage_store");
-  const rows:Row[]=await catalog(kind);
+  const rows:Row[]=await catalog(kind,query);
   const [categories,products,zones]=await Promise.all([prisma.storeCategory.findMany(),prisma.storeProduct.findMany({select:{id:true,title:true}}),prisma.shippingZone.findMany()]);
   const choices:Record<string,[string,string][]>={categoryId:categories.map(x=>[x.id,x.name]),productId:products.map(x=>[x.id,x.title]),zoneId:zones.map(x=>[x.id,x.name])};
-  return <Panel title={labels[kind]}><div className="grid gap-3">{[{} as Row,...rows].map((r,i)=><details key={String(r.id??"new")} className="rounded-xl border border-line p-3"><summary className="cursor-pointer font-bold">{i===0?"افزودن "+labels[kind]:String(r.title??r.name??r.code??r.id)}</summary><ActionForm action={saveCatalog.bind(null,kind,String(r.id??""))} className="mt-4 grid gap-4 md:grid-cols-2">{fields[kind].map(([key,label,type="text",opts])=><label key={key} className="grid gap-1 text-sm font-semibold">{label}{type==="select"||type==="bool"?<select name={key} className={input} defaultValue={value(r,key,type)}>{(opts??choices[key]??[]).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>:["textarea","lines","json"].includes(type)?<textarea className={input} rows={4} name={key} defaultValue={value(r,key,type)}/>:<input className={input} type={type} name={key} defaultValue={value(r,key,type)}/>}</label>)}<div><button className={button}>ذخیره</button></div></ActionForm></details>)}</div></Panel>;
+  return <Panel title={labels[kind]}><ListControls query={query} options={["attributes","zones"].includes(kind)?[]:[["yes","فعال"],["no","غیرفعال"]]}/><div className="grid gap-3">{[{} as Row,...rows.slice(0,20)].map((r,i)=><details key={String(r.id??"new")} className="rounded-xl border border-line p-3"><summary className="cursor-pointer font-bold">{i===0?"افزودن "+labels[kind]:String(r.title??r.name??r.code??r.id)}</summary><ActionForm action={saveCatalog.bind(null,kind,String(r.id??""))} className="mt-4 grid gap-4 md:grid-cols-2">{fields[kind].map(([key,label,type="text",opts])=><label key={key} className="grid gap-1 text-sm font-semibold">{label}{type==="select"||type==="bool"?<select name={key} className={input} defaultValue={value(r,key,type)}>{(opts??choices[key]??[]).map(([k,l])=><option key={k} value={k}>{l}</option>)}</select>:["textarea","lines","json"].includes(type)?<textarea className={input} rows={4} name={key} defaultValue={value(r,key,type)}/>:<input className={input} type={type} name={key} defaultValue={value(r,key,type)}/>}</label>)}<div><button className={button}>ذخیره</button></div></ActionForm></details>)}</div><ListFooter query={query} count={rows.length}/></Panel>;
 }
 const aliases:Record<string,string>={posts:"blog",pages:"landings",homepage:"content",menus:"menu",library:"pricing",leads:"messages"};
-export default async function SectionPage({params}:{params:Promise<{section?:string[]}>}){
+export default async function SectionPage({params,searchParams}:{params:Promise<{section?:string[]}>;searchParams:Promise<ListQuery>}){
+  const query=listParams(await searchParams);
+  const paging={skip:(query.page-1)*20,take:21};
+  const search={contains:query.q,mode:"insensitive" as const};
   const path=(await params).section?.join("/")??"";
   if(Object.hasOwn(aliases,path))redirect("/admin/"+aliases[path]);
   if(path==="settings/payments")redirect("/admin/settings");
   const kind=path.startsWith("store/")?path.slice(6):path;
-  if(kind==="shipping")return <><PageHeader title="حمل‌ونقل و مالیات"/><div className="grid gap-5">{["zones","methods","taxes"].map(k=><Catalog key={k} kind={k}/>)}</div></>;
-  if(Object.hasOwn(fields,kind))return <><PageHeader title={labels[kind]} actions={kind==="products"?<Link href="/admin/store/variants">مدیریت تنوع</Link>:undefined}/><Catalog kind={kind}/></>;
+  if(kind==="shipping")return <><PageHeader title="حمل‌ونقل و مالیات"/><div className="grid gap-5">{["zones","methods","taxes"].map(k=><Catalog key={k} kind={k} query={query}/>)}</div></>;
+  if(Object.hasOwn(fields,kind))return <><PageHeader title={labels[kind]} actions={kind==="products"?<Link href="/admin/store/variants">مدیریت تنوع</Link>:undefined}/><Catalog kind={kind} query={query}/></>;
   if(path==="reports"){
     await requireStaff("view_reports");
     const rows=await prisma.order.groupBy({by:["paymentStatus"],_sum:{totalRial:true,refundedRial:true},_count:{_all:true}});
@@ -70,21 +77,21 @@ export default async function SectionPage({params}:{params:Promise<{section?:str
   }
   if(path==="orders"){
     await requireStaff("manage_orders");
-    const orders=await prisma.order.findMany({orderBy:{createdAt:"desc"},take:100,select:{id:true,number:true,name:true,status:true,paymentStatus:true,totalRial:true,createdAt:true}});
-    return <><PageHeader title="سفارش‌ها"/><Panel><div className="grid gap-2">{orders.map(o=><Link className="flex flex-wrap justify-between rounded-xl border border-line p-3" href={"/admin/orders/"+o.id} key={o.id}><strong>#{o.number} · {o.name}</strong><span>{statusLabel(o.status)} · {formatToman(o.totalRial)}</span></Link>)}</div></Panel></>;
+    const orders=await prisma.order.findMany({...paging,where:{status:query.status || undefined,OR:[{name:search},...(/^\d{1,9}$/.test(query.q)?[{number:Number(query.q)}]:[])]},orderBy:[{createdAt:"desc"},{id:"asc"}],select:{id:true,number:true,name:true,status:true,paymentStatus:true,totalRial:true,createdAt:true}});
+    return <><PageHeader title="سفارش‌ها"/><Panel><ListControls query={query} options={Object.entries(ORDER_STATUSES).map(([key,o])=>[key,o.label])}/><Table><thead><tr><Th>سفارش</Th><Th>مشتری</Th><Th>وضعیت</Th><Th>مبلغ</Th><Th>عملیات</Th></tr></thead><tbody>{orders.slice(0,20).map(o=><tr key={o.id}><Td>{o.number.toLocaleString("fa-IR")}</Td><Td>{o.name}</Td><Td>{statusLabel(o.status)}</Td><Td>{formatToman(o.totalRial)}</Td><Td><Link className="btn btn-outline btn-sm" href={"/admin/orders/"+o.id}>مشاهده سفارش</Link></Td></tr>)}</tbody></Table><ListFooter query={query} count={orders.length}/></Panel></>;
   }
   if(path.startsWith("orders/")){
     const user=await requireStaff("manage_orders"); const o=await prisma.order.findUnique({where:{id:path.split("/")[1]},include:{items:true,notes:true,refunds:true}});if(!o)notFound();
-    return <><PageHeader title={"سفارش "+o.number} back={{href:"/admin/orders",label:"سفارش‌ها"}}/><Panel title={o.name}><p>{statusLabel(o.status)} · {formatToman(o.totalRial)}</p><ul>{o.items.map(i=><li key={i.id}>{i.title} × {i.quantity} · {formatToman(i.totalRial)}</li>)}</ul><ActionForm action={manageRecord.bind(null,"orderStatus",o.id)}><select name="status" className={input} defaultValue={o.status}>{Object.entries(ORDER_STATUSES).filter(([k])=>canTransition(o.status,k)&&k!=="refunded").map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><button className={button}>تغییر وضعیت</button></ActionForm><ActionForm action={manageRecord.bind(null,"note",o.id)}><textarea name="body" className={input} required placeholder="یادداشت داخلی"/><button className={button}>ثبت یادداشت</button></ActionForm>{o.notes.map(n=><p key={n.id}>{n.body}</p>)}{["admin","shop_manager"].includes(user.role)&&<ActionForm action={manageRecord.bind(null,"refund",o.id)}><input name="amount" className={input} placeholder="مبلغ بازپرداخت انجام‌شده (تومان)" required/><input name="body" className={input} placeholder="دلیل" required/><label><input type="checkbox" name="confirmed" required/> بازپرداخت خارج از سامانه انجام شده است</label><button className={button}>ثبت بازپرداخت دستی</button></ActionForm>}</Panel></>;
+    return <><PageHeader title={"سفارش "+o.number} back={{href:"/admin/orders",label:"سفارش‌ها"}}/><Panel title={o.name}><p>{statusLabel(o.status)} · {formatToman(o.totalRial)}</p><ul>{o.items.map(i=><li key={i.id}>{i.title} × {i.quantity} · {formatToman(i.totalRial)}</li>)}</ul><ActionForm action={manageRecord.bind(null,"orderStatus",o.id)}><select aria-label="وضعیت" name="status" className={input} defaultValue={o.status}>{Object.entries(ORDER_STATUSES).filter(([k])=>canTransition(o.status,k)&&k!=="refunded").map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><button className={button}>تغییر وضعیت</button></ActionForm><ActionForm action={manageRecord.bind(null,"note",o.id)}><textarea name="body" className={input} required placeholder="یادداشت داخلی"/><button className={button}>ثبت یادداشت</button></ActionForm>{o.notes.map(n=><p key={n.id}>{n.body}</p>)}{["admin","shop_manager"].includes(user.role)&&<ActionForm action={manageRecord.bind(null,"refund",o.id)}><input name="amount" className={input} placeholder="مبلغ بازپرداخت انجام‌شده (تومان)" required/><input name="body" className={input} placeholder="دلیل" required/><label><input type="checkbox" name="confirmed" required/> بازپرداخت خارج از سامانه انجام شده است</label><button className={button}>ثبت بازپرداخت دستی</button></ActionForm>}</Panel></>;
   }
   if(path==="comments"){
-    await requireStaff("moderate_comments");const rows=await prisma.comment.findMany({orderBy:{createdAt:"desc"},take:100});
-    return <><PageHeader title="نظرات و بررسی‌ها"/><Panel>{rows.map(r=><ActionForm key={r.id} action={manageRecord.bind(null,"comment",r.id)} className="border-b border-line py-3"><strong>{r.name}</strong><p>{r.body}</p><select name="status" className={input} defaultValue={r.status}>{Object.entries(COMMENT_STATUSES).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><button className={button}>ذخیره وضعیت</button></ActionForm>)}</Panel></>;
+    await requireStaff("moderate_comments");const rows=await prisma.comment.findMany({...paging,where:{status:query.status || undefined,OR:[{name:search},{body:search}]},orderBy:[{createdAt:"desc"},{id:"asc"}]});
+    return <><PageHeader title="نظرات و بررسی‌ها"/><Panel><ListControls query={query} options={Object.entries(COMMENT_STATUSES).map(([key,v])=>[key,v.label])}/>{rows.slice(0,20).map(r=><ActionForm key={r.id} action={manageRecord.bind(null,"comment",r.id)} className="border-b border-line py-3"><strong>{r.name}</strong><p>{r.body}</p><select aria-label="وضعیت" name="status" className={input} defaultValue={r.status}>{Object.entries(COMMENT_STATUSES).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</select><button className={button}>ذخیره وضعیت</button></ActionForm>)}<ListFooter query={query} count={rows.length}/></Panel></>;
   }
   if(path==="customers"){
-    await requireStaff("manage_customers");const rows=await prisma.customer.findMany({take:100,select:{id:true,name:true,mobile:true,blocked:true,note:true}});
-    return <><PageHeader title="مشتریان"/><Panel>{rows.map(r=><ActionForm key={r.id} action={manageRecord.bind(null,"customer",r.id)} className="border-b border-line py-3"><strong>{r.name} · {r.mobile}</strong><textarea className={input} name="body" defaultValue={r.note}/><label><input name="blocked" type="checkbox" defaultChecked={r.blocked}/> مسدود</label><button className={button}>ذخیره</button></ActionForm>)}</Panel></>;
+    await requireStaff("manage_customers");const rows=await prisma.customer.findMany({...paging,where:{blocked:query.status==="blocked"?true:query.status==="active"?false:undefined,OR:[{name:search},{mobile:search}]},orderBy:[{createdAt:"desc"},{id:"asc"}],select:{id:true,name:true,mobile:true,blocked:true,note:true}});
+    return <><PageHeader title="مشتریان"/><Panel><ListControls query={query} options={[["active","فعال"],["blocked","مسدود"]]}/>{rows.slice(0,20).map(r=><ActionForm key={r.id} action={manageRecord.bind(null,"customer",r.id)} className="border-b border-line py-3"><strong>{r.name} · {r.mobile}</strong><textarea aria-label="یادداشت مشتری" className={input} name="body" defaultValue={r.note}/><label><input name="blocked" type="checkbox" defaultChecked={r.blocked}/> مسدود</label><button className={button}>ذخیره</button></ActionForm>)}<ListFooter query={query} count={rows.length}/></Panel></>;
   }
-  if(path==="activity"){await requireStaff("view_activity");const rows=await prisma.activityLog.findMany({orderBy:{createdAt:"desc"},take:100});return <><PageHeader title="گزارش فعالیت"/><Panel>{rows.map(r=><p className="border-b border-line py-2" key={r.id}>{r.userName} · {r.action} · {r.entity} · {r.createdAt.toLocaleString("fa-IR")}</p>)}</Panel></>;}
+  if(path==="activity"){await requireStaff("view_activity");const rows=await prisma.activityLog.findMany({...paging,where:{OR:[{userName:search},{action:search},{entity:search}]},orderBy:[{createdAt:"desc"},{id:"asc"}]});return <><PageHeader title="گزارش فعالیت"/><Panel><ListControls query={query}/>{rows.slice(0,20).map(r=><p className="border-b border-line py-2" key={r.id}>{r.userName} · {r.action} · {r.entity} · {r.createdAt.toLocaleString("fa-IR")}</p>)}<ListFooter query={query} count={rows.length}/></Panel></>;}
   notFound();
 }

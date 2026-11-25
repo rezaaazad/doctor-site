@@ -1,3 +1,4 @@
+import { ListControls, ListFooter, listParams, type ListQuery } from "@/components/admin/list-controls";
 import { requireStaff } from "@/lib/auth";
 import { MediaAltForm } from "@/components/admin/record-forms";
 import { UploadButton } from "@/components/admin/settings-forms";
@@ -6,19 +7,21 @@ import { prisma } from "@/lib/db";
 import { ActionForm } from "@/components/admin/forms";
 import { cropImage } from "@/lib/actions/admin/content";
 
-export default async function MediaPage() {
+export default async function MediaPage({searchParams}:{searchParams:Promise<ListQuery>}) {
   await requireStaff("manage_media");
-  const media = await prisma.media.findMany({ orderBy: { createdAt: "desc" } });
+  const query=listParams(await searchParams);
+  const media = await prisma.media.findMany({skip:(query.page-1)*20,take:21,where:{filename:{contains:query.q,mode:"insensitive"},isPrivate:query.status==="yes"?true:query.status==="no"?false:undefined}, orderBy: { createdAt: "desc" } });
   return (
     <div className="grid gap-8">
       <div>
         <h1 className="text-3xl font-black">رسانه</h1>
+      <ListControls query={query} options={[["yes","خصوصی"],["no","عمومی"]]}/>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-muted">فایل‌ها روی دیسک پایدار می‌مانند و از مسیر /media سرو می‌شوند. SVG پذیرفته نمی‌شود.</p>
       </div>
       <UploadButton />
       {media.length === 0 ? <p className="text-sm text-muted">کتابخانه خالی است.</p> : (
         <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {media.map((item) => (
+          {media.slice(0,20).map((item) => (
             <li key={item.id} className="grid gap-3 rounded-3xl border border-line p-3">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={`/media/${item.storedName}`} alt={item.alt} className="h-40 w-full rounded-2xl object-cover" />
@@ -41,6 +44,7 @@ export default async function MediaPage() {
           ))}
         </ul>
       )}
-    </div>
+    <ListFooter query={query} count={media.length}/>
+</div>
   );
 }

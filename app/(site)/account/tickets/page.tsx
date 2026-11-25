@@ -17,7 +17,7 @@ export default async function TicketsPage() {
   const tickets = await prisma.ticket.findMany({ where: { customerId: customer.id }, orderBy: { updatedAt: "desc" } });
   return (
     <div className="grid gap-6">
-      <NewTicketForm />
+
       <section className="card p-5">
         <h1 className="mb-4 font-display text-[1.35rem] font-extrabold">تیکت‌های من</h1>
         {tickets.length === 0 ? (
@@ -35,6 +35,7 @@ export default async function TicketsPage() {
           </ul>
         )}
       </section>
+      <div id="new-ticket"><NewTicketForm /></div>
     </div>
   );
 }

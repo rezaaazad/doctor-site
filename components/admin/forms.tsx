@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, Search, Trash2, Upload, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { AdminState } from "@/lib/admin/action";
+import { useAdminFeedback } from "./feedback";
 import { FormMessage } from "@/components/ui/form";
 import { Dialog,DialogContent,DialogTitle,DialogDescription,DialogClose } from "@/components/ui/dialog";
 
@@ -32,6 +33,7 @@ export function ActionForm({
   id?: string;
 }) {
   const [state, formAction] = useActionState(action, null as AdminState);
+  useAdminFeedback(state);
   const ref = useRef<HTMLFormElement>(null);
   const router = useRouter();
   useEffect(() => {
@@ -42,7 +44,7 @@ export function ActionForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
   return (
-    <form ref={ref} id={id} action={formAction} className={cn("grid gap-4", className)}>
+    <form ref={ref} id={id} action={formAction} className={cn("admin-edit-form grid gap-4", className)}>
       {messagePosition === "top" ? <FormMessage state={state} /> : null}
       <FieldErrors state={state} />
       {children}

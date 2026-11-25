@@ -196,7 +196,7 @@ export function FilterBar({
       {search ? (
         <label className="relative min-w-[200px] flex-1 md:max-w-sm">
           <Search className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted" aria-hidden />
-          <input name="q" defaultValue={params.q ?? ""} placeholder={placeholder} className="input !min-h-10 !pr-9" />
+          <input aria-label={placeholder} name="q" defaultValue={params.q ?? ""} placeholder={placeholder} className="input !min-h-10 !pr-9" />
         </label>
       ) : null}
       {selects.map((s) => (

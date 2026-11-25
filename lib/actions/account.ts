@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { getCustomer, logoutCustomer, requireCustomer } from "@/lib/customer-auth";
 import { PROVINCES } from "@/lib/iran";
-import { normalizeMobile } from "@/lib/money";
+import { normalizeMobile, toLatinDigits } from "@/lib/money";
 import { RequestError } from "@/lib/utils";
 import { recomputeProductRating } from "@/lib/store/reviews";
 
@@ -15,8 +15,12 @@ export async function saveAccountDetailsAction(_prev: unknown, formData: FormDat
   const customer = await requireCustomer("/account/details");
   const name = trim(formData.get("name"), 120);
   const email = trim(formData.get("email"), 160);
-  const nationalCode = trim(formData.get("nationalCode"), 20).replace(/\D/g, "");
+  const nationalCode = toLatinDigits(trim(formData.get("nationalCode"), 20));
   const smsOptIn = ["1", "on", "true"].includes(String(formData.get("smsOptIn") ?? ""));
+  const errors:Record<string,string>={};
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email="نشانی ایمیل را کامل وارد کنید.";
+  if(nationalCode && !/^\d{10}$/.test(nationalCode)) errors.nationalCode="کد ملی باید ۱۰ رقم باشد.";
+  if(Object.keys(errors).length) return {ok:false,errors,values:{name,email,nationalCode},message:"اطلاعات مشخص‌شده را بررسی کنید."};
   await prisma.customer.update({
     where: { id: customer.id },
     data: { name, email, nationalCode, smsOptIn },
@@ -33,11 +37,17 @@ export async function saveAddressAction(_prev: unknown, formData: FormData) {
   const province = trim(formData.get("province"), 40);
   const city = trim(formData.get("city"), 80);
   const line = trim(formData.get("line"), 500);
-  const postalCode = trim(formData.get("postalCode"), 20).replace(/\D/g, "");
+  const postalCode = toLatinDigits(trim(formData.get("postalCode"), 20));
   const title = trim(formData.get("title"), 60);
   const isDefault = ["1", "on", "true"].includes(String(formData.get("isDefault") ?? ""));
-  if (!receiver || !mobile || !province || !city || !line) throw new RequestError("فیلدهای ستاره‌دار را پر کنید.");
-  if (!(PROVINCES as readonly string[]).includes(province)) throw new RequestError("استان نامعتبر است.");
+  const errors:Record<string,string>={};
+  if(!receiver) errors.receiver="نام گیرنده را وارد کنید.";
+  if(!mobile) errors.mobile="شماره موبایل گیرنده معتبر نیست.";
+  if(!(PROVINCES as readonly string[]).includes(province)) errors.province="استان را انتخاب کنید.";
+  if(!city) errors.city="نام شهر را وارد کنید.";
+  if(!line) errors.line="نشانی تحویل را وارد کنید.";
+  if(postalCode && !/^\d{10}$/.test(postalCode)) errors.postalCode="کد پستی باید ۱۰ رقم باشد.";
+  if(Object.keys(errors).length) return {ok:false,errors,values:{title,receiver,mobile:trim(formData.get("mobile"),20),province,city,line,postalCode},message:"اطلاعات مشخص‌شده را بررسی کنید."};
   if (isDefault) await prisma.address.updateMany({ where: { customerId: customer.id }, data: { isDefault: false } });
   if (id) {
     await prisma.address.updateMany({ where: { id, customerId: customer.id }, data: { receiver, mobile, province, city, line, postalCode, title, isDefault } });
@@ -157,9 +167,9 @@ export async function accountDashboardData() {
   const [orders, unread, tickets, wishlist, downloads] = await Promise.all([
     prisma.order.count({ where: { customerId: customer.id } }),
     prisma.notification.count({ where: { customerId: customer.id, readAt: null } }),
-    prisma.ticket.count({ where: { customerId: customer.id, status: { in: ["open", "answered"] } } }),
+    prisma.ticket.count({ where: { customerId: customer.id, status: { not: "closed" } } }),
     prisma.wishlistItem.count({ where: { customerId: customer.id } }),
-    prisma.downloadGrant.count({ where: { order: { customerId: customer.id }, remaining: { gt: 0 } } }),
+    prisma.downloadGrant.count({ where: { order: { customerId: customer.id }, remaining: { gt: 0 }, OR:[{expiresAt:null},{expiresAt:{gt:new Date()}}] } }),
   ]);
   return { orders, unread, tickets, wishlist, downloads, wallet: Number(customer.walletRial) };
 }

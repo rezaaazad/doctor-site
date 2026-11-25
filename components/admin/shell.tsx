@@ -40,6 +40,7 @@ import {
   Briefcase,
   Sparkles,
 } from "lucide-react";
+import { AdminFeedback } from "./feedback";
 import { cn } from "@/lib/utils";
 import type { AdminNavGroup } from "@/lib/admin/nav";
 import { logoutStaffAction } from "@/lib/actions/admin/session";
@@ -104,6 +105,7 @@ export function AdminShell({ user, nav, badges, siteName, children }: ShellProps
   const all = nav.flatMap((g) => g.items.map((i) => i.href));
   useEffect(() => setOpen(false), [pathname]);
 
+  const current = nav.flatMap(g=>g.items).filter(item=>isActive(pathname,item.href,all))[0];
   const sidebar = (
     <div className="flex h-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between gap-3 px-5">
@@ -132,7 +134,7 @@ export function AdminShell({ user, nav, badges, siteName, children }: ShellProps
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      title={item.label}
+                      aria-label={item.label} title={item.label}
                       className={cn(
                         "group flex h-10 items-center gap-3 rounded-xl px-3 text-[0.86rem] font-medium transition-colors",
                         active ? "bg-white text-ink shadow-[0_6px_20px_-8px_rgba(0,0,0,0.5)]" : "text-white/70 hover:bg-white/[0.07] hover:text-white",
@@ -172,6 +174,7 @@ export function AdminShell({ user, nav, badges, siteName, children }: ShellProps
 
   return (
     <div className={cn("admin min-h-[100svh] bg-bg text-fg lg:grid",collapsed?"lg:grid-cols-[76px_minmax(0,1fr)]":"lg:grid-cols-[264px_minmax(0,1fr)]")}>
+      <AdminFeedback/>
       <aside className="sticky top-0 hidden h-[100svh] bg-ink lg:block">{sidebar}</aside>
       <Drawer open={open} onOpenChange={setOpen} title="منوی مدیریت" className="!bg-ink">{sidebar}</Drawer>
       <div className="min-w-0">
@@ -180,20 +183,20 @@ export function AdminShell({ user, nav, badges, siteName, children }: ShellProps
             <Menu className="size-5" />
           </button>
           <button type="button" className="btn btn-ghost btn-icon hidden lg:inline-flex" onClick={()=>setCollapsed(v=>!v)} aria-label={collapsed?"گسترش منو":"جمع کردن منو"} aria-expanded={!collapsed}><Menu className="size-5"/></button>
-          <form action="/admin/search" className="relative hidden max-w-md flex-1 md:block" onSubmit={e=>{if(matches.length&&query.trim()){e.preventDefault();const link=e.currentTarget.querySelector<HTMLAnchorElement>("[data-search-match]");link?.click();}}}>
+          <form action="/admin/search" className="relative min-w-0 max-w-md flex-1" onSubmit={e=>{e.preventDefault();if(matches.length&&query.trim()){const link=e.currentTarget.querySelector<HTMLAnchorElement>("[data-search-match]");link?.click();}}}>
             <Search className="pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2 text-muted" />
-            <input name="q" value={query} onChange={e=>setQuery(e.target.value)} aria-label="جستجوی مدیریت" placeholder="جستجوی بخش‌های مدیریت…" className="input !min-h-10 !rounded-xl !bg-sunken !pr-9 !text-[0.88rem]" />
-            {query.trim()&&matches.length>0&&<div className="card-raised absolute inset-x-0 top-full z-40 mt-2 p-2">{matches.map(i=><Link data-search-match key={i.href} href={i.href} onClick={()=>setQuery("")} className="block rounded-lg p-2 text-sm hover:bg-sunken">{i.label}</Link>)}</div>}
+            <input name="q" value={query} onKeyDown={e=>{if(e.key==="Escape")setQuery("")}} onChange={e=>setQuery(e.target.value)} aria-label="جستجوی مدیریت" placeholder="جستجوی بخش‌های مدیریت…" className="input !min-h-10 !rounded-xl !bg-sunken !pr-9 !text-[0.88rem]" />
+            {query.trim()&&!matches.length&&<p role="status" className="card-raised absolute top-full z-40 w-full p-2 text-sm">بخشی پیدا نشد.</p>}{query.trim()&&matches.length>0&&<div className="card-raised absolute inset-x-0 top-full z-40 mt-2 p-2">{matches.map(i=><Link data-search-match key={i.href} href={i.href} onClick={()=>setQuery("")} className="block rounded-lg p-2 text-sm hover:bg-sunken">{i.label}</Link>)}</div>}
           </form>
-          <div className="flex-1 md:hidden" />
+
           <details className="relative"><summary className="btn btn-outline btn-sm list-none" aria-label="اعلان‌های مدیریت"><Inbox className="size-4"/><span className="num">{alerts.reduce((n,i)=>n+(i.badge?badges[i.badge]??0:0),0).toLocaleString("fa-IR")}</span></summary><div className="card-raised absolute left-0 top-full z-50 mt-2 w-56 p-3">{alerts.length?alerts.map(i=><Link key={i.href} href={i.href} className="flex justify-between p-2 text-sm hover:bg-sunken">{i.label}<b>{i.badge&&badges[i.badge]?.toLocaleString("fa-IR")}</b></Link>):<p className="text-sm text-muted">اعلان جدیدی ندارید.</p>}</div></details>
-          <span className="hidden text-sm font-semibold text-muted sm:block">{user.name}</span>
+          <details className="staff-profile"><summary aria-label="منوی کاربر">{user.name || "حساب من"}</summary><div><small>{user.roleLabel}</small><span dir="ltr">{user.email}</span>{all.includes("/admin/profile") && <Link href="/admin/profile">هویت و تماس سایت</Link>}<form action={logoutStaffAction}><button>خروج از حساب</button></form></div></details>
           <Link href="/" target="_blank" className="btn btn-outline btn-sm">
             <ExternalLink className="size-4" />
             <span className="hidden sm:inline">مشاهده سایت</span>
           </Link>
         </header>
-        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">{children}</main>
+        <main className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-6 md:py-8">{pathname!=="/admin" && <nav className="staff-crumb" aria-label="مسیر صفحه"><Link href="/admin">پیشخوان</Link><span aria-hidden>‹</span>{current && current.href!==pathname ? <><Link href={current.href}>{current.label}</Link><span aria-hidden>‹</span><span>جزئیات</span></> : <span>{current?.label || "مدیریت"}</span>}</nav>}{children}</main>
       </div>
     </div>
   );

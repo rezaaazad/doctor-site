@@ -1,3 +1,4 @@
+import { PrintInvoice } from "@/components/account/print-invoice";
 import { notFound } from "next/navigation";
 import { requireCustomer } from "@/lib/customer-auth";
 import { prisma } from "@/lib/db";
@@ -46,7 +47,7 @@ export default async function InvoicePage({ params }: Props) {
         </tbody>
       </table>
       <footer className="mt-6 text-left text-sm font-bold">جمع کل: {formatToman(order.totalRial)}</footer>
-      <p className="mt-8 text-sm text-muted print:hidden">برای چاپ از Ctrl+P یا منوی چاپ مرورگر استفاده کنید.</p>
+      <PrintInvoice/>
     </div>
   );
 }
