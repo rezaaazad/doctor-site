@@ -1,3 +1,4 @@
+import { decodeRouteSlug } from "@/lib/route-slug";
 import { PhotoSlot } from "@/components/ui/photo-slot";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -14,7 +15,7 @@ import { parseBlocks } from "@/lib/blocks";
 type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const post = await findPublicBlogPost(slug);
   if (!post) notFound();
   const site = await getSiteSafe();
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function BlogPostPage({ params }: Params) {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const [post, site] = await Promise.all([findPublicBlogPost(slug), getSiteSafe()]);
   if (!post) notFound();
   const blocks = parseBlocks(post.blocks);

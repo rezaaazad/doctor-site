@@ -1,3 +1,4 @@
+import { decodeRouteSlug } from "@/lib/route-slug";
 import { readAddons, type Addon } from "./addons";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -266,7 +267,7 @@ export async function productCards(where: Prisma.StoreProductWhereInput, orderBy
 }
 
 export async function getProduct(slug: string) {
-  const row = await prisma.storeProduct.findUnique({ where: { slug }, include: productInclude });
+  const row = await prisma.storeProduct.findUnique({ where: { slug: decodeRouteSlug(slug) }, include: productInclude });
   if (!row || !row.published || !["digital","service"].includes(row.type)) return null;
   return toDetail(row);
 }
