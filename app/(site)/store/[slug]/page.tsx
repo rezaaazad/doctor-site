@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const product = await getProduct(slug);
   if (!product) notFound();
   return buildMetadata({
-    path: `/store/${slug}`,
+    path: `/store/${product.slug}`,
     image: product.image,
     title: product.seoTitle || product.title,
     description: product.seoDescription || product.summary,

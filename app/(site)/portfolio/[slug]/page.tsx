@@ -1,3 +1,4 @@
+import { decodeRouteSlug } from "@/lib/route-slug";
 import { PhotoSlot } from "@/components/ui/photo-slot";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -11,7 +12,7 @@ import { siteUrl } from "@/lib/utils";
 type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const site = await getSiteSafe();
   const project = site.projects.find((item) => item.slug === slug);
   if (!project) return {};
@@ -31,7 +32,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function ProjectPage({ params }: Params) {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const [site, locale] = await Promise.all([getSiteSafe(), getLocale()]);
   const index = site.projects.findIndex((item) => item.slug === slug);
   const project = site.projects[index];

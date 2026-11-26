@@ -1,3 +1,4 @@
+import { decodeRouteSlug } from "@/lib/route-slug";
 import { PhotoSlot } from "@/components/ui/photo-slot";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -14,7 +15,7 @@ import { paragraphs } from "@/lib/text";
 type Params = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const page = await findPublicLandingPage(slug);
   if (!page) notFound();
   const site = await getSiteSafe();
@@ -33,7 +34,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 }
 
 export default async function LandingRoute({ params }: Params) {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const page = await findPublicLandingPage(slug);
   if (!page) notFound();
   const site = await getSiteSafe();

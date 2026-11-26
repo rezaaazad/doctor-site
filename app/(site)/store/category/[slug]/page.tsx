@@ -1,3 +1,4 @@
+import { decodeRouteSlug } from "@/lib/route-slug";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { CatalogListing } from "@/components/store/catalog-listing";
@@ -13,7 +14,7 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const cat = await prisma.storeCategory.findUnique({ where: { slug, visible: true } });
   if (!cat) notFound();
   return buildMetadata({
@@ -24,7 +25,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const { slug } = await params;
+  const slug = decodeRouteSlug((await params).slug);
   const category = await prisma.storeCategory.findUnique({ where: { slug, visible: true } });
   if (!category) notFound();
   const search = await searchParams;
