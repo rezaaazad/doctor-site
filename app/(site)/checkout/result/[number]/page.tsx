@@ -1,3 +1,4 @@
+import {labels} from "@/lib/licenses/delivery";
 import {ProjectBrief} from "@/components/store/project-brief";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -23,7 +24,7 @@ export default async function CheckoutResultPage({ params, searchParams }: Props
 
   const msg = typeof sp.msg === "string" ? sp.msg : "";
   if (!Number.isSafeInteger(number) || number<=0 || !accessKey) notFound();
-  const order = await prisma.order.findUnique({ where: { number, accessKey }, include: { items: {include:{product:{select:{briefSchema:true}}}} } });
+  const order = await prisma.order.findUnique({ where: { number, accessKey }, include: { items: {include:{licensePurchase:{include:{license:true}},product:{select:{briefSchema:true}}}} } });
   if (!order) notFound();
   const success = order.paymentStatus === "paid";
 
@@ -38,6 +39,7 @@ export default async function CheckoutResultPage({ params, searchParams }: Props
           <Row label="وضعیت" value={order.status} />
           <Row label="موبایل" value={order.mobile} />
         </dl>
+        {order.items.map(item=>item.licensePurchase && <p key={item.id}>{item.title} · {item.licensePurchase.license.blocked?"تحویل متوقف شده":labels[item.licensePurchase.license.state]} · <Link href="/account/downloads">دانلودهای من</Link></p>)}
         <ProjectBrief order={order} accessKey={accessKey}/>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link href={`/account/orders/${order.id}`} className="btn btn-primary">

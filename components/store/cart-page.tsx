@@ -25,7 +25,7 @@ export function CartPageClient() {
     <div className="grid gap-6 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:grid-cols-[minmax(0,1fr)_320px] lg:pb-0">
       <ul className="card divide-y divide-line">
         {lines.map((line) => (
-          <li key={JSON.stringify([line.productId,line.variantId,line.addonIds])} className="flex flex-wrap gap-4 p-4 md:flex-nowrap">
+          <li key={JSON.stringify([line.productId,line.variantId,line.addonIds,line.host,line.renewalId])} className="flex flex-wrap gap-4 p-4 md:flex-nowrap">
             <Link href={`/store/${line.slug}`} className="size-24 shrink-0 overflow-hidden rounded-xl bg-sunken">
               <ProductImage product={{ image: line.image, slug: line.slug, title: line.title, type: line.type }} className="size-full" sizes="96px" />
             </Link>
@@ -33,7 +33,7 @@ export function CartPageClient() {
               <Link href={`/store/${line.slug}`} className="font-bold hover:text-primary">
                 {line.title}
               </Link>
-              {line.addonTitles?.join("، ")} {line.variantTitle ? <p className="mt-0.5 text-[0.8rem] text-muted">{line.variantTitle}</p> : null}
+              {line.host && <bdi className="block" dir="ltr">{line.host}</bdi>}{line.addonTitles?.join("، ")} {line.variantTitle ? <p className="mt-0.5 text-[0.8rem] text-muted">{line.variantTitle}</p> : null}
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 <label className="flex items-center gap-2 text-[0.8rem] font-semibold">
                   تعداد
@@ -42,12 +42,12 @@ export function CartPageClient() {
                     min={1}
                     max={line.max}
                     value={line.quantity}
-                    onChange={(e) => setQuantity(line.productId, line.variantId, Number(e.target.value) || 1, line.addonIds)}
+                    onChange={(e) => setQuantity(line.productId, line.variantId, Number(e.target.value) || 1, line.addonIds,line.host,line.renewalId)}
                     className="field w-16 text-center text-base"
                     dir="ltr"
                   />
                 </label>
-                <button type="button" onClick={() => remove(line.productId, line.variantId,line.addonIds)} className="btn btn-ghost btn-sm text-urgency" aria-label="حذف">
+                <button type="button" onClick={() => remove(line.productId, line.variantId,line.addonIds,line.host,line.renewalId)} className="btn btn-ghost btn-sm text-urgency" aria-label="حذف">
                   <Trash2 className="size-4" />
                   حذف
                 </button>

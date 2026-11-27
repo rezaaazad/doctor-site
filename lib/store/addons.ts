@@ -30,6 +30,7 @@ export function cartKey(
   productId: string,
   variantId?: string | null,
   ids: string[] = [],
+  host = "", renewalId = "",
 ) {
-  return JSON.stringify([productId, variantId || "", [...new Set(ids)].sort()]);
+  return JSON.stringify([productId, variantId || "", [...new Set(ids)].sort(),host,renewalId]);
 }

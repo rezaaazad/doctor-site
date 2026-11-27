@@ -34,6 +34,7 @@ export type ProductCard = {
 };
 
 export type VariantView = {
+  pluginDays:number;pluginTier:string;
   id: string;
   title: string;
   sku: string;
@@ -46,6 +47,7 @@ export type VariantView = {
 };
 
 export type ProductDetail = ProductCard & {
+  licensedPlugin:boolean;
   description: string;
   blocks: unknown;
   specs: Spec[];
@@ -98,6 +100,7 @@ export function readOptions(value: unknown): ProductOption[] {
 function variantView(variant: ProductRow["variants"][number], manageStock: boolean, allowBackorder: boolean): VariantView {
   const values = Object.fromEntries(Object.entries(asObject(variant.values)).map(([k, v]) => [k, String(v)]));
   return {
+    pluginDays:variant.pluginDays,pluginTier:variant.pluginTier,
     id: variant.id,
     title: variant.title,
     sku: variant.sku,
@@ -150,6 +153,7 @@ export function toCard(row: ProductRow, lowStockThreshold = 3): ProductCard {
 export function toDetail(row: ProductRow, lowStockThreshold = 3): ProductDetail {
   return {
     ...toCard(row, lowStockThreshold),
+    licensedPlugin:row.licensedPlugin,
     description: row.description,
     blocks: row.blocks,
     specs: readSpecs(row.specs),

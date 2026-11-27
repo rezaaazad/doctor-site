@@ -1,5 +1,6 @@
 "use client";
 
+import {licenseHost} from "@/lib/licenses/domain";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ShieldCheck, BriefcaseBusiness } from "lucide-react";
@@ -28,17 +29,17 @@ function matchingVariant(variants: VariantView[], selected: Record<string, strin
 }
 
 export function ProductBuy({
-  product,
+  product, renewal,
   wished,
   guarantee,
 }: {
-  product: ProductDetail;
+  product: ProductDetail;renewal?:{id:string;host:string;variantId:string};
   wished?: boolean;
   guarantee?: string;
 }) {
   const options = product.options;
   const [selected, setSelected] = useState<Record<string, string>>(() => {
-    const first = product.variants.find((v) => v.inStock) ?? product.variants[0];
+    const first = product.variants.find(v=>v.id===renewal?.variantId) ?? product.variants.find((v) => v.inStock) ?? product.variants[0];
     if (first) return first.values;
     const initial: Record<string, string> = {};
     for (const opt of options) initial[opt.name] = opt.values[0] ?? "";
@@ -58,8 +59,11 @@ export function ProductBuy({
       ? Math.max(1, variant?.stock ?? product.stock)
       : product.maxPerOrder || 99;
 
-  const maxQty = Math.min(product.maxPerOrder || 99, stockLimit);
+  const [rawHost,setRawHost]=useState(renewal?.host || "");
+  const host=licenseHost(rawHost);
+  const maxQty = product.licensedPlugin?1:Math.min(product.maxPerOrder || 99, stockLimit);
   const line = {
+    host:product.licensedPlugin?host:undefined,renewalId:renewal?.id,
     addonIds, addonTitles: addons.map(a => a.title),
     productId: product.id,
     variantId: variant?.id ?? null,
@@ -133,7 +137,7 @@ export function ProductBuy({
                   <button
                     key={val}
                     type="button"
-                    disabled={!available}
+                    disabled={!available || !!renewal}
                     aria-pressed={active}
                     onClick={() => {
                       if (available) {
@@ -159,6 +163,7 @@ export function ProductBuy({
         ))}
 
         {product.turnaroundLabel && <p>زمان تحویل: {product.turnaroundLabel}</p>}
+        {product.licensedPlugin && <section className="card grid gap-3 p-4"><h2>مجوز نصب روی یک دامنه</h2><p>نیازمند ووکامرس است. هزینه مصرف مدل و پیامک با خریدار است. پس از پرداخت، ZIP اختصاصی را از دانلودهای حساب خود بگیرید.</p><p>مدت اعتبار: {variant?.pluginDays.toLocaleString("fa-IR")} روز</p><label>دامنه فروشگاه ووکامرسی شما<input className="field w-full" dir="ltr" placeholder="shop.example.com" value={rawHost} readOnly={!!renewal} onChange={e=>setRawHost(e.target.value)}/></label><small>همان دامنه‌ای را وارد کنید که در آدرس اصلی وردپرس ثبت شده است.</small>{rawHost && !host && <p role="alert">دامنه معتبر وارد کنید؛ مسیر، پورت یا ایمیل قابل قبول نیست.</p>}<Link href={"/account/login?next="+encodeURIComponent("/store/"+product.slug)}>ورود به حساب برای دریافت لایسنس</Link></section>}
         {product.addons.length > 0 && <fieldset className="grid gap-2"><legend>خدمات تکمیلی</legend>{product.addons.map(a => <label key={a.id} className="flex min-h-[44px] items-center gap-3 rounded-xl border border-line p-3"><input type="checkbox" checked={addonIds.includes(a.id)} disabled={a.required} onChange={e => setAddonIds(ids => e.target.checked ? [...ids,a.id] : ids.filter(id => id !== a.id))}/><span>{a.title} {a.required && " (الزامی)"}<small className="block">{a.description}</small></span><span className="ms-auto">+{(Number(a.priceRial)/10).toLocaleString("fa-IR")} تومان</span></label>)}<output aria-live="polite">جمع: {((price * quantity)/10).toLocaleString("fa-IR")} تومان</output></fieldset>}
         {!inStock ? (
           <p className="rounded-xl bg-urgency-soft px-4 py-3 text-[0.88rem] font-bold text-urgency">
@@ -185,7 +190,7 @@ export function ProductBuy({
             variant="action"
             line={line}
             quantity={quantity}
-            disabled={!inStock}
+            disabled={!inStock || (product.licensedPlugin && (!host || !variant?.pluginTier))}
             size="lg"
             className="flex-1 min-w-[200px]"
             label={inStock ? "افزودن به سبد" : "ناموجود"}
@@ -220,7 +225,7 @@ export function ProductBuy({
             variant="action"
             line={line}
             quantity={quantity}
-            disabled={!inStock}
+            disabled={!inStock || (product.licensedPlugin && (!host || !variant?.pluginTier))}
             size="lg"
             className="shrink-0"
           />

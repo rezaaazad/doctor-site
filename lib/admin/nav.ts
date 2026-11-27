@@ -12,6 +12,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     label: "فروشگاه",
     items: [
+      { href:"/admin/licenses",label:"لایسنس‌های افزونه",icon:"products",cap:"manage_orders"},
       { href: "/admin/orders", label: "سفارش‌ها", icon: "orders", cap: "manage_orders", badge: "orders" },
       { href: "/admin/products", label: "محصولات", icon: "products", cap: "manage_store" },
       { href: "/admin/store/categories", label: "دسته‌بندی‌ها", icon: "categories", cap: "manage_store" },

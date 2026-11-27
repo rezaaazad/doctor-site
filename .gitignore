@@ -49,3 +49,5 @@ next-env.d.ts
 /tmp
 *.log
 scripts/dev/
+
+/private/

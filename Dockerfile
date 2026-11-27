@@ -16,7 +16,7 @@ RUN npx prisma generate && npm run build
 FROM node:22-bookworm-slim AS runner
 WORKDIR /app
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends openssl ca-certificates tini util-linux \
+  && apt-get install -y --no-install-recommends python3 openssl ca-certificates tini util-linux \
   && rm -rf /var/lib/apt/lists/* \
   && groupadd --system nodejs \
   && useradd --system --gid nodejs --home /home/nextjs --create-home nextjs
@@ -29,6 +29,7 @@ COPY --from=build /app/.next/static /app/.next/static
 COPY --from=build /app/public /app/public
 COPY --from=build /app/prisma /app/prisma
 COPY --from=build /app/assets /app/assets
+COPY scripts/licenses /app/scripts/licenses
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN rm -rf /app/node_modules
 COPY --from=build /app/node_modules /app/node_modules

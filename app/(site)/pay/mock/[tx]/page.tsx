@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { mockPayDecisionAction } from "@/lib/actions/shop";
+import { handleCallback, resultUrl } from "@/lib/payments";
 import { formatToman } from "@/lib/money";
 
 export const dynamic = "force-dynamic";
@@ -12,18 +13,15 @@ export default async function MockPayPage({ params }: Props) {
   const payment = await prisma.payment.findUnique({ where: { transactionId: tx }, include: { order: true } });
   if (!payment || !payment.authority.startsWith("mock_")) notFound();
 
-  async function approve() {
+  const gateway = payment.gateway;
+  async function decide(approved: boolean) {
     "use server";
-    const result = await mockPayDecisionAction(tx, true);
+    const result = await mockPayDecisionAction(tx, approved);
     if (!result.ok) throw new Error(result.message);
-    redirect(result.callback);
-  }
-
-  async function decline() {
-    "use server";
-    const result = await mockPayDecisionAction(tx, false);
-    if (!result.ok) throw new Error(result.message);
-    redirect(result.callback);
+    const outcome = await handleCallback(gateway, { tx, state: approved ? "OK" : "FAILED" });
+    if (!outcome) throw new Error("نتیجه پرداخت آزمایشی پیدا نشد.");
+    redirect(resultUrl({ number: outcome.orderNumber, accessKey: outcome.accessKey }) +
+      "&paid=" + Number(outcome.ok) + "&msg=" + encodeURIComponent(outcome.message));
   }
 
   return (
@@ -35,12 +33,12 @@ export default async function MockPayPage({ params }: Props) {
           سفارش {payment.order.number.toLocaleString("fa-IR")} — {formatToman(payment.amountRial)}
         </p>
         <div className="mt-8 grid gap-3">
-          <form action={approve}>
+          <form action={decide.bind(null, true)}>
             <button type="submit" className="btn btn-action btn-lg w-full">
               پرداخت موفق
             </button>
           </form>
-          <form action={decline}>
+          <form action={decide.bind(null, false)}>
             <button type="submit" className="btn btn-outline w-full">
               انصراف / ناموفق
             </button>

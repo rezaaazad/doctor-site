@@ -67,7 +67,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
       </div>
     );
   }
-  if (!signedIn && !guestCheckout) {
+  if (!signedIn && (!guestCheckout || lines.some(l=>l.host))) {
     return (
       <div className="card p-8 text-center">
         <p className="font-bold">برای تکمیل خرید وارد حساب کاربری شوید.</p>
@@ -162,7 +162,7 @@ export function CheckoutForm({ signedIn, customer, guestCheckout, termsUrl }: Pr
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="line-clamp-2 text-[0.82rem] font-bold">{line.title}</p>
-                  {line.addonTitles?.join("، ")} {line.variantTitle ? <p className="text-[0.75rem] text-muted">{line.variantTitle}</p> : null}
+                  {line.host && <bdi className="block" dir="ltr">{line.host}</bdi>}{line.addonTitles?.join("، ")} {line.variantTitle ? <p className="text-[0.75rem] text-muted">{line.variantTitle}</p> : null}
                   <p className="mt-1 text-[0.78rem] text-muted">× {formatNumber(line.quantity)}</p>
                 </div>
                 <Price value={lineTotal(line)} showPercent={false} size="sm" />
@@ -218,11 +218,12 @@ function Row({ label, value, bold, accent }: { label: string; value: string; bol
 
 function lineItem(line: CartLine) {
   return {
-    key: cartKey(line.productId,line.variantId,line.addonIds),
+    key: cartKey(line.productId,line.variantId,line.addonIds,line.host,line.renewalId),
     productId: line.productId,
     variantId: line.variantId,
     slug: line.slug,
     title: line.title,
+    host:line.host,
     addonTitles: line.addonTitles,
     variantTitle: line.variantTitle,
     image: line.image,
