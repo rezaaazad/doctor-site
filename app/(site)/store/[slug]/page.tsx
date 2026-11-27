@@ -17,7 +17,7 @@ import { Breadcrumbs } from "@/components/ui/bits";
 
 export const dynamic = "force-dynamic";
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = { searchParams:Promise<{renew?:string}>; params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   });
 }
 
-export default async function ProductPage({ params }: Props) {
+export default async function ProductPage({ params,searchParams }: Props) {
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
@@ -45,6 +45,9 @@ export default async function ProductPage({ params }: Props) {
       take: 30,
     }),
   ]);
+  const {renew}=await searchParams;
+  const renewal=renew && customer ? await prisma.pluginLicense.findFirst({where:{id:renew,customerId:customer.id,productId:product.id,blocked:""},select:{id:true,host:true,variantId:true}}):null;
+  if(renew && !renewal) notFound();
   const wished = customer
     ? !!(await prisma.wishlistItem
         .findUnique({ where: { customerId_productId: { customerId: customer.id, productId: product.id } } })
@@ -64,7 +67,7 @@ export default async function ProductPage({ params }: Props) {
           { label: product.title },
         ]}
       />
-      <ProductBuy product={product} wished={wished} guarantee={String(options.store.guaranteeText || "")} />
+      <ProductBuy renewal={renewal || undefined} product={product} wished={wished} guarantee={String(options.store.guaranteeText || "")} />
       <JsonLd
         data={{
           "@context": "https://schema.org",

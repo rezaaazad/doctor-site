@@ -60,7 +60,7 @@ vi.mock("@/lib/db", () => ({
   },
 }));
 vi.mock("@/lib/options", () => ({ getGroup: async (id: string) => state.options[id] ?? {} }));
-vi.mock("@/lib/store/orders", () => ({ markOrderPaid: vi.fn(), addOrderNote: vi.fn(), reduceStockOnce: vi.fn() }));
+vi.mock("@/lib/store/orders", () => ({ markOrderPaid: vi.fn(async (_orderId, info) => { if (info.receipt) Object.assign(state.payments.get(info.paymentId)!, info.receipt); return true; }), addOrderNote: vi.fn(), reduceStockOnce: vi.fn() }));
 vi.mock("@/lib/messaging/notify", () => ({ defer: vi.fn(), notifyOrderPaid: vi.fn(), notifyOrderStatus: vi.fn() }));
 
 import { handleCallback, recordMockDecision } from "@/lib/payments";

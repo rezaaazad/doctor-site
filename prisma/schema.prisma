@@ -431,6 +431,7 @@ model StoreCategory {
 }
 
 model StoreProduct {
+  licensedPlugin Boolean @default(false)
   turnaroundLabel String @default("")
   addons Json @default("[]")
   briefSchema Json @default("[]")
@@ -490,6 +491,8 @@ model StoreProduct {
 }
 
 model ProductVariant {
+  pluginTier String @default("")
+  pluginDays Int @default(365)
   id            String       @id @default(cuid())
   productId     String
   product       StoreProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -759,6 +762,14 @@ model Order {
 }
 
 model OrderItem {
+  licenseHost String @default("")
+  licenseTier String @default("")
+  licenseDays Int @default(0)
+  licenseProductId String @default("")
+  licenseVariantId String @default("")
+  licenseVersion String @default("")
+  renewalId String @default("")
+  licensePurchase LicensePurchase?
   addons Json @default("[]")
   id           String          @id @default(cuid())
   orderId      String
@@ -838,4 +849,50 @@ model DownloadGrant {
   createdAt   DateTime  @default(now())
 
   @@index([orderId])
+}
+
+model PluginLicense {
+  id String @id @default(cuid())
+  customerId String
+  productId String
+  variantId String
+  title String
+  host String
+  tier String
+  version String
+  startsAt DateTime
+  expiresAt DateTime
+  blocked String @default("")
+  state String @default("pending")
+  attempts Int @default(0)
+  nextAttempt DateTime @default(now())
+  lease String @default("")
+  artifact String @default("")
+  checksum String @default("")
+  builtAt DateTime?
+  downloads Int @default(0)
+  error String @default("")
+  purchases LicensePurchase[]
+  events LicenseEvent[]
+  @@index([customerId])
+  @@index([state,nextAttempt])
+}
+
+model LicensePurchase {
+  itemId String @id
+  item OrderItem @relation(fields:[itemId], references:[id], onDelete: Restrict)
+  licenseId String
+  license PluginLicense @relation(fields:[licenseId], references:[id])
+  expiresAt DateTime
+  paidAt DateTime
+  @@index([licenseId])
+}
+
+model LicenseEvent {
+  id String @id @default(cuid())
+  licenseId String
+  license PluginLicense @relation(fields:[licenseId], references:[id])
+  body String
+  createdAt DateTime @default(now())
+  @@index([licenseId,createdAt])
 }

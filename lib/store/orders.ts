@@ -1,3 +1,4 @@
+import {enqueuePaidLicenses} from "@/lib/licenses/paid";
 import { randomBytes } from "crypto";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -40,7 +41,7 @@ export async function restockOnce(orderId: string, tx: Tx) {
 
 async function grantDownloads(tx: Tx, orderId: string) {
   const items = await tx.orderItem.findMany({
-    where: { orderId, type: "digital" },
+    where: { orderId, type: "digital", licenseTier:"" },
     include: { product: { select: { downloadUrl: true, downloadMedia: true, downloadLimit: true, downloadDays: true } }, downloads: true },
   });
   for (const item of items) {
@@ -62,16 +63,21 @@ async function grantDownloads(tx: Tx, orderId: string) {
  * Marks an order as paid exactly once. Safe to call repeatedly from callbacks, webhooks and admin.
  * Returns true only for the call that performed the transition.
  */
-export async function markOrderPaid(orderId: string, info: { gateway: string; paymentId?: string; note?: string }) {
+export async function markOrderPaid(orderId: string, info: { gateway: string; paymentId?: string; receipt?: Prisma.PaymentUpdateInput; note?: string }) {
   const done = await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true } });
     if (!order) throw new RequestError("سفارش پیدا نشد.");
+    if (info.paymentId && info.receipt) {
+      await tx.payment.update({ where: { id: info.paymentId, orderId }, data: info.receipt });
+    }
+    const paidAt=new Date();
     const claimed = await tx.order.updateMany({
       where: { id: orderId, paymentStatus: "unpaid" },
-      data: { paymentStatus: "paid", paidAt: new Date(), gateway: info.gateway },
+      data: { paymentStatus: "paid", paidAt, gateway: info.gateway },
     });
     if (!claimed.count) return false;
     await reduceStockOnce(orderId, tx);
+    await enqueuePaidLicenses(tx,order,paidAt);
     await grantDownloads(tx, orderId);
     const allDigital = order.items.every((item) => item.type === "digital");
     await tx.order.update({

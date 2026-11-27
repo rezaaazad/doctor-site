@@ -12,3 +12,5 @@ coverage
 *.md
 !README.md
 scripts/dev
+
+/private/

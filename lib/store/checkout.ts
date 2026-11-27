@@ -1,3 +1,4 @@
+import {licenseHost,tiers,releaseVersion} from "@/lib/licenses/domain";
 import { cartKey } from "./addons";
 import type { Customer } from "@prisma/client";
 import { prisma } from "@/lib/db";
@@ -9,9 +10,10 @@ import { availableGateways, type GatewayId, type GatewayOption } from "@/lib/pay
 import { newAccessKey } from "@/lib/store/orders";
 import { priceOrder, shippingMethodsForProvince, type PricingCoupon, type PricingLineInput, type PricingResult, type PricingShippingMethod } from "@/lib/store/pricing";
 
-export type CartLineInput = { addonIds?: string[]; productId: string; variantId?: string | null; quantity: number };
+export type CartLineInput = { host?:string; renewalId?:string; addonIds?: string[]; productId: string; variantId?: string | null; quantity: number };
 
 export type CartLineView = {
+  host?:string; renewalId?:string; licenseTier?:string; licenseDays?:number;
   addonTitles?: string[];
   key: string;
   productId: string;
@@ -65,9 +67,11 @@ export function sanitizeLines(raw: unknown): CartLineInput[] {
     const quantity = Math.min(99, Math.max(1, Math.floor(Number(row.quantity) || 1)));
     if (!productId) continue;
     const addonIds = Array.isArray(row.addonIds) ? [...new Set(row.addonIds.filter((id): id is string => typeof id === "string"))].sort() : [];
-    const key = cartKey(productId, variantId, addonIds);
+    const host=typeof row.host==="string"?licenseHost(row.host):"";
+    const renewalId=typeof row.renewalId==="string"?row.renewalId.slice(0,40):"";
+    const key = cartKey(productId, variantId, addonIds,host,renewalId);
     const prev = map.get(key);
-    map.set(key, { addonIds, productId, variantId, quantity: Math.min(99, (prev?.quantity ?? 0) + quantity) });
+    map.set(key, { host,renewalId,addonIds, productId, variantId, quantity: Math.min(99, (prev?.quantity ?? 0) + quantity) });
   }
   return [...map.values()];
 }
@@ -96,6 +100,8 @@ async function loadLines(inputs: CartLineInput[]) {
       missing.push(input.productId);
       continue;
     }
+    const host=product.licensedPlugin?licenseHost(input.host || ""):"";
+    if ((product.licensedPlugin && (product.type!=="digital" || !host || input.quantity!==1 || !tiers.some(t=>t===variant?.pluginTier) || !variant || variant.pluginDays<1)) || (!product.licensedPlugin && (input.host || input.renewalId))) {missing.push(product.id); continue;}
     const images = asStringArray(product.images);
     const stock = variant ? variant.stock : product.stock;
     const cap = product.manageStock && !product.allowBackorder ? Math.max(0, stock) : 99;
@@ -120,7 +126,8 @@ async function loadLines(inputs: CartLineInput[]) {
       variant: variant ? { id: variant.id, title: variant.title, priceRial: variant.priceRial, stock: variant.stock, active: variant.active, sku: variant.sku } : null,
       quantity: input.quantity,
       view: {
-        key: cartKey(product.id, variant?.id, input.addonIds),
+        key: cartKey(product.id, variant?.id, input.addonIds,host,input.renewalId),
+        host,renewalId:input.renewalId,licenseTier:host?variant?.pluginTier:"",licenseDays:host?variant?.pluginDays:0,
         productId: product.id,
         variantId: variant?.id ?? null,
         slug: product.slug,
@@ -288,6 +295,10 @@ export async function createOrder(input: PlaceOrderInput) {
   if (quote.missing.length) throw new RequestError("بعضی از کالاهای سبد دیگر موجود نیستند. سبد را بازبینی کنید.");
   if (pricing.errors.length) throw new RequestError(pricing.errors[0]);
   if (input.couponCode && pricing.couponError) throw new RequestError(pricing.couponError);
+  for (const line of quote.lines.filter(l=>l.licenseTier)) {
+    if (!input.customer) throw new RequestError("برای دریافت لایسنس ابتدا وارد حساب کاربری خود شوید.");
+    if (line.renewalId && !await prisma.pluginLicense.findFirst({where:{id:line.renewalId,customerId:input.customer.id,productId:line.productId,variantId:line.variantId!,tier:line.licenseTier,host:line.host,blocked:"",purchases:{every:{item:{order:{paymentStatus:"paid",status:{notIn:["cancelled","refunded"]}}}}}}})) throw new RequestError("این مجوز قابل تمدید نیست.");
+  }
   const hasDigital = quote.lines.some((line) => line.type === "digital");
   if (hasDigital && store.requireLoginForDigital && !input.customer) throw new RequestError("برای خرید محصول دیجیتال وارد حساب شوید تا فایل‌ها همیشه در دسترس باشند.");
   if (quote.needsShipping) {
@@ -325,7 +336,10 @@ export async function createOrder(input: PlaceOrderInput) {
       customerNote: (input.note ?? "").trim().slice(0, 1000),
       ip: input.ip,
       items: {
-        create: pricing.lines.map((line) => ({
+        create: pricing.lines.map((line,index) => ({
+          licenseProductId: quote.lines[index].licenseTier ? line.productId : "",
+          licenseVariantId: quote.lines[index].licenseTier ? line.variantId || "" : "",
+          licenseHost:quote.lines[index].host,licenseTier:quote.lines[index].licenseTier,licenseDays:quote.lines[index].licenseDays,licenseVersion:quote.lines[index].licenseTier?releaseVersion:"",renewalId:quote.lines[index].renewalId,
           productId: line.productId,
           variantId: line.variantId,
           title: line.title,

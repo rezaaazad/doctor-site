@@ -156,6 +156,7 @@ export async function productOperation(
     const copy = await prisma.storeProduct.create({
       data: {
         ...data,
+        licensedPlugin: false,
         id: undefined,
         code: undefined,
         createdAt: undefined,

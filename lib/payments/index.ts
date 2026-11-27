@@ -1,5 +1,5 @@
 import { randomBytes } from "crypto";
-import type { Order, OrderItem, Payment } from "@prisma/client";
+import type { Order, OrderItem, Payment, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { UpstreamError } from "@/lib/http";
 import { getGroup } from "@/lib/options";
@@ -247,7 +247,14 @@ export async function handleCallback(gateway: string, params: Record<string, str
   if (!ONLINE_GATEWAYS.includes(gateway as GatewayId)) return null;
   const payment = await findPayment(gateway, params);
   if (!payment) return null;
-  if (["verified", "settled"].includes(payment.status)) return outcome(payment, true, "پرداخت قبلاً تأیید شده است.");
+  if (["verified", "settled"].includes(payment.status)) {
+    if (payment.order.paymentStatus === "unpaid") {
+      if (payment.status === "verified" && CREDIT_GATEWAYS.includes(gateway as CreditGatewayId) && (await creditConfig(gateway as CreditGatewayId)).settle)
+        return outcome(payment, false, "پرداخت در انتظار تسویه است.");
+      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id });
+    }
+    return outcome(payment, true, "پرداخت قبلاً تأیید شده است.");
+  }
   if (payment.status === "failed" || payment.status === "cancelled") return outcome(payment, false, payment.message || "پرداخت ناموفق بود.");
 
   const claimed = await prisma.payment.updateMany({ where: { id: payment.id, status: { in: ["initiated", "redirected"] } }, data: { status: "verifying" } });
@@ -266,8 +273,7 @@ export async function handleCallback(gateway: string, params: Record<string, str
       const client = new ZarinpalClient({ merchantId: String(cfg.merchantId || ""), sandbox: payment.sandbox });
       const res = await client.verify({ amountRial: Number(payment.amountRial), authority: payment.authority });
       if (!res.ok) return await failPayment(payment, res.message, res.raw);
-      await prisma.payment.update({ where: { id: payment.id }, data: { status: "verified", refId: res.refId, cardPan: res.cardPan, message: "OK", raw: { ...asObject(payment.raw), verify: res.raw } as object } });
-      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, note: `پرداخت زرین‌پال تأیید شد. کد پیگیری: ${res.refId}` });
+      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, receipt: { status: "verified", refId: res.refId, cardPan: res.cardPan, message: "OK", raw: { ...asObject(payment.raw), verify: res.raw } as object }, note: `پرداخت زرین‌پال تأیید شد. کد پیگیری: ${res.refId}` });
       return outcome(payment, true, "پرداخت با موفقیت انجام شد.");
     }
 
@@ -278,8 +284,7 @@ export async function handleCallback(gateway: string, params: Record<string, str
       if (cfg.mode === "mock" || payment.authority.startsWith("mock_")) {
         const approved = asObject(payment.raw).mock === "approved";
         if (!approved) return await failPayment(payment, "پرداخت آزمایشی تأیید نشد.", params);
-        await prisma.payment.update({ where: { id: payment.id }, data: { status: "settled", refId: `MOCK-${payment.transactionId}`, message: "mock settled" } });
-        await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, note: `پرداخت آزمایشی ${gateway} تأیید و تسویه شد.` });
+        await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, receipt: { status: "settled", refId: `MOCK-${payment.transactionId}`, message: "mock settled" }, note: `پرداخت آزمایشی ${gateway} تأیید و تسویه شد.` });
         return outcome(payment, true, "پرداخت آزمایشی موفق بود.");
       }
       const client = new CreditClient(cfg);
@@ -287,25 +292,25 @@ export async function handleCallback(gateway: string, params: Record<string, str
       if (verified.transactionId && verified.transactionId !== payment.transactionId) {
         return await failPayment(payment, "شناسه تراکنش برگشتی با سفارش یکسان نیست.", verified.raw);
       }
-      await prisma.payment.update({ where: { id: payment.id }, data: { status: "verified", refId: verified.transactionId, raw: { ...asObject(payment.raw), verify: verified.raw } as object } });
+      let receipt: Prisma.PaymentUpdateInput = { status: "verified", refId: verified.transactionId, raw: { ...asObject(payment.raw), verify: verified.raw } as object };
       if (cfg.settle) {
+        await prisma.payment.update({where:{id:payment.id},data:receipt});
         try {
           const settled = await client.settle(payment.authority);
-          await prisma.payment.update({ where: { id: payment.id }, data: { status: "settled", message: "settled", raw: { ...asObject(payment.raw), verify: verified.raw, settle: settled.raw } as object } });
+          receipt = { ...receipt, status: "settled", message: "settled", raw: { ...asObject(payment.raw), verify: verified.raw, settle: settled.raw } as object };
         } catch (error) {
           await addOrderNote(payment.orderId, `Verify موفق بود ولی Settle انجام نشد (${(error as Error).message}). از صفحه سفارش دوباره Settle بزنید.`);
           return outcome(payment, false, "پرداخت تأیید شد ولی نهایی نشد. همکاران ما در کمتر از چند دقیقه پیگیری می‌کنند.");
         }
       }
-      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, note: `پرداخت اقساطی ${gateway === "snapppay" ? "اسنپ‌پی" : "ترب‌پی"} تأیید شد.` });
+      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, receipt, note: `پرداخت اقساطی ${gateway === "snapppay" ? "اسنپ‌پی" : "ترب‌پی"} تأیید شد.` });
       return outcome(payment, true, "خرید اقساطی شما با موفقیت ثبت شد.");
     }
 
     if (gateway === "mock") {
       const approved = asObject(payment.raw).mock === "approved";
       if (!approved) return await failPayment(payment, "پرداخت آزمایشی لغو شد.", params);
-      await prisma.payment.update({ where: { id: payment.id }, data: { status: "verified", refId: `MOCK-${payment.transactionId}`, message: "mock" } });
-      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, note: "پرداخت با درگاه آزمایشی تأیید شد." });
+      await markOrderPaid(payment.orderId, { gateway, paymentId: payment.id, receipt: { status: "verified", refId: `MOCK-${payment.transactionId}`, message: "mock" }, note: "پرداخت با درگاه آزمایشی تأیید شد." });
       return outcome(payment, true, "پرداخت آزمایشی موفق بود.");
     }
     return null;
@@ -334,8 +339,8 @@ export async function adminPaymentOp(paymentId: string, op: AdminPaymentOp) {
   const gateway = payment.gateway as CreditGatewayId;
   if (payment.authority.startsWith("mock_")) {
     const statusMap: Record<AdminPaymentOp, string> = { settle: "settled", revert: "reverted", cancel: "cancelled", status: payment.status };
-    await prisma.payment.update({ where: { id: payment.id }, data: { status: statusMap[op] } });
-    if (op === "settle") await markOrderPaid(payment.orderId, { gateway, paymentId });
+    if (op === "settle") await markOrderPaid(payment.orderId, { gateway, paymentId, receipt: { status: "settled" } });
+    else await prisma.payment.update({ where: { id: payment.id }, data: { status: statusMap[op] } });
     return `حالت آزمایشی: ${op} انجام شد.`;
   }
   const client = await creditClient(gateway);
@@ -347,8 +352,7 @@ export async function adminPaymentOp(paymentId: string, op: AdminPaymentOp) {
     }
     if (op === "settle") {
       const res = await client.settle(payment.authority);
-      await prisma.payment.update({ where: { id: payment.id }, data: { status: "settled", raw: { ...asObject(payment.raw), settle: res.raw } as object } });
-      await markOrderPaid(payment.orderId, { gateway, paymentId, note: "Settle دستی از پنل مدیریت انجام شد." });
+      await markOrderPaid(payment.orderId, { gateway, paymentId, receipt: {status:"settled", raw:{ ...asObject(payment.raw), settle:res.raw } as object}, note: "Settle دستی از پنل مدیریت انجام شد." });
       return "Settle انجام شد.";
     }
     if (op === "revert") {

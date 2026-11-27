@@ -68,7 +68,7 @@ export function CartDrawer() {
           ) : (
             <ul className="divide-y divide-line">
               {lines.map((line) => (
-                <li key={JSON.stringify([line.productId,line.variantId,line.addonIds])} className="flex gap-3 py-4">
+                <li key={JSON.stringify([line.productId,line.variantId,line.addonIds,line.host,line.renewalId])} className="flex gap-3 py-4">
                   <Link href={`/store/${line.slug}`} onClick={() => setOpen(false)}>
                     <LineThumb line={line} className="size-[76px]" />
                   </Link>
@@ -76,9 +76,9 @@ export function CartDrawer() {
                     <Link href={`/store/${line.slug}`} onClick={() => setOpen(false)} className="line-clamp-2 text-[0.9rem] leading-6 font-bold">
                       {line.title}
                     </Link>
-                    {line.addonTitles?.join("، ")} {line.variantTitle ? <span className="text-[0.75rem] text-muted">{line.variantTitle}</span> : null}
+                    {line.host && <bdi className="block" dir="ltr">{line.host}</bdi>}{line.addonTitles?.join("، ")} {line.variantTitle ? <span className="text-[0.75rem] text-muted">{line.variantTitle}</span> : null}
                     <div className="mt-auto flex items-center justify-between gap-2">
-                      <QuantityStepper size="sm" value={line.quantity} max={line.max || 99} onChange={(q) => setQuantity(line.productId, line.variantId, q, line.addonIds)} />
+                      <QuantityStepper size="sm" value={line.quantity} max={line.max || 99} onChange={(q) => setQuantity(line.productId, line.variantId, q, line.addonIds,line.host,line.renewalId)} />
                       <Price value={line.price * line.quantity} size="sm" />
                     </div>
                   </div>
